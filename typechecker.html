@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>STLC-Typechecker</title>
+  <script src="elm.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div id="stlcTypechecker"></div>
+  <script>
+    var app = Elm.Main.init({
+      flags: location.href,
+      node: document.getElementById('stlcTypechecker')
+    });
+
+    // Inform app of browser navigation (the BACK and FORWARD buttons)
+    window.addEventListener('popstate', function () {
+      app.ports.onUrlChange.send(location.href);
+    });
+
+    // Change the URL upon request, inform app of the change.
+    app.ports.pushUrl.subscribe(function (url) {
+      history.pushState({}, '', url);
+      app.ports.onUrlChange.send(location.href);
+    });
+  </script>
+</body>
+
+</html>

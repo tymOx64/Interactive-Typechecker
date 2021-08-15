@@ -1,0 +1,162 @@
+* {
+	font-family: Monaco, monospace;
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	height: 100%;
+}
+
+.dark-mode {
+	/* filter: invert(100%) !important; /**/
+}
+
+/* ------------------------------------ Layout ------------------------------------ */
+
+.flex-container {
+	display: flex;
+	background-color: #ffebcc;
+	height: 100%;
+}
+
+.tree {
+	margin: auto;
+    white-space: pre;
+	text-align: center;
+}
+
+.menu {
+	display: flex;
+	flex-direction: column;
+	background-color: #dae1da;
+	width: 250px;
+	padding: 19px;
+	border-left-style: ridge;
+	border-width: 3px;
+}
+
+/* ------------------------------------ RuleTree ------------------------------------ */
+
+.leftSide {
+	display: inline-block;
+}
+
+.rightSide {
+	display: inline-block;
+	/* float: right;
+	margin: auto; */
+}
+
+.line {
+	height: 1.3px;
+	width: inherit;
+	margin-bottom: 4px;
+	background-color: black;
+}
+
+.rule {
+	/* border-bottom: 1px solid black; */
+	padding: 5px;
+}
+    
+.overline {
+  /* border-top: 1px solid red; */
+}
+
+.conclusion {
+	padding: 2px;
+}
+
+div.conclusion:hover {
+	border-style: solid;
+	border-radius: 7px;
+}
+
+.conclusion--selected {
+	background-color:rgb(226, 209, 226);
+	border-radius: 7px;
+}
+
+.hole {
+	padding: 2px;
+}
+
+div.hole:hover {
+	font-size: 130%;
+}
+
+.ruletree-text-highlight {
+	color: red;
+}
+
+/* ------------------------------------ User Controls ------------------------------------ */
+
+.menu__meta-variable-input-block {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.menu__meta-variable-input-block input {
+	flex-grow: 1;
+}
+
+label {
+	font-family: Georgia, Serif;
+	width: 20%;
+	font-size: 110%;
+	display: block;
+	text-align: center;
+	margin: 1px 0px 1px 5px;
+}
+
+.capitalLetterLabel {
+	font-size: 98%;
+	height: 17px;
+	padding-top: 1.5px;
+	padding-bottom: 1.5px;
+}
+
+input {
+	display: block;
+}
+
+form > div {
+	padding: 3px;
+}
+
+.menuRule {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	padding: 15px;
+}
+
+.menuRule--selected {
+	background-color: rgb(199, 194, 216);
+	border-radius: 10px;	
+}
+
+.menuRule:hover {
+	border-style: solid;
+	border-width: 2px; /* border-width vergrößert das div um 2px -> */
+	padding: 13px;     /* -> padding um 2px reduzieren */
+	border-radius: 10px;
+}
+
+.menuLine {
+	text-align: center;
+	white-space: pre;
+	line-height: 80%;
+}
+
+.menuText {
+	font-family: Georgia, Serif;
+	text-align: center;
+	white-space: pre;
+}
+
+/* ------------------------------------ ... ------------------------------------ */
