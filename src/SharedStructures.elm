@@ -88,7 +88,7 @@ type RuleTree
    | TypingAssumptionFull Var
    | TypingAssumptionJustVar Var
    | TypingAssumptionJustType Var
-   | TypingRelation
+   | TermAndType
    | FullTerm
    | AbsXVar
    | MTerm
@@ -101,7 +101,7 @@ type RuleTree
 
 type APointer nodeId contPointer termPointer typePointer
     = FullNode nodeId
-    | TypingRelation nodeId
+    | TermAndType nodeId
     | ContPointer nodeId contPointer
     | TermPointer nodeId termPointer
     | TypePointer nodeId typePointer
@@ -151,8 +151,8 @@ fmapPointer nodeIdFunc contPointerFunc termPointerFunc typePointerFunc aPointer 
         FullNode nodeId ->
             FullNode (nodeIdFunc nodeId)
 
-        TypingRelation nodeId ->
-            TypingRelation (nodeIdFunc nodeId)
+        TermAndType nodeId ->
+            TermAndType (nodeIdFunc nodeId)
 
         ContPointer nodeId contPointer ->
             ContPointer (nodeIdFunc nodeId) (contPointerFunc contPointer)
@@ -219,7 +219,7 @@ getNodeIdFromPointer aPointer =
         FullNode nodeId ->
             nodeId
 
-        TypingRelation nodeId ->
+        TermAndType nodeId ->
             nodeId
 
         ContPointer nodeId _ ->

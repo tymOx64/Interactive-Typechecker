@@ -91,19 +91,14 @@ showUrlQuery query urlAsString =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        {- _ =
-           Debug.log "fixUrl" <| fixUrl "file:///D:/0-Drive/Backups/vscode%20project%20-%20typechecker/typechecker.html?prooftree=_AP_{}(%CE%BBw.z)?_AP_{}(%CE%BBw.y)?_AP_{}(%CE%BBw.x)?_AB_{}x?_U_{}z?_U_{}z?_AP_{}(%CE%BBz.y)?_V_{}x?_V_{}x?_AP_{}(%CE%BBx.x)?_AP_{}(%CE%BBw.y)?_U_{}z?_AB_{}x?_AB_{}x?_U_{}z?_V_{}w?"
-        -}
-        _ =
-            Debug.log "crossOrigin" <| getUrlWithProoftree model.ruleTree
+    {- let
+           _ =
+               Debug.log "crossOrigin" <| getUrlWithProoftree model.ruleTree
 
-        {- _ =
-           Debug.log "Current RuleTree" model.ruleTree
-        -}
-        _ =
-            Debug.log "Currently selected RuleTree" <| getRuleTreeNode model.ruleTree model.selectedNodeId
-    in
+           _ =
+               Debug.log "Currently selected RuleTree" <| getRuleTreeNode model.ruleTree model.selectedNodeId
+       in
+    -}
     case msg of
         Gamma str ->
             ( { model | gammaInput = str }, Cmd.none )
@@ -147,10 +142,6 @@ update msg model =
             )
 
         ResetTreeNode nodeId ->
-            let
-                _ =
-                    Debug.log "reset with nodeId" nodeId
-            in
             ( { model | ruleTree = resetRuleTreeNode model.ruleTree nodeId }
                 |> adjustMenuStateToSelectedRuleTree
             , pushUrl <| localPath ++ encodeRuleTreeAsString (resetRuleTreeNode model.ruleTree nodeId)
@@ -178,10 +169,11 @@ update msg model =
             )
 
         UrlChanged str ->
-            let
-                _ =
-                    Debug.log "UrlChangedMsg str: " str
-            in
+            {- let
+                   _ =
+                       Debug.log "UrlChangedMsg str: " str
+               in
+            -}
             ( model, Cmd.none )
 
         NoOperation ->

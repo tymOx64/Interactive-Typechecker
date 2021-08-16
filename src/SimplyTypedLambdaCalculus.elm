@@ -116,11 +116,11 @@ getConflictsInRuleTree ruleTree nodeId =
     case ruleTree of
         RVar context (Var var) typ _ ->
             appendIfConditionHolds
-                (typingRelationConflictsExistingTypingAssumption var typ context)
-                [ [ ContPointer nodeId (FullAssump var), TypingRelation nodeId ] ]
+                (termAndTypeConflictsExistingTypingAssumption var typ context)
+                [ [ ContPointer nodeId (FullAssump var), TermAndType nodeId ] ]
                 ++ appendIfConditionHolds
-                    (typingRelationMissesTypingAssumption var context)
-                    [ [ ContPointer nodeId FullContext, TypingRelation nodeId ] ]
+                    (termAndTypeMissesTypingAssumption var context)
+                    [ [ ContPointer nodeId FullContext, TermAndType nodeId ] ]
 
         RVar _ _ _ _ ->
             [ [ TermPointer nodeId FullTerm ] ]
@@ -159,7 +159,7 @@ getConflictsInRuleTree ruleTree nodeId =
             in
             appendIfConditionHolds
                 sigmaIsConflicting
-                [ [ TypePointer nodeId ArrLeft, ContPointer (nodeId ++ [ 0 ]) (FullAssump var) ] ]
+                [ [ TypePointer nodeId ArrLeft, ContPointer (nodeId ++ [ 0 ]) FullContext ] ]
                 ++ appendIfConditionHolds
                     tauIsConflicting
                     [ [ TypePointer nodeId ArrRight, TypePointer (nodeId ++ [ 0 ]) FullType ] ]
@@ -224,6 +224,8 @@ getConflictsInRuleTree ruleTree nodeId =
                 ++ appendIfConditionHolds
                     upperSigmaIsConflicting
                     [ [ TypePointer (nodeId ++ [ 0 ]) ArrLeft, TypePointer (nodeId ++ [ 1 ]) FullType ] ]
+                ++ getConflictsInRuleTree nextRuleTree1 (nodeId ++ [ 0 ])
+                ++ getConflictsInRuleTree nextRuleTree2 (nodeId ++ [ 1 ])
 
         RApp _ _ _ _ _ ->
             [ [ TermPointer nodeId AppLeft ] ]
@@ -255,8 +257,8 @@ contextsAreEqual (Context dict1) (Context dict2) =
     Dict.union dict1 dict2 |> (==) dict2
 
 
-typingRelationMissesTypingAssumption : Var -> SContext -> Bool
-typingRelationMissesTypingAssumption var (Context dict) =
+termAndTypeMissesTypingAssumption : Var -> SContext -> Bool
+termAndTypeMissesTypingAssumption var (Context dict) =
     Dict.foldl
         (\varFromContext _ typingAssumptionIsMissing ->
             if typingAssumptionIsMissing then
@@ -269,8 +271,8 @@ typingRelationMissesTypingAssumption var (Context dict) =
         dict
 
 
-{-| Checks for `RVar` rules if the typing relation conflicts
-with an existing typing assumption.
+{-| Checks for `RVar` rules if the variable and its type conflict
+with an existing typing assumption in the context.
 Calling this function on the following rules would return:
 
         x:α, y:β ⊢ x:γ => True
@@ -278,11 +280,11 @@ Calling this function on the following rules would return:
         y:β ⊢ x:γ => False
 
 As the last example shows the function always returns `False` if the according
-typing assumption is missing. If you need that use `typingRelationMissesTypingAssumption`.
+typing assumption is missing. If you need to check for that, use `termAndTypeMissesTypingAssumption`.
 
 -}
-typingRelationConflictsExistingTypingAssumption : Var -> SType -> SContext -> Bool
-typingRelationConflictsExistingTypingAssumption var typ (Context dict) =
+termAndTypeConflictsExistingTypingAssumption : Var -> SType -> SContext -> Bool
+termAndTypeConflictsExistingTypingAssumption var typ (Context dict) =
     Dict.foldl
         (\varFromContext typFromContext conflictFound ->
             if conflictFound then
@@ -642,15 +644,18 @@ appendnextRuleTree oldRuleTree newRuleTree =
 
 
 viewContext :
-    AContextHandler var typ
-    -> AContext var typ
-    -> List (APointer () (AContPointer var) termPointer typePointer)
+    AContextHandler comparable typ
+    -> AContext comparable typ
+    -> List (APointer () (AContPointer comparable) termPointer typePointer)
     -> List (Html Msg)
 viewContext contextHandler (Context dict) conflictPointers =
     let
+        highlightFullNode =
+            List.member (FullNode ()) conflictPointers
+
         highlightFullContext =
             List.member (ContPointer () FullContext) conflictPointers
-                || List.member (FullNode ()) conflictPointers
+                || highlightFullNode
 
         highlightVar var =
             highlightFullContext
@@ -682,11 +687,16 @@ viewContext contextHandler (Context dict) conflictPointers =
         dict
         |> List.intersperse (span [ classList [ ( "ruletree-text-highlight", highlightFullContext ) ] ] [ text ", " ])
         |> (\list ->
-                if List.length list == 0 then
-                    [ span [ classList [ ( "ruletree-text-highlight", highlightFullContext ) ] ] [ text "⊢ " ] ]
+                if List.length list == 0 && not highlightFullContext then
+                    [ span [ classList [ ( "ruletree-text-highlight", highlightFullNode ) ] ] [ text "⊢ " ] ]
+
+                else if List.length list == 0 then
+                    [ span [ classList [ ( "ruletree-text-highlight", True ) ] ] [ text "<?>" ]
+                    , span [] [ text " ⊢ " ]
+                    ]
 
                 else
-                    list ++ [ span [ classList [ ( "ruletree-text-highlight", highlightFullContext ) ] ] [ text " ⊢ " ] ]
+                    list ++ [ span [ classList [ ( "ruletree-text-highlight", highlightFullNode ) ] ] [ text " ⊢ " ] ]
            )
 
 
@@ -699,7 +709,7 @@ viewTerm term conflictElementsRaw =
         highlightFullTerm =
             List.member (TermPointer () FullTerm) conflictElements
                 || List.member (FullNode ()) conflictElements
-                || List.member (TypingRelation ()) conflictElements
+                || List.member (TermAndType ()) conflictElements
     in
     if highlightFullTerm then
         [ span [ class "ruletree-text-highlight" ] [ text <| showTerm term ] ]
@@ -785,7 +795,7 @@ viewRuleContent context term typ pointersToHighlightRaw =
             discardNodeIds pointersToHighlightRaw
 
         highlightColon =
-            List.member (FullNode ()) pointersToHighlight || List.member (TypingRelation ()) pointersToHighlight
+            List.member (FullNode ()) pointersToHighlight || List.member (TermAndType ()) pointersToHighlight
     in
     viewContext stlcContextHandler context pointersToHighlight
         ++ viewTerm term pointersToHighlight
@@ -795,7 +805,7 @@ viewRuleContent context term typ pointersToHighlightRaw =
 
 stlcContextHandler : AContextHandler Var (Type Char)
 stlcContextHandler =
-    Shared.AContextHandler showVar showType
+    AContextHandler showVar showType
 
 
 addTypingAssumptionToContext : Var -> SType -> SContext -> SContext
@@ -926,6 +936,19 @@ createRuleTree context term typ =
 
         App _ _ ->
             RApp context term typ Hole Hole
+
+
+determineCorrespondingRule : Term -> MenuState
+determineCorrespondingRule term =
+    case term of
+        Var _ ->
+            VarRule
+
+        Abs _ _ ->
+            AbsRule
+
+        App _ _ ->
+            AppRule
 
 
 {-| special RuleTree just for internal auxialiary purposes

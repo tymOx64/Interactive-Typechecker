@@ -8322,52 +8322,7 @@ var $author$project$SimplyTypedLambdaCalculus$getNodeIdForArrowUpKeyEvent = F2(
 			_List_fromArray(
 				[0])) : A2(firstMatch, leftPartAndRightPart, true);
 	});
-var $elm$url$Url$Builder$toQueryPair = function (_v0) {
-	var key = _v0.a;
-	var value = _v0.b;
-	return key + ('=' + value);
-};
-var $elm$url$Url$Builder$toQuery = function (parameters) {
-	if (!parameters.b) {
-		return '';
-	} else {
-		return '?' + A2(
-			$elm$core$String$join,
-			'&',
-			A2($elm$core$List$map, $elm$url$Url$Builder$toQueryPair, parameters));
-	}
-};
-var $elm$url$Url$Builder$crossOrigin = F3(
-	function (prePath, pathSegments, parameters) {
-		return prePath + ('/' + (A2($elm$core$String$join, '/', pathSegments) + $elm$url$Url$Builder$toQuery(parameters)));
-	});
-var $elm$url$Url$Builder$QueryParameter = F2(
-	function (a, b) {
-		return {$: 'QueryParameter', a: a, b: b};
-	});
-var $elm$url$Url$percentEncode = _Url_percentEncode;
-var $elm$url$Url$Builder$string = F2(
-	function (key, value) {
-		return A2(
-			$elm$url$Url$Builder$QueryParameter,
-			$elm$url$Url$percentEncode(key),
-			$elm$url$Url$percentEncode(value));
-	});
-var $author$project$Main$getUrlWithProoftree = function (ruleTree) {
-	return A3(
-		$elm$url$Url$Builder$crossOrigin,
-		'https://www.whatever.de',
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				$elm$url$Url$Builder$string,
-				'prooftree',
-				$author$project$SimplyTypedLambdaCalculus$encodeRuleTreeAsString(ruleTree))
-			]));
-};
 var $author$project$Main$localPath = 'file:///D:/0-Drive/Backups/vscode%20project%20-%20typechecker/typechecker.html?prooftree=';
-var $elm$core$Debug$log = _Debug_log;
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$pushUrl = _Platform_outgoingPort('pushUrl', $elm$json$Json$Encode$string);
 var $author$project$SimplyTypedLambdaCalculus$appendnextRuleTree = F2(
@@ -8666,14 +8621,6 @@ var $author$project$UserInput$updateSelectedRuleTreeNode = function (model) {
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		var _v0 = A2(
-			$elm$core$Debug$log,
-			'crossOrigin',
-			$author$project$Main$getUrlWithProoftree(model.ruleTree));
-		var _v1 = A2(
-			$elm$core$Debug$log,
-			'Currently selected RuleTree',
-			A2($author$project$SimplyTypedLambdaCalculus$getRuleTreeNode, model.ruleTree, model.selectedNodeId));
 		switch (msg.$) {
 			case 'Gamma':
 				var str = msg.a;
@@ -8761,7 +8708,6 @@ var $author$project$Main$update = F2(
 					$elm$core$Platform$Cmd$none);
 			case 'ResetTreeNode':
 				var nodeId = msg.a;
-				var _v3 = A2($elm$core$Debug$log, 'reset with nodeId', nodeId);
 				return _Utils_Tuple2(
 					$author$project$UserInput$adjustMenuStateToSelectedRuleTree(
 						_Utils_update(
@@ -8804,7 +8750,6 @@ var $author$project$Main$update = F2(
 					$elm$core$Platform$Cmd$none);
 			case 'UrlChanged':
 				var str = msg.a;
-				var _v4 = A2($elm$core$Debug$log, 'UrlChangedMsg str: ', str);
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			default:
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -8834,6 +8779,9 @@ var $author$project$SharedStructures$FullAssump = function (a) {
 var $author$project$SharedStructures$FullContext = {$: 'FullContext'};
 var $author$project$SharedStructures$FullTerm = {$: 'FullTerm'};
 var $author$project$SharedStructures$FullType = {$: 'FullType'};
+var $author$project$SharedStructures$TermAndType = function (a) {
+	return {$: 'TermAndType', a: a};
+};
 var $author$project$SharedStructures$TermPointer = F2(
 	function (a, b) {
 		return {$: 'TermPointer', a: a, b: b};
@@ -8842,9 +8790,6 @@ var $author$project$SharedStructures$TypePointer = F2(
 	function (a, b) {
 		return {$: 'TypePointer', a: a, b: b};
 	});
-var $author$project$SharedStructures$TypingRelation = function (a) {
-	return {$: 'TypingRelation', a: a};
-};
 var $elm$core$Maybe$andThen = F2(
 	function (callback, maybeValue) {
 		if (maybeValue.$ === 'Just') {
@@ -8909,7 +8854,7 @@ var $author$project$SimplyTypedLambdaCalculus$getTypeFromContext = F2(
 			$author$project$SharedStructures$Untyped,
 			A2($elm$core$Dict$get, _var, dict));
 	});
-var $author$project$SimplyTypedLambdaCalculus$typingRelationConflictsExistingTypingAssumption = F3(
+var $author$project$SimplyTypedLambdaCalculus$termAndTypeConflictsExistingTypingAssumption = F3(
 	function (_var, typ, _v0) {
 		var dict = _v0.a;
 		return A3(
@@ -8921,7 +8866,7 @@ var $author$project$SimplyTypedLambdaCalculus$typingRelationConflictsExistingTyp
 			false,
 			dict);
 	});
-var $author$project$SimplyTypedLambdaCalculus$typingRelationMissesTypingAssumption = F2(
+var $author$project$SimplyTypedLambdaCalculus$termAndTypeMissesTypingAssumption = F2(
 	function (_var, _v0) {
 		var dict = _v0.a;
 		return A3(
@@ -8950,7 +8895,7 @@ var $author$project$SimplyTypedLambdaCalculus$getConflictsInRuleTree = F2(
 						return _Utils_ap(
 							A2(
 								appendIfConditionHolds,
-								A3($author$project$SimplyTypedLambdaCalculus$typingRelationConflictsExistingTypingAssumption, _var, typ, context),
+								A3($author$project$SimplyTypedLambdaCalculus$termAndTypeConflictsExistingTypingAssumption, _var, typ, context),
 								_List_fromArray(
 									[
 										_List_fromArray(
@@ -8959,18 +8904,18 @@ var $author$project$SimplyTypedLambdaCalculus$getConflictsInRuleTree = F2(
 											$author$project$SharedStructures$ContPointer,
 											nodeId,
 											$author$project$SharedStructures$FullAssump(_var)),
-											$author$project$SharedStructures$TypingRelation(nodeId)
+											$author$project$SharedStructures$TermAndType(nodeId)
 										])
 									])),
 							A2(
 								appendIfConditionHolds,
-								A2($author$project$SimplyTypedLambdaCalculus$typingRelationMissesTypingAssumption, _var, context),
+								A2($author$project$SimplyTypedLambdaCalculus$termAndTypeMissesTypingAssumption, _var, context),
 								_List_fromArray(
 									[
 										_List_fromArray(
 										[
 											A2($author$project$SharedStructures$ContPointer, nodeId, $author$project$SharedStructures$FullContext),
-											$author$project$SharedStructures$TypingRelation(nodeId)
+											$author$project$SharedStructures$TermAndType(nodeId)
 										])
 									])));
 					} else {
@@ -9041,7 +8986,7 @@ var $author$project$SimplyTypedLambdaCalculus$getConflictsInRuleTree = F2(
 														nodeId,
 														_List_fromArray(
 															[0])),
-													$author$project$SharedStructures$FullAssump(_var))
+													$author$project$SharedStructures$FullContext)
 												])
 											])),
 									_Utils_ap(
@@ -9342,29 +9287,45 @@ var $author$project$SimplyTypedLambdaCalculus$getConflictsInRuleTree = F2(
 																	$author$project$SharedStructures$FullContext)
 																])
 															])),
-													A2(
-														appendIfConditionHolds,
-														upperSigmaIsConflicting,
-														_List_fromArray(
-															[
-																_List_fromArray(
+													_Utils_ap(
+														A2(
+															appendIfConditionHolds,
+															upperSigmaIsConflicting,
+															_List_fromArray(
 																[
-																	A2(
-																	$author$project$SharedStructures$TypePointer,
-																	_Utils_ap(
-																		nodeId,
-																		_List_fromArray(
-																			[0])),
-																	$author$project$SharedStructures$ArrLeft),
-																	A2(
-																	$author$project$SharedStructures$TypePointer,
-																	_Utils_ap(
-																		nodeId,
-																		_List_fromArray(
-																			[1])),
-																	$author$project$SharedStructures$FullType)
-																])
-															])))))));
+																	_List_fromArray(
+																	[
+																		A2(
+																		$author$project$SharedStructures$TypePointer,
+																		_Utils_ap(
+																			nodeId,
+																			_List_fromArray(
+																				[0])),
+																		$author$project$SharedStructures$ArrLeft),
+																		A2(
+																		$author$project$SharedStructures$TypePointer,
+																		_Utils_ap(
+																			nodeId,
+																			_List_fromArray(
+																				[1])),
+																		$author$project$SharedStructures$FullType)
+																	])
+																])),
+														_Utils_ap(
+															A2(
+																$author$project$SimplyTypedLambdaCalculus$getConflictsInRuleTree,
+																nextRuleTree1,
+																_Utils_ap(
+																	nodeId,
+																	_List_fromArray(
+																		[0]))),
+															A2(
+																$author$project$SimplyTypedLambdaCalculus$getConflictsInRuleTree,
+																nextRuleTree2,
+																_Utils_ap(
+																	nodeId,
+																	_List_fromArray(
+																		[1]))))))))));
 							} else {
 								break _v0$13;
 							}
@@ -9424,7 +9385,7 @@ var $author$project$SharedStructures$getNodeIdFromPointer = function (aPointer) 
 		case 'FullNode':
 			var nodeId = aPointer.a;
 			return nodeId;
-		case 'TypingRelation':
+		case 'TermAndType':
 			var nodeId = aPointer.a;
 			return nodeId;
 		case 'ContPointer':
@@ -9473,9 +9434,9 @@ var $author$project$SharedStructures$fmapPointer = F5(
 				var nodeId = aPointer.a;
 				return $author$project$SharedStructures$FullNode(
 					nodeIdFunc(nodeId));
-			case 'TypingRelation':
+			case 'TermAndType':
 				var nodeId = aPointer.a;
-				return $author$project$SharedStructures$TypingRelation(
+				return $author$project$SharedStructures$TermAndType(
 					nodeIdFunc(nodeId));
 			case 'ContPointer':
 				var nodeId = aPointer.a;
@@ -9542,13 +9503,14 @@ var $elm$core$List$intersperse = F2(
 var $author$project$SimplyTypedLambdaCalculus$viewContext = F3(
 	function (contextHandler, _v0, conflictPointers) {
 		var dict = _v0.a;
-		var highlightFullContext = A2(
-			$elm$core$List$member,
-			A2($author$project$SharedStructures$ContPointer, _Utils_Tuple0, $author$project$SharedStructures$FullContext),
-			conflictPointers) || A2(
+		var highlightFullNode = A2(
 			$elm$core$List$member,
 			$author$project$SharedStructures$FullNode(_Utils_Tuple0),
 			conflictPointers);
+		var highlightFullContext = A2(
+			$elm$core$List$member,
+			A2($author$project$SharedStructures$ContPointer, _Utils_Tuple0, $author$project$SharedStructures$FullContext),
+			conflictPointers) || highlightFullNode;
 		var highlightType = function (_var) {
 			return highlightFullContext || (A2(
 				$elm$core$List$member,
@@ -9651,7 +9613,7 @@ var $author$project$SimplyTypedLambdaCalculus$viewContext = F3(
 					]);
 			});
 		return function (list) {
-			return (!$elm$core$List$length(list)) ? _List_fromArray(
+			return ((!$elm$core$List$length(list)) && (!highlightFullContext)) ? _List_fromArray(
 				[
 					A2(
 					$elm$html$Html$span,
@@ -9660,12 +9622,35 @@ var $author$project$SimplyTypedLambdaCalculus$viewContext = F3(
 							$elm$html$Html$Attributes$classList(
 							_List_fromArray(
 								[
-									_Utils_Tuple2('ruletree-text-highlight', highlightFullContext)
+									_Utils_Tuple2('ruletree-text-highlight', highlightFullNode)
 								]))
 						]),
 					_List_fromArray(
 						[
 							$elm$html$Html$text('⊢ ')
+						]))
+				]) : ((!$elm$core$List$length(list)) ? _List_fromArray(
+				[
+					A2(
+					$elm$html$Html$span,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$classList(
+							_List_fromArray(
+								[
+									_Utils_Tuple2('ruletree-text-highlight', true)
+								]))
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('<?>')
+						])),
+					A2(
+					$elm$html$Html$span,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(' ⊢ ')
 						]))
 				]) : _Utils_ap(
 				list,
@@ -9678,14 +9663,14 @@ var $author$project$SimplyTypedLambdaCalculus$viewContext = F3(
 								$elm$html$Html$Attributes$classList(
 								_List_fromArray(
 									[
-										_Utils_Tuple2('ruletree-text-highlight', highlightFullContext)
+										_Utils_Tuple2('ruletree-text-highlight', highlightFullNode)
 									]))
 							]),
 						_List_fromArray(
 							[
 								$elm$html$Html$text(' ⊢ ')
 							]))
-					]));
+					])));
 		}(
 			A2(
 				$elm$core$List$intersperse,
@@ -9726,7 +9711,7 @@ var $author$project$SimplyTypedLambdaCalculus$viewTerm = F2(
 			$author$project$SharedStructures$FullNode(_Utils_Tuple0),
 			conflictElements) || A2(
 			$elm$core$List$member,
-			$author$project$SharedStructures$TypingRelation(_Utils_Tuple0),
+			$author$project$SharedStructures$TermAndType(_Utils_Tuple0),
 			conflictElements));
 		if (highlightFullTerm) {
 			return _List_fromArray(
@@ -9937,7 +9922,7 @@ var $author$project$SimplyTypedLambdaCalculus$viewRuleContent = F4(
 			$author$project$SharedStructures$FullNode(_Utils_Tuple0),
 			pointersToHighlight) || A2(
 			$elm$core$List$member,
-			$author$project$SharedStructures$TypingRelation(_Utils_Tuple0),
+			$author$project$SharedStructures$TermAndType(_Utils_Tuple0),
 			pointersToHighlight);
 		var colon = function () {
 			if (term.$ === 'Var') {
