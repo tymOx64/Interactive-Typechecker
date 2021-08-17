@@ -29,6 +29,7 @@ type Msg
     | Hint InputField
     | TransformInput
     | FillAllInputs
+    | FlushAllInputs
     | Submit
     | SelectTreeNode (List Int)
     | ResetTreeNode (List Int)

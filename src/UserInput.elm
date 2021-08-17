@@ -172,7 +172,11 @@ viewRuleUserInterface model =
             [ tauLabel
             , inputBlock tauInput model (Hint TauInput)
             ]
-        , div [] [ button [ onClick Submit ] [ text "Apply" ] ]
+        , div []
+            [ button [ onClick Submit ] [ text "Apply" ]
+            , button [ onClick FlushAllInputs ] [ text "🧹" ]
+            , button [ onClick FillAllInputs ] [ text "💊" ]
+            ]
         ]
 
 

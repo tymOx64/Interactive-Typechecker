@@ -5339,26 +5339,6 @@ var $elm$core$String$replace = F3(
 var $author$project$Main$getValidUrlFromLocalPath = function (currentPath) {
 	return A3($elm$core$String$replace, 'file:///D:/0-Drive/Backups/vscode%20project%20-%20typechecker/typechecker.html', 'https://www.whatever.de/', currentPath);
 };
-var $author$project$SharedStructures$Context = function (a) {
-	return {$: 'Context', a: a};
-};
-var $author$project$SharedStructures$RVar = F4(
-	function (a, b, c, d) {
-		return {$: 'RVar', a: a, b: b, c: c, d: d};
-	});
-var $author$project$SharedStructures$Untyped = {$: 'Untyped'};
-var $author$project$SharedStructures$Var = function (a) {
-	return {$: 'Var', a: a};
-};
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $author$project$SimplyTypedLambdaCalculus$auxiliaryRuleTree = A4(
-	$author$project$SharedStructures$RVar,
-	$author$project$SharedStructures$Context($elm$core$Dict$empty),
-	$author$project$SharedStructures$Var(
-		_Utils_chr('%')),
-	$author$project$SharedStructures$Untyped,
-	false);
 var $author$project$SharedStructures$Hole = {$: 'Hole'};
 var $author$project$SharedStructures$RAbs = F4(
 	function (a, b, c, d) {
@@ -5367,6 +5347,10 @@ var $author$project$SharedStructures$RAbs = F4(
 var $author$project$SharedStructures$RApp = F5(
 	function (a, b, c, d, e) {
 		return {$: 'RApp', a: a, b: b, c: c, d: d, e: e};
+	});
+var $author$project$SharedStructures$RVar = F4(
+	function (a, b, c, d) {
+		return {$: 'RVar', a: a, b: b, c: c, d: d};
 	});
 var $elm$parser$Parser$Advanced$Bad = F2(
 	function (a, b) {
@@ -5552,6 +5536,9 @@ var $author$project$UserInput$boolParser = $elm$parser$Parser$oneOf(
 						_Utils_chr('F'));
 				}))
 		]));
+var $author$project$SharedStructures$Context = function (a) {
+	return {$: 'Context', a: a};
+};
 var $elm$parser$Parser$Optional = {$: 'Optional'};
 var $elm$parser$Parser$Advanced$andThen = F2(
 	function (callback, _v0) {
@@ -6058,6 +6045,7 @@ var $author$project$SharedStructures$Arrow = F2(
 var $author$project$SharedStructures$BasicType = function (a) {
 	return {$: 'BasicType', a: a};
 };
+var $author$project$SharedStructures$Untyped = {$: 'Untyped'};
 var $elm$parser$Parser$Advanced$lazy = function (thunk) {
 	return $elm$parser$Parser$Advanced$Parser(
 		function (s) {
@@ -6188,6 +6176,8 @@ var $author$project$UserInput$typingAssumptionParser = A2(
 	$author$project$UserInput$typeParser);
 var $author$project$UserInput$contextAsListParser = $elm$parser$Parser$sequence(
 	{end: '}', item: $author$project$UserInput$typingAssumptionParser, separator: ',', spaces: $elm$parser$Parser$spaces, start: '{', trailing: $elm$parser$Parser$Optional});
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $elm$core$Dict$Black = {$: 'Black'};
 var $elm$core$Dict$RBNode_elm_builtin = F5(
 	function (a, b, c, d, e) {
@@ -6324,6 +6314,9 @@ var $author$project$SharedStructures$App = F2(
 	function (a, b) {
 		return {$: 'App', a: a, b: b};
 	});
+var $author$project$SharedStructures$Var = function (a) {
+	return {$: 'Var', a: a};
+};
 function $author$project$UserInput$cyclic$termParser() {
 	return $elm$parser$Parser$oneOf(
 		_List_fromArray(
@@ -6605,7 +6598,7 @@ var $elm$core$Result$withDefault = F2(
 var $author$project$UserInput$parseRuleTree = function (str) {
 	return A2(
 		$elm$core$Result$withDefault,
-		$author$project$SimplyTypedLambdaCalculus$auxiliaryRuleTree,
+		$author$project$SharedStructures$Hole,
 		A2($elm$parser$Parser$run, $author$project$UserInput$ruleTreeParser, str));
 };
 var $elm$url$Url$Parser$State = F5(
@@ -7607,7 +7600,7 @@ var $author$project$SimplyTypedLambdaCalculus$getRuleTreeNode = F2(
 					return ruleTree;
 				}
 			}
-			return $author$project$SimplyTypedLambdaCalculus$auxiliaryRuleTree;
+			return $author$project$SharedStructures$Hole;
 		}
 	});
 var $author$project$SimplyTypedLambdaCalculus$getSelectedRuleTreeNode = function (model) {
@@ -8348,9 +8341,7 @@ var $author$project$Hint$getHint = F2(
 				case 'RApp':
 					if (_v0.b.$ === 'AppRule') {
 						var _v18 = _v0.a;
-						var context = _v18.a;
 						var term = _v18.b;
-						var typ = _v18.c;
 						var nextRuleTree1 = _v18.d;
 						var nextRuleTree2 = _v18.e;
 						var _v19 = _v0.b;
@@ -8848,7 +8839,7 @@ var $author$project$SimplyTypedLambdaCalculus$getNodeIdForArrowUpKeyEvent = F2(
 					selectedNodeId,
 					_List_fromArray(
 						[0]))),
-			$author$project$SimplyTypedLambdaCalculus$auxiliaryRuleTree)) ? _Utils_ap(
+			$author$project$SharedStructures$Hole)) ? _Utils_ap(
 			selectedNodeId,
 			_List_fromArray(
 				[0])) : A2(firstMatch, leftPartAndRightPart, true);
@@ -9147,7 +9138,7 @@ var $author$project$UserInput$updateSelectedRuleTreeNode = function (model) {
 					nextRuleTree2),
 				true);
 		default:
-			return $author$project$SimplyTypedLambdaCalculus$auxiliaryRuleTree;
+			return $author$project$SharedStructures$Hole;
 	}
 };
 var $author$project$Main$update = F2(
@@ -9219,6 +9210,10 @@ var $author$project$Main$update = F2(
 						$author$project$SimplyTypedLambdaCalculus$getSelectedRuleTreeNode(model),
 						model),
 					$elm$core$Platform$Cmd$none);
+			case 'FlushAllInputs':
+				return _Utils_Tuple2(
+					$author$project$UserInput$flushAllInputs(model),
+					$elm$core$Platform$Cmd$none);
 			case 'Submit':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -9235,12 +9230,9 @@ var $author$project$Main$update = F2(
 				var nodeId = msg.a;
 				return _Utils_Tuple2(
 					$author$project$UserInput$adjustMenuStateToSelectedRuleTree(
-						A2(
-							$author$project$UserInput$fillAllInputsFromRuleTree,
-							A2($author$project$SimplyTypedLambdaCalculus$getRuleTreeNode, model.ruleTree, nodeId),
-							_Utils_update(
-								model,
-								{selectedNodeId: nodeId}))),
+						_Utils_update(
+							model,
+							{selectedNodeId: nodeId})),
 					$elm$core$Platform$Cmd$none);
 			case 'ResetTreeNode':
 				var nodeId = msg.a;
@@ -10837,6 +10829,8 @@ var $author$project$SimplyTypedLambdaCalculus$viewApplicationRule = function (mo
 					]))
 			]));
 };
+var $author$project$SharedStructures$FillAllInputs = {$: 'FillAllInputs'};
+var $author$project$SharedStructures$FlushAllInputs = {$: 'FlushAllInputs'};
 var $author$project$SharedStructures$GammaInput = {$: 'GammaInput'};
 var $author$project$SharedStructures$Hint = function (a) {
 	return {$: 'Hint', a: a};
@@ -11155,6 +11149,26 @@ var $author$project$UserInput$viewRuleUserInterface = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text('Apply')
+							])),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$SharedStructures$FlushAllInputs)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('🧹')
+							])),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$SharedStructures$FillAllInputs)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('💊')
 							]))
 					]))
 			]));

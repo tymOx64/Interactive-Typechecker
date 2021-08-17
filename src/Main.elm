@@ -142,14 +142,14 @@ update msg model =
         FillAllInputs ->
             ( UserInput.fillAllInputsFromRuleTree (getSelectedRuleTreeNode model) model, Cmd.none )
 
+        FlushAllInputs ->
+            ( UserInput.flushAllInputs model, Cmd.none )
+
         Submit ->
             ( { model | ruleTree = UserInput.updateSelectedRuleTreeNode model }, pushUrl <| localPath ++ encodeRuleTreeAsString (UserInput.updateSelectedRuleTreeNode model) )
 
         SelectTreeNode nodeId ->
-            ( fillAllInputsFromRuleTree (getRuleTreeNode model.ruleTree nodeId) { model | selectedNodeId = nodeId }
-                |> adjustMenuStateToSelectedRuleTree
-            , Cmd.none
-            )
+            ( adjustMenuStateToSelectedRuleTree { model | selectedNodeId = nodeId }, Cmd.none )
 
         ResetTreeNode nodeId ->
             ( { model | ruleTree = resetRuleTreeNode model.ruleTree nodeId }
