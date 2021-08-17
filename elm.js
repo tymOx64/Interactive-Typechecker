@@ -7548,7 +7548,7 @@ var $author$project$SharedStructures$changeState = F2(
 					$elm$core$List$member,
 					menuState,
 					_List_fromArray(
-						[$author$project$SharedStructures$VarRule, $author$project$SharedStructures$AbsRule, $author$project$SharedStructures$AppRule])) ? 'Fill out the input fields and hit \'Apply\'!' : (_Utils_eq(menuState, $author$project$SharedStructures$SelectRule) ? 'Select a tree node along with its corresponding inference rule!' : ''),
+						[$author$project$SharedStructures$VarRule, $author$project$SharedStructures$AbsRule, $author$project$SharedStructures$AppRule])) ? 'Fill out the input fields and hit \'Apply\'!' : (_Utils_eq(menuState, $author$project$SharedStructures$SelectRule) ? 'Select the corresponding inference rule!' : ''),
 				menuState: menuState
 			});
 	});

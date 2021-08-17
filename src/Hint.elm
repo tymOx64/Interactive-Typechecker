@@ -6,7 +6,7 @@ import Json.Decode exposing (dict)
 import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
-import UserInput exposing (fillGammaInputFromRuleTree, fillXInputFromRuleTree, sigmaInput)
+import UserInput exposing (fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillXInputFromRuleTree, sigmaInput)
 
 
 
@@ -34,7 +34,7 @@ getHint inputField model =
             }
 
         tooManyTypeVarInUse =
-            { model | displayMessage = "Too many Type Variables in use. Try freeing some up!" }
+            { model | displayMessage = "Too many type variables in use. Try freeing some up!" }
 
         getUnusedTypeVar index =
             getUnusedTypeVariableFromRuleTree model.ruleTree index
@@ -72,8 +72,61 @@ getHint inputField model =
                 _ ->
                     model
 
-        ( RAbs context term typ ruleTree, AbsRule ) ->
-            model
+        ( RAbs context term typ nextRuleTree, AbsRule ) ->
+            case inputField of
+                GammaInput ->
+                    fillGammaInputFromRuleTree selectedRuleTree model
+
+                XInput ->
+                    case term of
+                        Abs _ _ ->
+                            fillXInputFromRuleTree selectedRuleTree model
+
+                        _ ->
+                            termAndRuleDoNotMatchUp
+
+                MInput ->
+                    case term of
+                        Abs _ _ ->
+                            fillMInputFromRuleTree selectedRuleTree model
+
+                        _ ->
+                            termAndRuleDoNotMatchUp
+
+                SigmaInput ->
+                    case ( term, getUnusedTypeVar 0 ) of
+                        ( Abs var _, Just unusedTypeVar ) ->
+                            { model
+                                | sigmaInput =
+                                    getTypeFromContext var (getContextFromRuleTree nextRuleTree)
+                                        |> Maybe.map showType
+                                        |> Maybe.withDefault (String.fromChar unusedTypeVar)
+                            }
+
+                        ( _, Nothing ) ->
+                            tooManyTypeVarInUse
+
+                        _ ->
+                            termAndRuleDoNotMatchUp
+
+                -- TODO
+                TauInput ->
+                    case ( term, getUnusedTypeVar 1 ) of
+                        ( Abs _ _, Just unusedTypeVar ) ->
+                            { model
+                                | tauInput =
+                                    getTermTypeFromRuleTree nextRuleTree
+                                        |> showType
+                            }
+
+                        ( _, Nothing ) ->
+                            tooManyTypeVarInUse
+
+                        _ ->
+                            termAndRuleDoNotMatchUp
+
+                _ ->
+                    model
 
         ( RApp context term typ ruleTree1 ruleTree2, AppRule ) ->
             model
