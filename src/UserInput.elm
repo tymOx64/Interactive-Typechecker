@@ -95,7 +95,12 @@ fillSigmaInputFromRuleTree ruleTree model =
             { model | sigmaInput = STLC.showType sigma }
 
         RApp _ _ _ nextRuleTree1 _ ->
-            { model | sigmaInput = STLC.showType <| STLC.getSigmaTypeFromAbsRuleTree nextRuleTree1 }
+            { model
+                | sigmaInput =
+                    STLC.getSigmaTypeFromAbsRuleTree nextRuleTree1
+                        |> Maybe.map STLC.showType
+                        |> Maybe.withDefault ""
+            }
 
         _ ->
             model

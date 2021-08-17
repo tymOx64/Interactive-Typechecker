@@ -7808,11 +7808,21 @@ var $author$project$SimplyTypedLambdaCalculus$getSigmaTypeFromAbsRuleTree = func
 	if ((ruleTree.$ === 'RAbs') && (ruleTree.c.$ === 'Arrow')) {
 		var _v1 = ruleTree.c;
 		var sigma = _v1.a;
-		return sigma;
+		return $elm$core$Maybe$Just(sigma);
 	} else {
-		return $author$project$SharedStructures$Untyped;
+		return $elm$core$Maybe$Nothing;
 	}
 };
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
 var $author$project$UserInput$fillSigmaInputFromRuleTree = F2(
 	function (ruleTree, model) {
 		_v0$3:
@@ -7842,8 +7852,13 @@ var $author$project$UserInput$fillSigmaInputFromRuleTree = F2(
 					return _Utils_update(
 						model,
 						{
-							sigmaInput: $author$project$SimplyTypedLambdaCalculus$showType(
-								$author$project$SimplyTypedLambdaCalculus$getSigmaTypeFromAbsRuleTree(nextRuleTree1))
+							sigmaInput: A2(
+								$elm$core$Maybe$withDefault,
+								'',
+								A2(
+									$elm$core$Maybe$map,
+									$author$project$SimplyTypedLambdaCalculus$showType,
+									$author$project$SimplyTypedLambdaCalculus$getSigmaTypeFromAbsRuleTree(nextRuleTree1)))
 						});
 				default:
 					break _v0$3;
@@ -7940,6 +7955,21 @@ var $author$project$UserInput$fillAllInputsFromRuleTree = function (ruleTree) {
 							$elm$core$Basics$composeR,
 							$author$project$UserInput$fillSigmaInputFromRuleTree(ruleTree),
 							$author$project$UserInput$fillTauInputFromRuleTree(ruleTree)))))));
+};
+var $author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree = function (ruleTree) {
+	switch (ruleTree.$) {
+		case 'RVar':
+			var typ = ruleTree.c;
+			return $elm$core$Maybe$Just(typ);
+		case 'RAbs':
+			var typ = ruleTree.c;
+			return $elm$core$Maybe$Just(typ);
+		case 'RApp':
+			var typ = ruleTree.c;
+			return $elm$core$Maybe$Just(typ);
+		default:
+			return $elm$core$Maybe$Nothing;
+	}
 };
 var $author$project$SimplyTypedLambdaCalculus$getTypeFromContext = F2(
 	function (_var, _v0) {
@@ -8169,21 +8199,11 @@ var $author$project$Hint$getUnusedTypeVariableFromRuleTree = F2(
 						$author$project$Hint$setOfAllTypeVariables,
 						$author$project$Hint$getUsedTypeVariables(ruleTree)))));
 	});
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
 var $author$project$Hint$getHint = F2(
 	function (inputField, model) {
 		var tooManyTypeVarInUse = _Utils_update(
 			model,
-			{displayMessage: 'Too many Type Variables in use. Try freeing some up!'});
+			{displayMessage: 'Too many type variables in use. Try freeing some up!'});
 		var termAndRuleDoNotMatchUp = _Utils_update(
 			model,
 			{displayMessage: 'The term and inference rule of this node do not match up. Change (at least) one of these!' + ' (Changing the inference rule requires to click on \'Apply\')'});
@@ -8192,7 +8212,7 @@ var $author$project$Hint$getHint = F2(
 			return A2($author$project$Hint$getUnusedTypeVariableFromRuleTree, model.ruleTree, index);
 		};
 		var _v0 = _Utils_Tuple2(selectedRuleTree, model.menuState);
-		_v0$4:
+		_v0$3:
 		while (true) {
 			switch (_v0.a.$) {
 				case 'RVar':
@@ -8200,7 +8220,6 @@ var $author$project$Hint$getHint = F2(
 						var _v1 = _v0.a;
 						var context = _v1.a;
 						var term = _v1.b;
-						var typ = _v1.c;
 						var _v2 = _v0.b;
 						switch (inputField.$) {
 							case 'GammaInput':
@@ -8241,44 +8260,180 @@ var $author$project$Hint$getHint = F2(
 								return model;
 						}
 					} else {
-						break _v0$4;
+						break _v0$3;
 					}
 				case 'RAbs':
 					if (_v0.b.$ === 'AbsRule') {
 						var _v7 = _v0.a;
-						var context = _v7.a;
 						var term = _v7.b;
-						var typ = _v7.c;
-						var ruleTree = _v7.d;
+						var nextRuleTree = _v7.d;
 						var _v8 = _v0.b;
-						return model;
+						switch (inputField.$) {
+							case 'GammaInput':
+								return A2($author$project$UserInput$fillGammaInputFromRuleTree, selectedRuleTree, model);
+							case 'XInput':
+								if (term.$ === 'Abs') {
+									return A2($author$project$UserInput$fillXInputFromRuleTree, selectedRuleTree, model);
+								} else {
+									return termAndRuleDoNotMatchUp;
+								}
+							case 'MInput':
+								if (term.$ === 'Abs') {
+									return A2($author$project$UserInput$fillMInputFromRuleTree, selectedRuleTree, model);
+								} else {
+									return termAndRuleDoNotMatchUp;
+								}
+							case 'SigmaInput':
+								var _v12 = _Utils_Tuple2(
+									term,
+									getUnusedTypeVar(0));
+								if (_v12.b.$ === 'Just') {
+									if (_v12.a.$ === 'Abs') {
+										var _v13 = _v12.a;
+										var _var = _v13.a;
+										var unusedTypeVar = _v12.b.a;
+										return _Utils_update(
+											model,
+											{
+												sigmaInput: A2(
+													$elm$core$Maybe$withDefault,
+													$elm$core$String$fromChar(unusedTypeVar),
+													A2(
+														$elm$core$Maybe$map,
+														$author$project$SimplyTypedLambdaCalculus$showType,
+														A2(
+															$author$project$SimplyTypedLambdaCalculus$getTypeFromContext,
+															_var,
+															$author$project$SimplyTypedLambdaCalculus$getContextFromRuleTree(nextRuleTree))))
+											});
+									} else {
+										return termAndRuleDoNotMatchUp;
+									}
+								} else {
+									var _v14 = _v12.b;
+									return tooManyTypeVarInUse;
+								}
+							case 'TauInput':
+								var _v15 = _Utils_Tuple2(
+									term,
+									getUnusedTypeVar(1));
+								if (_v15.b.$ === 'Just') {
+									if (_v15.a.$ === 'Abs') {
+										var _v16 = _v15.a;
+										var unusedTypeVar = _v15.b.a;
+										return _Utils_update(
+											model,
+											{
+												tauInput: A2(
+													$elm$core$Maybe$withDefault,
+													$elm$core$String$fromChar(unusedTypeVar),
+													A2(
+														$elm$core$Maybe$map,
+														$author$project$SimplyTypedLambdaCalculus$showType,
+														$author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree(nextRuleTree)))
+											});
+									} else {
+										return termAndRuleDoNotMatchUp;
+									}
+								} else {
+									var _v17 = _v15.b;
+									return tooManyTypeVarInUse;
+								}
+							default:
+								return model;
+						}
 					} else {
-						break _v0$4;
+						break _v0$3;
 					}
 				case 'RApp':
 					if (_v0.b.$ === 'AppRule') {
-						var _v9 = _v0.a;
-						var context = _v9.a;
-						var term = _v9.b;
-						var typ = _v9.c;
-						var ruleTree1 = _v9.d;
-						var ruleTree2 = _v9.e;
-						var _v10 = _v0.b;
-						return model;
+						var _v18 = _v0.a;
+						var context = _v18.a;
+						var term = _v18.b;
+						var typ = _v18.c;
+						var nextRuleTree1 = _v18.d;
+						var nextRuleTree2 = _v18.e;
+						var _v19 = _v0.b;
+						switch (inputField.$) {
+							case 'GammaInput':
+								return A2($author$project$UserInput$fillGammaInputFromRuleTree, selectedRuleTree, model);
+							case 'MInput':
+								if (term.$ === 'App') {
+									return A2($author$project$UserInput$fillMInputFromRuleTree, selectedRuleTree, model);
+								} else {
+									return termAndRuleDoNotMatchUp;
+								}
+							case 'NInput':
+								if (term.$ === 'App') {
+									return A2($author$project$UserInput$fillNInputFromRuleTree, selectedRuleTree, model);
+								} else {
+									return termAndRuleDoNotMatchUp;
+								}
+							case 'SigmaInput':
+								var _v23 = _Utils_Tuple2(
+									term,
+									getUnusedTypeVar(0));
+								if (_v23.b.$ === 'Just') {
+									if (_v23.a.$ === 'App') {
+										var _v24 = _v23.a;
+										var unusedTypeVar = _v23.b.a;
+										return _Utils_update(
+											model,
+											{
+												sigmaInput: A2(
+													$elm$core$Maybe$withDefault,
+													$elm$core$String$fromChar(unusedTypeVar),
+													A2(
+														$elm$core$Maybe$map,
+														$author$project$SimplyTypedLambdaCalculus$showType,
+														$author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree(nextRuleTree2)))
+											});
+									} else {
+										return termAndRuleDoNotMatchUp;
+									}
+								} else {
+									var _v25 = _v23.b;
+									return tooManyTypeVarInUse;
+								}
+							case 'TauInput':
+								var _v26 = _Utils_Tuple2(
+									term,
+									getUnusedTypeVar(1));
+								if (_v26.b.$ === 'Just') {
+									if (_v26.a.$ === 'Abs') {
+										var _v27 = _v26.a;
+										var unusedTypeVar = _v26.b.a;
+										return _Utils_update(
+											model,
+											{
+												tauInput: A2(
+													$elm$core$Maybe$withDefault,
+													$elm$core$String$fromChar(unusedTypeVar),
+													A2(
+														$elm$core$Maybe$map,
+														$author$project$SimplyTypedLambdaCalculus$showType,
+														$author$project$SimplyTypedLambdaCalculus$getSigmaTypeFromAbsRuleTree(nextRuleTree1)))
+											});
+									} else {
+										return termAndRuleDoNotMatchUp;
+									}
+								} else {
+									var _v28 = _v26.b;
+									return tooManyTypeVarInUse;
+								}
+							default:
+								return model;
+						}
 					} else {
-						break _v0$4;
+						break _v0$3;
 					}
 				default:
-					if (_v0.b.$ === 'SelectRule') {
-						var _v11 = _v0.a;
-						var _v12 = _v0.b;
-						return model;
-					} else {
-						break _v0$4;
-					}
+					break _v0$3;
 			}
 		}
-		return model;
+		return _Utils_update(
+			model,
+			{displayMessage: 'The currently selected inference rule does not correspond to the currently selected node. Change (at least) one of these!' + ' (Changing the inference rule requires to click on \'Apply\')'});
 	});
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$SimplyTypedLambdaCalculus$ruleTreeAsInOrderList = F4(
@@ -9210,21 +9365,6 @@ var $author$project$SimplyTypedLambdaCalculus$getTermFromRuleTree = function (ru
 			return $elm$core$Maybe$Nothing;
 	}
 };
-var $author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree = function (ruleTree) {
-	switch (ruleTree.$) {
-		case 'RVar':
-			var typ = ruleTree.c;
-			return typ;
-		case 'RAbs':
-			var typ = ruleTree.c;
-			return typ;
-		case 'RApp':
-			var typ = ruleTree.c;
-			return typ;
-		default:
-			return $author$project$SharedStructures$Untyped;
-	}
-};
 var $elm$core$Maybe$map2 = F3(
 	function (func, ma, mb) {
 		if (ma.$ === 'Nothing') {
@@ -9330,9 +9470,14 @@ var $author$project$SimplyTypedLambdaCalculus$getConflictsInRuleTree = F2(
 								var sigma = _v10.a;
 								var tau = _v10.b;
 								var nextRuleTree = ruleTree.d;
-								var tauIsConflicting = !_Utils_eq(
-									tau,
-									$author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree(nextRuleTree));
+								var tauIsConflicting = A2(
+									$elm$core$Maybe$withDefault,
+									true,
+									A3(
+										$elm$core$Maybe$map2,
+										$elm$core$Basics$neq,
+										$elm$core$Maybe$Just(tau),
+										$author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree(nextRuleTree)));
 								var sigmaIsConflicting = A2(
 									$elm$core$Maybe$withDefault,
 									true,
@@ -9554,9 +9699,14 @@ var $author$project$SimplyTypedLambdaCalculus$getConflictsInRuleTree = F2(
 								var tau = ruleTree.c;
 								var nextRuleTree1 = ruleTree.d;
 								var nextRuleTree2 = ruleTree.e;
-								var upperSigmaIsConflicting = !_Utils_eq(
-									$author$project$SimplyTypedLambdaCalculus$getSigmaTypeFromAbsRuleTree(nextRuleTree1),
-									$author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree(nextRuleTree2));
+								var upperSigmaIsConflicting = A2(
+									$elm$core$Maybe$withDefault,
+									true,
+									A3(
+										$elm$core$Maybe$map2,
+										$elm$core$Basics$neq,
+										$author$project$SimplyTypedLambdaCalculus$getSigmaTypeFromAbsRuleTree(nextRuleTree1),
+										$author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree(nextRuleTree2)));
 								var tauIsConflicting = !_Utils_eq(
 									tau,
 									$author$project$SimplyTypedLambdaCalculus$getTauTypeFromAbsRuleTree(nextRuleTree1));

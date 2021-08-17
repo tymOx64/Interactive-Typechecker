@@ -6,7 +6,7 @@ import Json.Decode exposing (dict)
 import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
-import UserInput exposing (fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillXInputFromRuleTree, sigmaInput)
+import UserInput exposing (fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, sigmaInput)
 
 
 
@@ -40,7 +40,7 @@ getHint inputField model =
             getUnusedTypeVariableFromRuleTree model.ruleTree index
     in
     case ( selectedRuleTree, model.menuState ) of
-        ( RVar context term typ _, VarRule ) ->
+        ( RVar context term _ _, VarRule ) ->
             case inputField of
                 GammaInput ->
                     fillGammaInputFromRuleTree selectedRuleTree model
@@ -72,7 +72,7 @@ getHint inputField model =
                 _ ->
                     model
 
-        ( RAbs context term typ nextRuleTree, AbsRule ) ->
+        ( RAbs _ term _ nextRuleTree, AbsRule ) ->
             case inputField of
                 GammaInput ->
                     fillGammaInputFromRuleTree selectedRuleTree model
@@ -109,14 +109,14 @@ getHint inputField model =
                         _ ->
                             termAndRuleDoNotMatchUp
 
-                -- TODO
                 TauInput ->
                     case ( term, getUnusedTypeVar 1 ) of
                         ( Abs _ _, Just unusedTypeVar ) ->
                             { model
                                 | tauInput =
                                     getTermTypeFromRuleTree nextRuleTree
-                                        |> showType
+                                        |> Maybe.map showType
+                                        |> Maybe.withDefault (String.fromChar unusedTypeVar)
                             }
 
                         ( _, Nothing ) ->
@@ -128,14 +128,68 @@ getHint inputField model =
                 _ ->
                     model
 
-        ( RApp context term typ ruleTree1 ruleTree2, AppRule ) ->
-            model
+        ( RApp context term typ nextRuleTree1 nextRuleTree2, AppRule ) ->
+            case inputField of
+                GammaInput ->
+                    fillGammaInputFromRuleTree selectedRuleTree model
 
-        ( Hole, SelectRule ) ->
-            model
+                MInput ->
+                    case term of
+                        App _ _ ->
+                            fillMInputFromRuleTree selectedRuleTree model
+
+                        _ ->
+                            termAndRuleDoNotMatchUp
+
+                NInput ->
+                    case term of
+                        App _ _ ->
+                            fillNInputFromRuleTree selectedRuleTree model
+
+                        _ ->
+                            termAndRuleDoNotMatchUp
+
+                SigmaInput ->
+                    case ( term, getUnusedTypeVar 0 ) of
+                        ( App _ _, Just unusedTypeVar ) ->
+                            { model
+                                | sigmaInput =
+                                    getTermTypeFromRuleTree nextRuleTree2
+                                        |> Maybe.map showType
+                                        |> Maybe.withDefault (String.fromChar unusedTypeVar)
+                            }
+
+                        ( _, Nothing ) ->
+                            tooManyTypeVarInUse
+
+                        _ ->
+                            termAndRuleDoNotMatchUp
+
+                TauInput ->
+                    case ( term, getUnusedTypeVar 1 ) of
+                        ( Abs _ _, Just unusedTypeVar ) ->
+                            { model
+                                | tauInput =
+                                    getSigmaTypeFromAbsRuleTree nextRuleTree1
+                                        |> Maybe.map showType
+                                        |> Maybe.withDefault (String.fromChar unusedTypeVar)
+                            }
+
+                        ( _, Nothing ) ->
+                            tooManyTypeVarInUse
+
+                        _ ->
+                            termAndRuleDoNotMatchUp
+
+                _ ->
+                    model
 
         _ ->
-            model
+            { model
+                | displayMessage =
+                    "The currently selected inference rule does not correspond to the currently selected node. Change (at least) one of these!"
+                        ++ " (Changing the inference rule requires to click on 'Apply')"
+            }
 
 
 setOfAllTypeVariables : Set Var

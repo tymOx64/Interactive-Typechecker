@@ -150,7 +150,8 @@ getConflictsInRuleTree ruleTree nodeId =
                         |> Maybe.withDefault True
 
                 tauIsConflicting =
-                    tau /= getTermTypeFromRuleTree nextRuleTree
+                    Maybe.map2 (/=) (Just tau) (getTermTypeFromRuleTree nextRuleTree)
+                        |> Maybe.withDefault True
 
                 contextIsConflicting =
                     not <| contextsAreEqual context nextContextWithOutAbstractionVar
@@ -205,7 +206,8 @@ getConflictsInRuleTree ruleTree nodeId =
                     not <| contextsAreEqual context <| getContextFromRuleTree nextRuleTree2
 
                 upperSigmaIsConflicting =
-                    getSigmaTypeFromAbsRuleTree nextRuleTree1 /= getTermTypeFromRuleTree nextRuleTree2
+                    Maybe.map2 (/=) (getSigmaTypeFromAbsRuleTree nextRuleTree1) (getTermTypeFromRuleTree nextRuleTree2)
+                        |> Maybe.withDefault True
             in
             appendIfConditionHolds
                 tauIsConflicting
@@ -330,30 +332,30 @@ getTermFromRuleTree ruleTree =
             Nothing
 
 
-getTermTypeFromRuleTree : RuleTree -> SType
+getTermTypeFromRuleTree : RuleTree -> Maybe SType
 getTermTypeFromRuleTree ruleTree =
     case ruleTree of
         RVar _ _ typ _ ->
-            typ
+            Just typ
 
         RAbs _ _ typ _ ->
-            typ
+            Just typ
 
         RApp _ _ typ _ _ ->
-            typ
+            Just typ
 
         Hole ->
-            Untyped
+            Nothing
 
 
-getSigmaTypeFromAbsRuleTree : RuleTree -> SType
+getSigmaTypeFromAbsRuleTree : RuleTree -> Maybe SType
 getSigmaTypeFromAbsRuleTree ruleTree =
     case ruleTree of
-        RAbs _ _ (Shared.Arrow sigma _) _ ->
-            sigma
+        RAbs _ _ (Arrow sigma _) _ ->
+            Just sigma
 
         _ ->
-            Untyped
+            Nothing
 
 
 getTauTypeFromAbsRuleTree : RuleTree -> SType
