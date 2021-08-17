@@ -1,6 +1,6 @@
 module UserInput exposing (..)
 
-import Dict
+import Dict exposing (update)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -253,27 +253,27 @@ adjustMenuStateToSelectedRuleTree model =
     in
     case currentSelectedRuleTree of
         RVar _ _ _ True ->
-            { model | menuState = VarRule }
+            changeState VarRule model
 
         RVar _ _ _ False ->
-            { model | menuState = SelectRule }
+            changeState SelectRule model
 
         RAbs _ _ _ nextRuleTree ->
             if nextRuleTree == Hole then
-                { model | menuState = SelectRule }
+                changeState SelectRule model
 
             else
-                { model | menuState = AbsRule }
+                changeState AbsRule model
 
         RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
             if nextRuleTree1 == Hole && nextRuleTree2 == Hole then
-                { model | menuState = SelectRule }
+                changeState SelectRule model
 
             else
-                { model | menuState = AppRule }
+                changeState AppRule model
 
         Hole ->
-            { model | menuState = SelectRule }
+            changeState SelectRule model
 
 
 gammaLabel : Html msg

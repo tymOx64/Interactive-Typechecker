@@ -3,6 +3,7 @@ port module Main exposing (..)
 import Browser
 import Browser.Events
 import Browser.Navigation exposing (pushUrl)
+import Hint exposing (getHint)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -125,7 +126,7 @@ update msg model =
             ( { model | tauInput = str }, Cmd.none )
 
         Hint inputField ->
-            ( model, Cmd.none )
+            ( getHint inputField model, Cmd.none )
 
         TransformInput ->
             ( { model
@@ -157,17 +158,7 @@ update msg model =
             )
 
         ChangeState newState ->
-            ( { model
-                | menuState = newState
-                , displayMessage =
-                    if List.member newState [ VarRule, AbsRule, AppRule ] then
-                        "Fill out the input fields and hit 'Apply'!"
-
-                    else
-                        ""
-              }
-            , Cmd.none
-            )
+            ( changeState newState model, Cmd.none )
 
         KeyDown key ->
             ( if key == "ArrowUp" then

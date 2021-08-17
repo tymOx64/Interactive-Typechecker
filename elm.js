@@ -4502,7 +4502,44 @@ function _Url_percentDecode(string)
 	{
 		return $elm$core$Maybe$Nothing;
 	}
-}var $elm$core$Basics$EQ = {$: 'EQ'};
+}
+
+
+var _Bitwise_and = F2(function(a, b)
+{
+	return a & b;
+});
+
+var _Bitwise_or = F2(function(a, b)
+{
+	return a | b;
+});
+
+var _Bitwise_xor = F2(function(a, b)
+{
+	return a ^ b;
+});
+
+function _Bitwise_complement(a)
+{
+	return ~a;
+};
+
+var _Bitwise_shiftLeftBy = F2(function(offset, a)
+{
+	return a << offset;
+});
+
+var _Bitwise_shiftRightBy = F2(function(offset, a)
+{
+	return a >> offset;
+});
+
+var _Bitwise_shiftRightZfBy = F2(function(offset, a)
+{
+	return a >>> offset;
+});
+var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
 var $elm$core$List$cons = _List_cons;
@@ -7502,6 +7539,19 @@ var $author$project$Main$subscriptions = function (_v0) {
 var $author$project$SharedStructures$AbsRule = {$: 'AbsRule'};
 var $author$project$SharedStructures$AppRule = {$: 'AppRule'};
 var $author$project$SharedStructures$VarRule = {$: 'VarRule'};
+var $author$project$SharedStructures$changeState = F2(
+	function (menuState, model) {
+		return _Utils_update(
+			model,
+			{
+				displayMessage: A2(
+					$elm$core$List$member,
+					menuState,
+					_List_fromArray(
+						[$author$project$SharedStructures$VarRule, $author$project$SharedStructures$AbsRule, $author$project$SharedStructures$AppRule])) ? 'Fill out the input fields and hit \'Apply\'!' : (_Utils_eq(menuState, $author$project$SharedStructures$SelectRule) ? 'Select a tree node along with its corresponding inference rule!' : ''),
+				menuState: menuState
+			});
+	});
 var $author$project$SimplyTypedLambdaCalculus$getRuleTreeNode = F2(
 	function (ruleTree, nodeId) {
 		getRuleTreeNode:
@@ -7568,33 +7618,19 @@ var $author$project$UserInput$adjustMenuStateToSelectedRuleTree = function (mode
 	switch (currentSelectedRuleTree.$) {
 		case 'RVar':
 			if (currentSelectedRuleTree.d) {
-				return _Utils_update(
-					model,
-					{menuState: $author$project$SharedStructures$VarRule});
+				return A2($author$project$SharedStructures$changeState, $author$project$SharedStructures$VarRule, model);
 			} else {
-				return _Utils_update(
-					model,
-					{menuState: $author$project$SharedStructures$SelectRule});
+				return A2($author$project$SharedStructures$changeState, $author$project$SharedStructures$SelectRule, model);
 			}
 		case 'RAbs':
 			var nextRuleTree = currentSelectedRuleTree.d;
-			return _Utils_eq(nextRuleTree, $author$project$SharedStructures$Hole) ? _Utils_update(
-				model,
-				{menuState: $author$project$SharedStructures$SelectRule}) : _Utils_update(
-				model,
-				{menuState: $author$project$SharedStructures$AbsRule});
+			return _Utils_eq(nextRuleTree, $author$project$SharedStructures$Hole) ? A2($author$project$SharedStructures$changeState, $author$project$SharedStructures$SelectRule, model) : A2($author$project$SharedStructures$changeState, $author$project$SharedStructures$AbsRule, model);
 		case 'RApp':
 			var nextRuleTree1 = currentSelectedRuleTree.d;
 			var nextRuleTree2 = currentSelectedRuleTree.e;
-			return (_Utils_eq(nextRuleTree1, $author$project$SharedStructures$Hole) && _Utils_eq(nextRuleTree2, $author$project$SharedStructures$Hole)) ? _Utils_update(
-				model,
-				{menuState: $author$project$SharedStructures$SelectRule}) : _Utils_update(
-				model,
-				{menuState: $author$project$SharedStructures$AppRule});
+			return (_Utils_eq(nextRuleTree1, $author$project$SharedStructures$Hole) && _Utils_eq(nextRuleTree2, $author$project$SharedStructures$Hole)) ? A2($author$project$SharedStructures$changeState, $author$project$SharedStructures$SelectRule, model) : A2($author$project$SharedStructures$changeState, $author$project$SharedStructures$AppRule, model);
 		default:
-			return _Utils_update(
-				model,
-				{menuState: $author$project$SharedStructures$SelectRule});
+			return A2($author$project$SharedStructures$changeState, $author$project$SharedStructures$SelectRule, model);
 	}
 };
 var $elm$core$String$cons = _String_cons;
@@ -7905,6 +7941,345 @@ var $author$project$UserInput$fillAllInputsFromRuleTree = function (ruleTree) {
 							$author$project$UserInput$fillSigmaInputFromRuleTree(ruleTree),
 							$author$project$UserInput$fillTauInputFromRuleTree(ruleTree)))))));
 };
+var $author$project$SimplyTypedLambdaCalculus$getTypeFromContext = F2(
+	function (_var, _v0) {
+		var dict = _v0.a;
+		return A2($elm$core$Dict$get, _var, dict);
+	});
+var $elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
+};
+var $elm$core$Dict$diff = F2(
+	function (t1, t2) {
+		return A3(
+			$elm$core$Dict$foldl,
+			F3(
+				function (k, v, t) {
+					return A2($elm$core$Dict$remove, k, t);
+				}),
+			t1,
+			t2);
+	});
+var $elm$core$Set$diff = F2(
+	function (_v0, _v1) {
+		var dict1 = _v0.a;
+		var dict2 = _v1.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$diff, dict1, dict2));
+	});
+var $elm$core$Array$fromListHelp = F3(
+	function (list, nodeList, nodeListSize) {
+		fromListHelp:
+		while (true) {
+			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, list);
+			var jsArray = _v0.a;
+			var remainingItems = _v0.b;
+			if (_Utils_cmp(
+				$elm$core$Elm$JsArray$length(jsArray),
+				$elm$core$Array$branchFactor) < 0) {
+				return A2(
+					$elm$core$Array$builderToArray,
+					true,
+					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
+			} else {
+				var $temp$list = remainingItems,
+					$temp$nodeList = A2(
+					$elm$core$List$cons,
+					$elm$core$Array$Leaf(jsArray),
+					nodeList),
+					$temp$nodeListSize = nodeListSize + 1;
+				list = $temp$list;
+				nodeList = $temp$nodeList;
+				nodeListSize = $temp$nodeListSize;
+				continue fromListHelp;
+			}
+		}
+	});
+var $elm$core$Array$fromList = function (list) {
+	if (!list.b) {
+		return $elm$core$Array$empty;
+	} else {
+		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
+	}
+};
+var $elm$core$Bitwise$and = _Bitwise_and;
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var $elm$core$Array$getHelp = F3(
+	function (shift, index, tree) {
+		getHelp:
+		while (true) {
+			var pos = $elm$core$Array$bitMask & (index >>> shift);
+			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_v0.$ === 'SubTree') {
+				var subTree = _v0.a;
+				var $temp$shift = shift - $elm$core$Array$shiftStep,
+					$temp$index = index,
+					$temp$tree = subTree;
+				shift = $temp$shift;
+				index = $temp$index;
+				tree = $temp$tree;
+				continue getHelp;
+			} else {
+				var values = _v0.a;
+				return A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, values);
+			}
+		}
+	});
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var $elm$core$Array$get = F2(
+	function (index, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? $elm$core$Maybe$Just(
+			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
+			A3($elm$core$Array$getHelp, startShift, index, tree)));
+	});
+var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
+var $elm$core$Dict$singleton = F2(
+	function (key, value) {
+		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
+	});
+var $elm$core$Set$singleton = function (key) {
+	return $elm$core$Set$Set_elm_builtin(
+		A2($elm$core$Dict$singleton, key, _Utils_Tuple0));
+};
+var $elm$core$Set$union = F2(
+	function (_v0, _v1) {
+		var dict1 = _v0.a;
+		var dict2 = _v1.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$union, dict1, dict2));
+	});
+var $author$project$Hint$getUsedTypeVariables = function (ruleTree) {
+	var typeVariablesFromTypeToSet = function (typ) {
+		switch (typ.$) {
+			case 'BasicType':
+				var _var = typ.a;
+				return $elm$core$Set$singleton(_var);
+			case 'Arrow':
+				var left = typ.a;
+				var right = typ.b;
+				return A2(
+					$elm$core$Set$union,
+					typeVariablesFromTypeToSet(left),
+					typeVariablesFromTypeToSet(right));
+			default:
+				return $elm$core$Set$empty;
+		}
+	};
+	var typeVariablesFromContextToSet = function (_v3) {
+		var dict = _v3.a;
+		return A3(
+			$elm$core$Dict$foldl,
+			F3(
+				function (_v2, typ, set) {
+					return A2(
+						$elm$core$Set$union,
+						set,
+						typeVariablesFromTypeToSet(typ));
+				}),
+			$elm$core$Set$empty,
+			dict);
+	};
+	switch (ruleTree.$) {
+		case 'RVar':
+			var context = ruleTree.a;
+			var typ = ruleTree.c;
+			return A2(
+				$elm$core$Set$union,
+				typeVariablesFromContextToSet(context),
+				typeVariablesFromTypeToSet(typ));
+		case 'RAbs':
+			var context = ruleTree.a;
+			var typ = ruleTree.c;
+			var ruleTree1 = ruleTree.d;
+			return A2(
+				$elm$core$Set$union,
+				$author$project$Hint$getUsedTypeVariables(ruleTree1),
+				A2(
+					$elm$core$Set$union,
+					typeVariablesFromContextToSet(context),
+					typeVariablesFromTypeToSet(typ)));
+		case 'RApp':
+			var context = ruleTree.a;
+			var typ = ruleTree.c;
+			var ruleTree1 = ruleTree.d;
+			var ruleTree2 = ruleTree.e;
+			return A2(
+				$elm$core$Set$union,
+				$author$project$Hint$getUsedTypeVariables(ruleTree2),
+				A2(
+					$elm$core$Set$union,
+					$author$project$Hint$getUsedTypeVariables(ruleTree1),
+					A2(
+						$elm$core$Set$union,
+						typeVariablesFromContextToSet(context),
+						typeVariablesFromTypeToSet(typ))));
+		default:
+			return $elm$core$Set$empty;
+	}
+};
+var $elm$core$Set$insert = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
+	});
+var $elm$core$Set$fromList = function (list) {
+	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
+};
+var $author$project$Hint$setOfAllTypeVariables = $elm$core$Set$fromList(
+	_List_fromArray(
+		[
+			_Utils_chr('α'),
+			_Utils_chr('β'),
+			_Utils_chr('γ'),
+			_Utils_chr('δ'),
+			_Utils_chr('ε'),
+			_Utils_chr('ζ'),
+			_Utils_chr('η'),
+			_Utils_chr('θ'),
+			_Utils_chr('ι'),
+			_Utils_chr('κ'),
+			_Utils_chr('λ'),
+			_Utils_chr('μ'),
+			_Utils_chr('ν'),
+			_Utils_chr('ξ'),
+			_Utils_chr('ο')
+		]));
+var $author$project$Hint$getUnusedTypeVariableFromRuleTree = F2(
+	function (ruleTree, index) {
+		return A2(
+			$elm$core$Array$get,
+			index,
+			$elm$core$Array$fromList(
+				$elm$core$Set$toList(
+					A2(
+						$elm$core$Set$diff,
+						$author$project$Hint$setOfAllTypeVariables,
+						$author$project$Hint$getUsedTypeVariables(ruleTree)))));
+	});
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $author$project$Hint$getHint = F2(
+	function (inputField, model) {
+		var tooManyTypeVarInUse = _Utils_update(
+			model,
+			{displayMessage: 'Too many Type Variables in use. Try freeing some up!'});
+		var termAndRuleDoNotMatchUp = _Utils_update(
+			model,
+			{displayMessage: 'The term and inference rule of this node do not match up. Change (at least) one of these!' + ' (Changing the inference rule requires to click on \'Apply\')'});
+		var selectedRuleTree = $author$project$SimplyTypedLambdaCalculus$getSelectedRuleTreeNode(model);
+		var getUnusedTypeVar = function (index) {
+			return A2($author$project$Hint$getUnusedTypeVariableFromRuleTree, model.ruleTree, index);
+		};
+		var _v0 = _Utils_Tuple2(selectedRuleTree, model.menuState);
+		_v0$4:
+		while (true) {
+			switch (_v0.a.$) {
+				case 'RVar':
+					if (_v0.b.$ === 'VarRule') {
+						var _v1 = _v0.a;
+						var context = _v1.a;
+						var term = _v1.b;
+						var typ = _v1.c;
+						var _v2 = _v0.b;
+						switch (inputField.$) {
+							case 'GammaInput':
+								return A2($author$project$UserInput$fillGammaInputFromRuleTree, selectedRuleTree, model);
+							case 'XInput':
+								if (term.$ === 'Var') {
+									return A2($author$project$UserInput$fillXInputFromRuleTree, selectedRuleTree, model);
+								} else {
+									return termAndRuleDoNotMatchUp;
+								}
+							case 'SigmaInput':
+								var _v5 = _Utils_Tuple2(
+									term,
+									getUnusedTypeVar(0));
+								if (_v5.b.$ === 'Just') {
+									if (_v5.a.$ === 'Var') {
+										var _var = _v5.a.a;
+										var unusedTypeVar = _v5.b.a;
+										return _Utils_update(
+											model,
+											{
+												sigmaInput: A2(
+													$elm$core$Maybe$withDefault,
+													$elm$core$String$fromChar(unusedTypeVar),
+													A2(
+														$elm$core$Maybe$map,
+														$author$project$SimplyTypedLambdaCalculus$showType,
+														A2($author$project$SimplyTypedLambdaCalculus$getTypeFromContext, _var, context)))
+											});
+									} else {
+										return termAndRuleDoNotMatchUp;
+									}
+								} else {
+									var _v6 = _v5.b;
+									return tooManyTypeVarInUse;
+								}
+							default:
+								return model;
+						}
+					} else {
+						break _v0$4;
+					}
+				case 'RAbs':
+					if (_v0.b.$ === 'AbsRule') {
+						var _v7 = _v0.a;
+						var context = _v7.a;
+						var term = _v7.b;
+						var typ = _v7.c;
+						var ruleTree = _v7.d;
+						var _v8 = _v0.b;
+						return model;
+					} else {
+						break _v0$4;
+					}
+				case 'RApp':
+					if (_v0.b.$ === 'AppRule') {
+						var _v9 = _v0.a;
+						var context = _v9.a;
+						var term = _v9.b;
+						var typ = _v9.c;
+						var ruleTree1 = _v9.d;
+						var ruleTree2 = _v9.e;
+						var _v10 = _v0.b;
+						return model;
+					} else {
+						break _v0$4;
+					}
+				default:
+					if (_v0.b.$ === 'SelectRule') {
+						var _v11 = _v0.a;
+						var _v12 = _v0.b;
+						return model;
+					} else {
+						break _v0$4;
+					}
+			}
+		}
+		return model;
+	});
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$SimplyTypedLambdaCalculus$ruleTreeAsInOrderList = F4(
 	function (ruleTree, nodeId, level, currentUserSelectedNodeId) {
@@ -8667,7 +9042,9 @@ var $author$project$Main$update = F2(
 					$elm$core$Platform$Cmd$none);
 			case 'Hint':
 				var inputField = msg.a;
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				return _Utils_Tuple2(
+					A2($author$project$Hint$getHint, inputField, model),
+					$elm$core$Platform$Cmd$none);
 			case 'TransformInput':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -8727,16 +9104,7 @@ var $author$project$Main$update = F2(
 			case 'ChangeState':
 				var newState = msg.a;
 				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							displayMessage: A2(
-								$elm$core$List$member,
-								newState,
-								_List_fromArray(
-									[$author$project$SharedStructures$VarRule, $author$project$SharedStructures$AbsRule, $author$project$SharedStructures$AppRule])) ? 'Fill out the input fields and hit \'Apply\'!' : '',
-							menuState: newState
-						}),
+					A2($author$project$SharedStructures$changeState, newState, model),
 					$elm$core$Platform$Cmd$none);
 			case 'KeyDown':
 				var key = msg.a;
@@ -8857,11 +9225,6 @@ var $author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree = function
 			return $author$project$SharedStructures$Untyped;
 	}
 };
-var $author$project$SimplyTypedLambdaCalculus$getTypeFromContext = F2(
-	function (_var, _v0) {
-		var dict = _v0.a;
-		return A2($elm$core$Dict$get, _var, dict);
-	});
 var $elm$core$Maybe$map2 = F3(
 	function (func, ma, mb) {
 		if (ma.$ === 'Nothing') {

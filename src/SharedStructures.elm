@@ -235,3 +235,19 @@ type MenuState
     | AppRule
     | AbsRule
     | SelectExercise
+
+
+changeState : MenuState -> Model -> Model
+changeState menuState model =
+    { model
+        | menuState = menuState
+        , displayMessage =
+            if List.member menuState [ VarRule, AbsRule, AppRule ] then
+                "Fill out the input fields and hit 'Apply'!"
+
+            else if menuState == SelectRule then
+                "Select the corresponding inference rule!"
+
+            else
+                ""
+    }
