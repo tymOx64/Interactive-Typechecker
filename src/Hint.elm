@@ -2,7 +2,6 @@ module Hint exposing (..)
 
 import Array
 import Dict
-import Html exposing (var)
 import Json.Decode exposing (dict)
 import Set exposing (Set)
 import SharedStructures exposing (..)
@@ -19,47 +18,71 @@ import UserInput exposing (fillGammaInputFromRuleTree, fillXInputFromRuleTree, s
    | SigmaInput
    | TauInput
 -}
-{- getHint : InputField -> Model -> Model
-   getHint inputField model =
-       let
-           selectedRuleTree =
-               STLC.getSelectedRuleTreeNode model
 
-           modelAsTermAndRuleDoNotMatchUp =
-               { model | displayMessage =
-                   "The term and inference rule of this node do not match up. Change (at least) one of these!
-                   (Changing the inference rule requires to click on 'Apply')"
-               }
-       in
-       case ( selectedRuleTree, model.menuState ) of
-           ( ( RVar context term typ ), MenuState.VarRule ) ->
-               case InputField of
-                   GammaInput ->
-                       fillGammaInputFromRuleTree model
-                   XInput ->
-                       case term of
-                           (Var _) ->
-                               fillXInputFromRuleTree model
-                           _ ->
-                               modelAsTermAndRuleDoNotMatchUp
-                   SigmaInput ->
-                       case term of
-                           (Var var) ->
-                               case getTypeFromContext var context of
-                                   Nothing ->
-                                       { model | displayMessage = "" }
-                               { model | sigmaInput = getTypeFromContext var context |> showType }
-                           _ ->
-                               modelAsTermAndRuleDoNotMatchUp
-           ( ( RAbs context term typ ruleTree ), MenuState.AbsRule ) ->
-               5
 
-           ( ( RApp context term typ ruleTree1 ruleTree2, MenuState.AppRule ) ->
-               5
+getHint : InputField -> Model -> Model
+getHint inputField model =
+    let
+        selectedRuleTree =
+            getSelectedRuleTreeNode model
 
-           ( Hole, MenuState.SelectRule ->
-               5
--}
+        termAndRuleDoNotMatchUp =
+            { model
+                | displayMessage =
+                    "The term and inference rule of this node do not match up. Change (at least) one of these!"
+                        ++ " (Changing the inference rule requires to click on 'Apply')"
+            }
+
+        tooManyTypeVarInUse =
+            { model | displayMessage = "Too many Type Variables in use. Try freeing some up!" }
+
+        getUnusedTypeVar index =
+            getUnusedTypeVariableFromRuleTree model.ruleTree index
+    in
+    case ( selectedRuleTree, model.menuState ) of
+        ( RVar context term typ _, VarRule ) ->
+            case inputField of
+                GammaInput ->
+                    fillGammaInputFromRuleTree selectedRuleTree model
+
+                XInput ->
+                    case term of
+                        Var _ ->
+                            fillXInputFromRuleTree selectedRuleTree model
+
+                        _ ->
+                            termAndRuleDoNotMatchUp
+
+                SigmaInput ->
+                    case ( term, getUnusedTypeVar 0 ) of
+                        ( Var var, Just unusedTypeVar ) ->
+                            { model
+                                | sigmaInput =
+                                    getTypeFromContext var context
+                                        |> Maybe.map showType
+                                        |> Maybe.withDefault (String.fromChar unusedTypeVar)
+                            }
+
+                        ( _, Nothing ) ->
+                            tooManyTypeVarInUse
+
+                        _ ->
+                            termAndRuleDoNotMatchUp
+
+                _ ->
+                    model
+
+        ( RAbs context term typ ruleTree, AbsRule ) ->
+            model
+
+        ( RApp context term typ ruleTree1 ruleTree2, AppRule ) ->
+            model
+
+        ( Hole, SelectRule ) ->
+            model
+
+        _ ->
+            model
 
 
 setOfAllTypeVariables : Set Var
@@ -101,8 +124,8 @@ getUsedTypeVariables ruleTree =
             Set.empty
 
 
-getUnusedTypeVariable : RuleTree -> Int -> Maybe Char
-getUnusedTypeVariable ruleTree index =
+getUnusedTypeVariableFromRuleTree : RuleTree -> Int -> Maybe Char
+getUnusedTypeVariableFromRuleTree ruleTree index =
     getUsedTypeVariables ruleTree
         |> Set.diff setOfAllTypeVariables
         |> Set.toList
