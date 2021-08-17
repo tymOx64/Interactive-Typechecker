@@ -7186,6 +7186,7 @@ var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Main$init = function (locationHref) {
 	return _Utils_Tuple2(
 		{
+			displayMessage: 'Welcome to the interactive STLC Typechecker. Start by selecting an inference rule right above this message!',
 			gammaInput: '',
 			mInput: '',
 			menuState: $author$project$SharedStructures$SelectRule,
@@ -8664,6 +8665,9 @@ var $author$project$Main$update = F2(
 						model,
 						{tauInput: str}),
 					$elm$core$Platform$Cmd$none);
+			case 'Hint':
+				var inputField = msg.a;
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			case 'TransformInput':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -8725,7 +8729,14 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{menuState: newState}),
+						{
+							displayMessage: A2(
+								$elm$core$List$member,
+								newState,
+								_List_fromArray(
+									[$author$project$SharedStructures$VarRule, $author$project$SharedStructures$AbsRule, $author$project$SharedStructures$AppRule])) ? 'Fill out the input fields and hit \'Apply\'!' : '',
+							menuState: newState
+						}),
 					$elm$core$Platform$Cmd$none);
 			case 'KeyDown':
 				var key = msg.a;
@@ -8849,10 +8860,22 @@ var $author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree = function
 var $author$project$SimplyTypedLambdaCalculus$getTypeFromContext = F2(
 	function (_var, _v0) {
 		var dict = _v0.a;
-		return A2(
-			$elm$core$Maybe$withDefault,
-			$author$project$SharedStructures$Untyped,
-			A2($elm$core$Dict$get, _var, dict));
+		return A2($elm$core$Dict$get, _var, dict);
+	});
+var $elm$core$Maybe$map2 = F3(
+	function (func, ma, mb) {
+		if (ma.$ === 'Nothing') {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			var a = ma.a;
+			if (mb.$ === 'Nothing') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var b = mb.a;
+				return $elm$core$Maybe$Just(
+					A2(func, a, b));
+			}
+		}
 	});
 var $author$project$SimplyTypedLambdaCalculus$termAndTypeConflictsExistingTypingAssumption = F3(
 	function (_var, typ, _v0) {
@@ -8947,12 +8970,17 @@ var $author$project$SimplyTypedLambdaCalculus$getConflictsInRuleTree = F2(
 								var tauIsConflicting = !_Utils_eq(
 									tau,
 									$author$project$SimplyTypedLambdaCalculus$getTermTypeFromRuleTree(nextRuleTree));
-								var sigmaIsConflicting = !_Utils_eq(
-									sigma,
-									A2(
-										$author$project$SimplyTypedLambdaCalculus$getTypeFromContext,
-										_var,
-										$author$project$SimplyTypedLambdaCalculus$getContextFromRuleTree(nextRuleTree)));
+								var sigmaIsConflicting = A2(
+									$elm$core$Maybe$withDefault,
+									true,
+									A3(
+										$elm$core$Maybe$map2,
+										$elm$core$Basics$neq,
+										$elm$core$Maybe$Just(sigma),
+										A2(
+											$author$project$SimplyTypedLambdaCalculus$getTypeFromContext,
+											_var,
+											$author$project$SimplyTypedLambdaCalculus$getContextFromRuleTree(nextRuleTree))));
 								var removeVarFromContext = function (_v11) {
 									var dict = _v11.a;
 									return $author$project$SharedStructures$Context(
@@ -10188,6 +10216,7 @@ var $author$project$Main$viewLeft = function (model) {
 				$author$project$SimplyTypedLambdaCalculus$getFirstConflictFromRuleTree(model.ruleTree))
 			]));
 };
+var $elm$html$Html$strong = _VirtualDom_node('strong');
 var $author$project$SharedStructures$ChangeState = function (a) {
 	return {$: 'ChangeState', a: a};
 };
@@ -10295,7 +10324,16 @@ var $author$project$SimplyTypedLambdaCalculus$viewApplicationRule = function (mo
 					]))
 			]));
 };
+var $author$project$SharedStructures$GammaInput = {$: 'GammaInput'};
+var $author$project$SharedStructures$Hint = function (a) {
+	return {$: 'Hint', a: a};
+};
+var $author$project$SharedStructures$MInput = {$: 'MInput'};
+var $author$project$SharedStructures$NInput = {$: 'NInput'};
+var $author$project$SharedStructures$SigmaInput = {$: 'SigmaInput'};
 var $author$project$SharedStructures$Submit = {$: 'Submit'};
+var $author$project$SharedStructures$TauInput = {$: 'TauInput'};
+var $author$project$SharedStructures$XInput = {$: 'XInput'};
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $author$project$SharedStructures$Gamma = function (a) {
 	return {$: 'Gamma', a: a};
@@ -10376,9 +10414,8 @@ var $author$project$UserInput$gammaLabel = A2(
 		[
 			$elm$html$Html$text('Γ')
 		]));
-var $author$project$SharedStructures$FillAllInputs = {$: 'FillAllInputs'};
-var $author$project$UserInput$inputBlock = F2(
-	function (inputType, model) {
+var $author$project$UserInput$inputBlock = F3(
+	function (inputType, model, msg) {
 		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
@@ -10392,7 +10429,7 @@ var $author$project$UserInput$inputBlock = F2(
 					$elm$html$Html$button,
 					_List_fromArray(
 						[
-							$elm$html$Html$Events$onClick($author$project$SharedStructures$FillAllInputs)
+							$elm$html$Html$Events$onClick(msg)
 						]),
 					_List_fromArray(
 						[
@@ -10500,7 +10537,11 @@ var $author$project$UserInput$viewRuleUserInterface = function (model) {
 				_List_fromArray(
 					[
 						$author$project$UserInput$gammaLabel,
-						A2($author$project$UserInput$inputBlock, $author$project$UserInput$gammaInput, model)
+						A3(
+						$author$project$UserInput$inputBlock,
+						$author$project$UserInput$gammaInput,
+						model,
+						$author$project$SharedStructures$Hint($author$project$SharedStructures$GammaInput))
 					])),
 				A2(
 				$elm$html$Html$div,
@@ -10513,7 +10554,11 @@ var $author$project$UserInput$viewRuleUserInterface = function (model) {
 				_List_fromArray(
 					[
 						$author$project$UserInput$xLabel,
-						A2($author$project$UserInput$inputBlock, $author$project$UserInput$xInput, model)
+						A3(
+						$author$project$UserInput$inputBlock,
+						$author$project$UserInput$xInput,
+						model,
+						$author$project$SharedStructures$Hint($author$project$SharedStructures$XInput))
 					])),
 				A2(
 				$elm$html$Html$div,
@@ -10526,7 +10571,11 @@ var $author$project$UserInput$viewRuleUserInterface = function (model) {
 				_List_fromArray(
 					[
 						$author$project$UserInput$mLabel,
-						A2($author$project$UserInput$inputBlock, $author$project$UserInput$mInput, model)
+						A3(
+						$author$project$UserInput$inputBlock,
+						$author$project$UserInput$mInput,
+						model,
+						$author$project$SharedStructures$Hint($author$project$SharedStructures$MInput))
 					])),
 				A2(
 				$elm$html$Html$div,
@@ -10539,7 +10588,11 @@ var $author$project$UserInput$viewRuleUserInterface = function (model) {
 				_List_fromArray(
 					[
 						$author$project$UserInput$nLabel,
-						A2($author$project$UserInput$inputBlock, $author$project$UserInput$nInput, model)
+						A3(
+						$author$project$UserInput$inputBlock,
+						$author$project$UserInput$nInput,
+						model,
+						$author$project$SharedStructures$Hint($author$project$SharedStructures$NInput))
 					])),
 				A2(
 				$elm$html$Html$div,
@@ -10552,7 +10605,11 @@ var $author$project$UserInput$viewRuleUserInterface = function (model) {
 				_List_fromArray(
 					[
 						$author$project$UserInput$sigmaLabel,
-						A2($author$project$UserInput$inputBlock, $author$project$UserInput$sigmaInput, model)
+						A3(
+						$author$project$UserInput$inputBlock,
+						$author$project$UserInput$sigmaInput,
+						model,
+						$author$project$SharedStructures$Hint($author$project$SharedStructures$SigmaInput))
 					])),
 				A2(
 				$elm$html$Html$div,
@@ -10565,7 +10622,11 @@ var $author$project$UserInput$viewRuleUserInterface = function (model) {
 				_List_fromArray(
 					[
 						$author$project$UserInput$tauLabel,
-						A2($author$project$UserInput$inputBlock, $author$project$UserInput$tauInput, model)
+						A3(
+						$author$project$UserInput$inputBlock,
+						$author$project$UserInput$tauInput,
+						model,
+						$author$project$SharedStructures$Hint($author$project$SharedStructures$TauInput))
 					])),
 				A2(
 				$elm$html$Html$div,
@@ -10648,6 +10709,22 @@ var $author$project$SimplyTypedLambdaCalculus$viewVarRule = function (model) {
 			]));
 };
 var $author$project$Main$viewRight = function (model) {
+	var viewDisplayMessage = A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('display-message-container')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$strong,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(model.displayMessage)
+					]))
+			]));
 	var ruleIsSelected = A2(
 		$elm$core$List$member,
 		model.menuState,
@@ -10665,6 +10742,7 @@ var $author$project$Main$viewRight = function (model) {
 				$author$project$SimplyTypedLambdaCalculus$viewVarRule(model),
 				$author$project$SimplyTypedLambdaCalculus$viewApplicationRule(model),
 				$author$project$SimplyTypedLambdaCalculus$viewAbstractionRule(model),
+				viewDisplayMessage,
 				viewRuleUserInterfaceOnSelection
 			]));
 };

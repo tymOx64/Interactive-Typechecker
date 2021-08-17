@@ -146,7 +146,8 @@ getConflictsInRuleTree ruleTree nodeId =
                     removeVarFromContext (getContextFromRuleTree nextRuleTree)
 
                 sigmaIsConflicting =
-                    sigma /= getTypeFromContext var (getContextFromRuleTree nextRuleTree)
+                    Maybe.map2 (/=) (Just sigma) (getTypeFromContext var (getContextFromRuleTree nextRuleTree))
+                        |> Maybe.withDefault True
 
                 tauIsConflicting =
                     tau /= getTermTypeFromRuleTree nextRuleTree
@@ -365,9 +366,9 @@ getTauTypeFromAbsRuleTree ruleTree =
             Untyped
 
 
-getTypeFromContext : Var -> SContext -> SType
+getTypeFromContext : Var -> SContext -> Maybe SType
 getTypeFromContext var (Context dict) =
-    Maybe.withDefault Untyped <| Dict.get var dict
+    Dict.get var dict
 
 
 changeRuleTreeNode : RuleTree -> List Int -> RuleTree -> Bool -> RuleTree

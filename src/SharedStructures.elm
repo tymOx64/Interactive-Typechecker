@@ -13,6 +13,7 @@ type alias Model =
     , nInput : String
     , sigmaInput : String
     , tauInput : String
+    , displayMessage : String
 
     --    , idToTypeDict : Dict Int SType
     }
@@ -25,6 +26,7 @@ type Msg
     | N String
     | Sigma String
     | Tau String
+    | Hint InputField
     | TransformInput
     | FillAllInputs
     | Submit
@@ -81,22 +83,13 @@ type RuleTree
     | Hole
 
 
-
-{- type RuleElement
-   = FullRule
-   | FullContext
-   | TypingAssumptionFull Var
-   | TypingAssumptionJustVar Var
-   | TypingAssumptionJustType Var
-   | TermAndType
-   | FullTerm
-   | AbsXVar
-   | MTerm
-   | NTerm
-   | FullType
-   | ArrowRightType
-   | ArrowLeftType
--}
+type InputField
+    = GammaInput
+    | XInput
+    | MInput
+    | NInput
+    | SigmaInput
+    | TauInput
 
 
 type APointer nodeId contPointer termPointer typePointer

@@ -41,6 +41,7 @@ init locationHref =
       , nInput = ""
       , sigmaInput = ""
       , tauInput = ""
+      , displayMessage = "Welcome to the interactive STLC Typechecker. Start by selecting an inference rule right above this message!"
       }
     , Cmd.none
     )
@@ -99,6 +100,11 @@ update msg model =
                Debug.log "Currently selected RuleTree" <| getRuleTreeNode model.ruleTree model.selectedNodeId
        in
     -}
+    {- let
+           model =
+               { modelCurrent | displayMessage = "" }
+       in
+    -}
     case msg of
         Gamma str ->
             ( { model | gammaInput = str }, Cmd.none )
@@ -117,6 +123,9 @@ update msg model =
 
         Tau str ->
             ( { model | tauInput = str }, Cmd.none )
+
+        Hint inputField ->
+            ( model, Cmd.none )
 
         TransformInput ->
             ( { model
@@ -148,7 +157,17 @@ update msg model =
             )
 
         ChangeState newState ->
-            ( { model | menuState = newState }, Cmd.none )
+            ( { model
+                | menuState = newState
+                , displayMessage =
+                    if List.member newState [ VarRule, AbsRule, AppRule ] then
+                        "Fill out the input fields and hit 'Apply'!"
+
+                    else
+                        ""
+              }
+            , Cmd.none
+            )
 
         KeyDown key ->
             ( if key == "ArrowUp" then
@@ -225,12 +244,16 @@ viewRight model =
 
             else
                 text ""
+
+        viewDisplayMessage =
+            div [ class "display-message-container" ] [ strong [] [ text model.displayMessage ] ]
     in
     div
         [ class "menu" ]
         [ viewVarRule model
         , viewApplicationRule model
         , viewAbstractionRule model
+        , viewDisplayMessage
         , viewRuleUserInterfaceOnSelection
         ]
 

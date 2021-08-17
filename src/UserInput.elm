@@ -32,11 +32,11 @@ newButton txt msg =
         [ text txt ]
 
 
-inputBlock : (Model -> Html Msg) -> Model -> Html Msg
-inputBlock inputType model =
+inputBlock : (Model -> Html Msg) -> Model -> Msg -> Html Msg
+inputBlock inputType model msg =
     div [ class "menu__meta-variable-input-block" ]
         [ inputType model
-        , button [ onClick FillAllInputs ] [ text "💡" ]
+        , button [ onClick msg ] [ text "💡" ]
         ]
 
 
@@ -145,27 +145,27 @@ viewRuleUserInterface model =
     div [ class "menu__rule-input-form" ]
         [ div []
             [ gammaLabel
-            , inputBlock gammaInput model
+            , inputBlock gammaInput model (Hint GammaInput)
             ]
         , div [ showFor [ VarRule, AbsRule ] ]
             [ xLabel
-            , inputBlock xInput model
+            , inputBlock xInput model (Hint XInput)
             ]
         , div [ showFor [ AbsRule, AppRule ] ]
             [ mLabel
-            , inputBlock mInput model
+            , inputBlock mInput model (Hint MInput)
             ]
         , div [ showFor [ AppRule ] ]
             [ nLabel
-            , inputBlock nInput model
+            , inputBlock nInput model (Hint NInput)
             ]
         , div [ showFor [ VarRule, AbsRule, AppRule ] ]
             [ sigmaLabel
-            , inputBlock sigmaInput model
+            , inputBlock sigmaInput model (Hint SigmaInput)
             ]
         , div [ showFor [ AbsRule, AppRule ] ]
             [ tauLabel
-            , inputBlock tauInput model
+            , inputBlock tauInput model (Hint TauInput)
             ]
         , div [] [ button [ onClick Submit ] [ text "Apply" ] ]
         ]
