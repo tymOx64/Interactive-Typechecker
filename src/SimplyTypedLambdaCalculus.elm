@@ -912,19 +912,23 @@ viewVarRule model =
 
 viewApplicationRule : Model -> Html Msg
 viewApplicationRule model =
-    div [ classList [ ( "menuRule", True ), ( "menuRule--selected", model.menuState == AppRule ) ], onClick <| ChangeState AppRule, style "margin-right" "11px" ]
-        [ div [ class "menuText" ] [ text "Γ ⊢ M : (σ → τ)   Γ ⊢ N : σ" ]
-        , div [ class "menuLine" ] [ text "  ————————————————— (App)" ]
-        , div [ class "menuText" ] [ text "Γ ⊢ (M N) : τ" ]
+    div [ classList [ ( "menuRule", True ), ( "menuRule--selected", model.menuState == AppRule ) ], onClick <| ChangeState AppRule, style "margin-right" "1px" ]
+        [ div [ style "margin-right" "2px" ]
+            [ div [ class "menuText" ] [ text "Γ ⊢ M : (σ → τ)   Γ ⊢ N : σ" ]
+            , div [ class "menuLine" ] [ text "  ————————————————— (App)" ]
+            , div [ class "menuText" ] [ text "Γ ⊢ (M N) : τ" ]
+            ]
         ]
 
 
 viewAbstractionRule : Model -> Html Msg
 viewAbstractionRule model =
-    div [ classList [ ( "menuRule", True ), ( "menuRule--selected", model.menuState == AbsRule ) ], onClick <| ChangeState AbsRule, style "margin-right" "21px" ]
-        [ div [ class "menuText" ] [ text "Γ, x : σ ⊢ M : τ" ]
-        , div [ class "menuLine" ] [ text "    ———————————————— (Abs)" ]
-        , div [ class "menuText" ] [ text "Γ ⊢ (λx.M) : (σ → τ)" ]
+    div [ classList [ ( "menuRule", True ), ( "menuRule--selected", model.menuState == AbsRule ) ], onClick <| ChangeState AbsRule, style "margin-left" "4px" ]
+        [ div [ style "margin-right" "22px" ]
+            [ div [ class "menuText" ] [ text "Γ, x : σ ⊢ M : τ" ]
+            , div [ class "menuLine" ] [ text "  ———————————————— (Abs)" ]
+            , div [ class "menuText" ] [ text "Γ ⊢ (λx.M) : (σ → τ)" ]
+            ]
         ]
 
 

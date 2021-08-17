@@ -9214,7 +9214,7 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					$author$project$UserInput$flushAllInputs(model),
 					$elm$core$Platform$Cmd$none);
-			case 'Submit':
+			case 'Apply':
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -10742,7 +10742,7 @@ var $author$project$SimplyTypedLambdaCalculus$viewAbstractionRule = function (mo
 					])),
 				$elm$html$Html$Events$onClick(
 				$author$project$SharedStructures$ChangeState($author$project$SharedStructures$AbsRule)),
-				A2($elm$html$Html$Attributes$style, 'margin-right', '21px')
+				A2($elm$html$Html$Attributes$style, 'margin-left', '4px')
 			]),
 		_List_fromArray(
 			[
@@ -10750,31 +10750,40 @@ var $author$project$SimplyTypedLambdaCalculus$viewAbstractionRule = function (mo
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('menuText')
+						A2($elm$html$Html$Attributes$style, 'margin-right', '22px')
 					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Γ, x : σ ⊢ M : τ')
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('menuLine')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('    ———————————————— (Abs)')
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('menuText')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Γ ⊢ (λx.M) : (σ → τ)')
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('menuText')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Γ, x : σ ⊢ M : τ')
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('menuLine')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('  ———————————————— (Abs)')
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('menuText')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Γ ⊢ (λx.M) : (σ → τ)')
+							]))
 					]))
 			]));
 };
@@ -10793,7 +10802,7 @@ var $author$project$SimplyTypedLambdaCalculus$viewApplicationRule = function (mo
 					])),
 				$elm$html$Html$Events$onClick(
 				$author$project$SharedStructures$ChangeState($author$project$SharedStructures$AppRule)),
-				A2($elm$html$Html$Attributes$style, 'margin-right', '11px')
+				A2($elm$html$Html$Attributes$style, 'margin-right', '1px')
 			]),
 		_List_fromArray(
 			[
@@ -10801,34 +10810,44 @@ var $author$project$SimplyTypedLambdaCalculus$viewApplicationRule = function (mo
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('menuText')
+						A2($elm$html$Html$Attributes$style, 'margin-right', '2px')
 					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Γ ⊢ M : (σ → τ)   Γ ⊢ N : σ')
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('menuLine')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('  ————————————————— (App)')
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('menuText')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Γ ⊢ (M N) : τ')
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('menuText')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Γ ⊢ M : (σ → τ)   Γ ⊢ N : σ')
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('menuLine')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('  ————————————————— (App)')
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('menuText')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Γ ⊢ (M N) : τ')
+							]))
 					]))
 			]));
 };
+var $author$project$SharedStructures$Apply = {$: 'Apply'};
 var $author$project$SharedStructures$FillAllInputs = {$: 'FillAllInputs'};
 var $author$project$SharedStructures$FlushAllInputs = {$: 'FlushAllInputs'};
 var $author$project$SharedStructures$GammaInput = {$: 'GammaInput'};
@@ -10838,7 +10857,6 @@ var $author$project$SharedStructures$Hint = function (a) {
 var $author$project$SharedStructures$MInput = {$: 'MInput'};
 var $author$project$SharedStructures$NInput = {$: 'NInput'};
 var $author$project$SharedStructures$SigmaInput = {$: 'SigmaInput'};
-var $author$project$SharedStructures$Submit = {$: 'Submit'};
 var $author$project$SharedStructures$TauInput = {$: 'TauInput'};
 var $author$project$SharedStructures$XInput = {$: 'XInput'};
 var $elm$html$Html$button = _VirtualDom_node('button');
@@ -11147,7 +11165,7 @@ var $author$project$UserInput$viewRuleUserInterface = function (model) {
 						$elm$html$Html$button,
 						_List_fromArray(
 							[
-								$elm$html$Html$Events$onClick($author$project$SharedStructures$Submit)
+								$elm$html$Html$Events$onClick($author$project$SharedStructures$Apply)
 							]),
 						_List_fromArray(
 							[

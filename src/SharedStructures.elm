@@ -30,7 +30,7 @@ type Msg
     | TransformInput
     | FillAllInputs
     | FlushAllInputs
-    | Submit
+    | Apply
     | SelectTreeNode (List Int)
     | ResetTreeNode (List Int)
     | ChangeState MenuState

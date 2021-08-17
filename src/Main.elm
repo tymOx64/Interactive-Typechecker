@@ -145,7 +145,7 @@ update msg model =
         FlushAllInputs ->
             ( UserInput.flushAllInputs model, Cmd.none )
 
-        Submit ->
+        Apply ->
             ( { model | ruleTree = UserInput.updateSelectedRuleTreeNode model }, pushUrl <| localPath ++ encodeRuleTreeAsString (UserInput.updateSelectedRuleTreeNode model) )
 
         SelectTreeNode nodeId ->
