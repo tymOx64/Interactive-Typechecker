@@ -11137,7 +11137,10 @@ var $author$project$UserInput$viewRuleUserInterface = function (model) {
 					])),
 				A2(
 				$elm$html$Html$div,
-				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('menu__bottom-button-row')
+					]),
 				_List_fromArray(
 					[
 						A2(
@@ -11151,24 +11154,33 @@ var $author$project$UserInput$viewRuleUserInterface = function (model) {
 								$elm$html$Html$text('Apply')
 							])),
 						A2(
-						$elm$html$Html$button,
+						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Events$onClick($author$project$SharedStructures$FlushAllInputs)
+								A2($elm$html$Html$Attributes$style, 'justify-content', 'flex-end')
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text('🧹')
-							])),
-						A2(
-						$elm$html$Html$button,
-						_List_fromArray(
-							[
-								$elm$html$Html$Events$onClick($author$project$SharedStructures$FillAllInputs)
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('💊')
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onClick($author$project$SharedStructures$FlushAllInputs)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('🧹')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onClick($author$project$SharedStructures$FillAllInputs)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('💊')
+									]))
 							]))
 					]))
 			]));

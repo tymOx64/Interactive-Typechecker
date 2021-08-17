@@ -111,6 +111,16 @@ div.hole:hover {
 	flex-grow: 1;
 }
 
+.menu__bottom-button-row {
+	display: flex;
+	flex-direction: row;
+	flex-grow: 1;
+	justify-content: space-between;
+	align-items: stretch;
+	margin-top: 13px;
+	margin-bottom: 13px;
+}
+
 label {
 	font-family: Georgia, Serif;
 	width: 20%;
