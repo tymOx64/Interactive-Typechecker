@@ -6,7 +6,7 @@ import Json.Decode exposing (dict)
 import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
-import UserInput exposing (fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, sigmaInput)
+import UserInput exposing (fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree)
 
 
 
@@ -128,7 +128,7 @@ getHint inputField model =
                 _ ->
                     model
 
-        ( RApp context term typ nextRuleTree1 nextRuleTree2, AppRule ) ->
+        ( RApp _ term _ nextRuleTree1 nextRuleTree2, AppRule ) ->
             case inputField of
                 GammaInput ->
                     fillGammaInputFromRuleTree selectedRuleTree model

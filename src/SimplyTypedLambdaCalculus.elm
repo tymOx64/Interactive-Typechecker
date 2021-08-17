@@ -440,7 +440,7 @@ getRuleTreeNode ruleTree nodeId =
             ruleTree
 
         ( _, _ ) ->
-            auxiliaryRuleTree
+            Hole
 
 
 getSelectedRuleTreeNode : Model -> RuleTree
@@ -558,7 +558,7 @@ getNodeIdForArrowUpKeyEvent ruleTree selectedNodeId =
                     else
                         firstMatch ( l :: ls, rs ) True
     in
-    if getRuleTreeNode ruleTree (selectedNodeId ++ [ 0 ]) /= auxiliaryRuleTree then
+    if getRuleTreeNode ruleTree (selectedNodeId ++ [ 0 ]) /= Hole then
         selectedNodeId ++ [ 0 ]
 
     else
@@ -952,10 +952,3 @@ determineCorrespondingRule term =
 
         App _ _ ->
             AppRule
-
-
-{-| special RuleTree just for internal auxialiary purposes
--}
-auxiliaryRuleTree : RuleTree
-auxiliaryRuleTree =
-    RVar (Context Dict.empty) (Var '%') Untyped False

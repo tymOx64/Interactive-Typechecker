@@ -247,7 +247,7 @@ updateSelectedRuleTreeNode model =
                 True
 
         _ ->
-            STLC.auxiliaryRuleTree
+            Hole
 
 
 adjustMenuStateToSelectedRuleTree : Model -> Model
@@ -462,7 +462,7 @@ ruleTreeParser =
 
 parseRuleTree : String -> RuleTree
 parseRuleTree str =
-    Result.withDefault STLC.auxiliaryRuleTree <| Parser.run ruleTreeParser str
+    Result.withDefault Hole <| Parser.run ruleTreeParser str
 
 
 boolParser : Parser Bool
