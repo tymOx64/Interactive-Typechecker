@@ -12,11 +12,11 @@ TODO
 
 TODO `🧹` `💊`
 
-#### Hint Function
+### Hint Function
 
 In case some help is needed, a hint function can be used to get selective guidance for finding the correct input. 
 Therefore, a `💡`-button next to each input field can be clicked.
 
-#### Import/Export
+### Import/Export
 
 TODO
