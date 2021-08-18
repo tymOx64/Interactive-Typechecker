@@ -78,6 +78,8 @@ body {
 }
 
 div.conclusion:hover {
+	border-width: 2px;
+	padding: 0px;
 	border-style: solid;
 	border-radius: 7px;
 }
@@ -89,10 +91,6 @@ div.conclusion:hover {
 
 .hole {
 	padding: 2px;
-}
-
-div.hole:hover {
-	font-size: 130%;
 }
 
 .ruletree-text-highlight {
