@@ -172,7 +172,14 @@ viewRuleUserInterface model =
             [ tauLabel
             , inputBlock tauInput model (Hint TauInput)
             ]
-        , div [ showFor [ VarRule, AbsRule, AppRule ], class "menu__bottom-button-row" ]
+        , div
+            [ if List.member model.menuState [ VarRule, AbsRule, AppRule ] then
+                style "display" "flex"
+
+              else
+                style "display" "none"
+            , class "menu__bottom-button-row"
+            ]
             [ button [ onClick Apply ] [ text "Apply" ]
             , div [ style "justify-content" "flex-end" ]
                 [ button [ onClick FlushAllInputs ] [ text "🧹" ]
