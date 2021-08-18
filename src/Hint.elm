@@ -20,8 +20,8 @@ import UserInput exposing (fillGammaInputFromRuleTree, fillMInputFromRuleTree, f
 -}
 
 
-getHint : InputField -> Model -> Model
-getHint inputField model =
+getHint : InputKind -> Model -> Model
+getHint inputKind model =
     let
         selectedRuleTree =
             getSelectedRuleTreeNode model
@@ -41,7 +41,7 @@ getHint inputField model =
     in
     case ( selectedRuleTree, model.menuState ) of
         ( RVar context term _ _, VarRule ) ->
-            case inputField of
+            case inputKind of
                 GammaInput ->
                     fillGammaInputFromRuleTree selectedRuleTree model
 
@@ -73,7 +73,7 @@ getHint inputField model =
                     model
 
         ( RAbs _ term _ nextRuleTree, AbsRule ) ->
-            case inputField of
+            case inputKind of
                 GammaInput ->
                     fillGammaInputFromRuleTree selectedRuleTree model
 
@@ -129,7 +129,7 @@ getHint inputField model =
                     model
 
         ( RApp _ term _ nextRuleTree1 nextRuleTree2, AppRule ) ->
-            case inputField of
+            case inputKind of
                 GammaInput ->
                     fillGammaInputFromRuleTree selectedRuleTree model
 
@@ -183,6 +183,23 @@ getHint inputField model =
 
                 _ ->
                     model
+
+        ( ruleTree, SelectRule ) ->
+            case ( inputKind, getTermFromRuleTree ruleTree ) of
+                ( RuleSelection, Just (Var _) ) ->
+                    changeState VarRule model
+
+                ( RuleSelection, Just (Abs _ _) ) ->
+                    changeState AbsRule model
+
+                ( RuleSelection, Just (App _ _) ) ->
+                    changeState AppRule model
+
+                ( RuleSelection, Nothing ) ->
+                    { model | displayMessage = "Could not determine the corresponding inference rule. Try to select a valid tree node!" }
+
+                _ ->
+                    { model | displayMessage = "Unexpected program state. Try to continue or reload the page!" }
 
         _ ->
             { model

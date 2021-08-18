@@ -26,7 +26,7 @@ type Msg
     | N String
     | Sigma String
     | Tau String
-    | Hint InputField
+    | Hint InputKind
     | TransformInput
     | FillAllInputs
     | FlushAllInputs
@@ -84,13 +84,14 @@ type RuleTree
     | Hole
 
 
-type InputField
+type InputKind
     = GammaInput
     | XInput
     | MInput
     | NInput
     | SigmaInput
     | TauInput
+    | RuleSelection
 
 
 type APointer nodeId contPointer termPointer typePointer

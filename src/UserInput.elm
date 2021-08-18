@@ -135,7 +135,7 @@ flushAllInputs model =
     { model | gammaInput = "", xInput = "", mInput = "", nInput = "", sigmaInput = "", tauInput = "" }
 
 
-{-| Shows the user input elements according to the current selected Rule.
+{-| Shows the user input elements according to the currently selected Rule.
 -}
 viewRuleUserInterface : Model -> Html Msg
 viewRuleUserInterface model =
@@ -148,7 +148,7 @@ viewRuleUserInterface model =
                 style "display" "none"
     in
     div [ class "menu__rule-input-form" ]
-        [ div []
+        [ div [ showFor [ VarRule, AbsRule, AppRule ] ]
             [ gammaLabel
             , inputBlock gammaInput model (Hint GammaInput)
             ]
@@ -172,12 +172,16 @@ viewRuleUserInterface model =
             [ tauLabel
             , inputBlock tauInput model (Hint TauInput)
             ]
-        , div [ class "menu__bottom-button-row" ]
+        , div [ showFor [ VarRule, AbsRule, AppRule ], class "menu__bottom-button-row" ]
             [ button [ onClick Apply ] [ text "Apply" ]
             , div [ style "justify-content" "flex-end" ]
                 [ button [ onClick FlushAllInputs ] [ text "🧹" ]
                 , button [ onClick FillAllInputs ] [ text "💊" ]
                 ]
+            ]
+        , div [ showFor [ SelectRule ], class "menu__bottom-button-row" ]
+            [ div [ style "display" "flex", style "justify-content" "center" ]
+                [ button [ onClick (Hint RuleSelection), style "font-size" "120%" ] [ text "💡" ] ]
             ]
         ]
 

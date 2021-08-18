@@ -226,16 +226,6 @@ view model =
 viewRight : Model -> Html Msg
 viewRight model =
     let
-        ruleIsSelected =
-            List.member model.menuState [ VarRule, AbsRule, AppRule ]
-
-        viewRuleUserInterfaceOnSelection =
-            if ruleIsSelected then
-                viewRuleUserInterface model
-
-            else
-                text ""
-
         viewDisplayMessage =
             div [ class "display-message-container" ] [ strong [] [ text model.displayMessage ] ]
     in
@@ -245,7 +235,7 @@ viewRight model =
         , viewApplicationRule model
         , viewAbstractionRule model
         , viewDisplayMessage
-        , viewRuleUserInterfaceOnSelection
+        , viewRuleUserInterface model
         ]
 
 
