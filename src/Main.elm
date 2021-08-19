@@ -47,20 +47,24 @@ init locationHref =
       , sigmaInput = ""
       , tauInput = ""
       , displayMessage =
-            case ruleTreeFromUrlQuery of
-                Just _ ->
+            case ( ruleTreeFromUrlQuery, getBaseUrl locationHref ) of
+                ( Just _, Just _ ) ->
                     "Welcome to the interactive STLC Typechecker. Start by selecting an inference rule right above this message!"
 
-                Nothing ->
-                    "Parsing Error."
+                ( Nothing, _ ) ->
+                    "Parsing Error on the '?prooftree=' query. Did you copy the full URL?"
+
+                ( _, Nothing ) ->
+                    "Unable to parse the URL. The application needs to be launched from an html file!"
+      , baseUrl = getBaseUrl locationHref |> Maybe.withDefault ""
       }
     , Cmd.none
     )
 
 
-getUrlWithProoftree : RuleTree -> String
-getUrlWithProoftree ruleTree =
-    Url.Builder.crossOrigin "https://www.whatever.de" [] [ Url.Builder.string "prooftree" (STLC.encodeRuleTreeAsString ruleTree) ]
+getUrlWithProoftree : Model -> RuleTree -> String
+getUrlWithProoftree model ruleTree =
+    model.baseUrl ++ "?prooftree=" ++ encodeRuleTreeAsString ruleTree
 
 
 getRuleTreeFromUrlQuery : String -> Maybe RuleTree
@@ -70,7 +74,7 @@ getRuleTreeFromUrlQuery urlAsString =
 
 fixUrl : String -> String
 fixUrl =
-    case Regex.fromString "file.*typechecker[.]html" of
+    case Regex.fromString "file.*[.]html" of
         Nothing ->
             identity
 
@@ -78,19 +82,17 @@ fixUrl =
             Regex.replace regex (\_ -> "https://www.foobar.com/")
 
 
-voidUrl : Url.Url
-voidUrl =
-    Url.Url Url.Http "" Nothing "" Nothing Nothing
-
-
-localPath =
-    "file:///D:/0-Drive/Backups/vscode%20project%20-%20typechecker/typechecker.html?prooftree="
+{-| Reduces the URL its beginning parts `scheme`, `authority` and `path`, i.e. it cuts off the parts `query` and `fragment`.
+-}
+getBaseUrl : String -> Maybe String
+getBaseUrl str =
+    Regex.find (Maybe.withDefault Regex.never (Regex.fromString ".*[.]html")) str |> List.map .match |> List.head
 
 
 getUrlQuery : String -> String -> Maybe String
 getUrlQuery query urlAsString =
     -- the leftmost call just flattens the nested Maybe value
-    Maybe.withDefault Nothing <| (Url.Parser.parse <| Url.Parser.query <| Query.string query) <| Maybe.withDefault voidUrl (Url.fromString urlAsString)
+    Maybe.withDefault Nothing <| Maybe.andThen (Url.Parser.parse <| Url.Parser.query <| Query.string query) <| Url.fromString urlAsString
 
 
 
@@ -152,7 +154,7 @@ update msg model =
             ( UserInput.flushAllInputs model, Cmd.none )
 
         Apply ->
-            ( { model | ruleTree = UserInput.updateSelectedRuleTreeNode model }, pushUrl <| localPath ++ encodeRuleTreeAsString (UserInput.updateSelectedRuleTreeNode model) )
+            ( { model | ruleTree = UserInput.updateSelectedRuleTreeNode model }, pushUrl <| getUrlWithProoftree model model.ruleTree )
 
         SelectTreeNode nodeId ->
             ( adjustMenuStateToSelectedRuleTree { model | selectedNodeId = nodeId }, Cmd.none )
@@ -160,7 +162,7 @@ update msg model =
         ResetTreeNode nodeId ->
             ( { model | ruleTree = resetRuleTreeNode model.ruleTree nodeId }
                 |> adjustMenuStateToSelectedRuleTree
-            , pushUrl <| localPath ++ encodeRuleTreeAsString (resetRuleTreeNode model.ruleTree nodeId)
+            , pushUrl <| getUrlWithProoftree model (resetRuleTreeNode model.ruleTree nodeId)
             )
 
         ChangeState newState ->

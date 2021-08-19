@@ -14,8 +14,7 @@ type alias Model =
     , sigmaInput : String
     , tauInput : String
     , displayMessage : String
-
-    --    , idToTypeDict : Dict Int SType
+    , baseUrl : String
     }
 
 
