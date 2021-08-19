@@ -33,13 +33,12 @@ main =
 
 init : String -> ( Model, Cmd Msg )
 init locationHref =
-    {- let
-           _ =
-               Debug.log "FIX URL TEST" <| fixUrl "file:///D:/0-Drive/Backups/vscode%20project%20-%20typechecker/typechecker.html"
-       in
-    -}
+    let
+        ruleTreeFromUrlQuery =
+            getRuleTreeFromUrlQuery locationHref
+    in
     ( { menuState = SelectRule
-      , ruleTree = getRuleTreeFromUrlQuery locationHref
+      , ruleTree = ruleTreeFromUrlQuery |> Maybe.withDefault Hole
       , selectedNodeId = []
       , gammaInput = ""
       , xInput = ""
@@ -47,7 +46,13 @@ init locationHref =
       , nInput = ""
       , sigmaInput = ""
       , tauInput = ""
-      , displayMessage = "Welcome to the interactive STLC Typechecker. Start by selecting an inference rule right above this message!"
+      , displayMessage =
+            case ruleTreeFromUrlQuery of
+                Just _ ->
+                    "Welcome to the interactive STLC Typechecker. Start by selecting an inference rule right above this message!"
+
+                Nothing ->
+                    "Parsing Error."
       }
     , Cmd.none
     )
@@ -58,14 +63,14 @@ getUrlWithProoftree ruleTree =
     Url.Builder.crossOrigin "https://www.whatever.de" [] [ Url.Builder.string "prooftree" (STLC.encodeRuleTreeAsString ruleTree) ]
 
 
-getRuleTreeFromUrlQuery : String -> RuleTree
+getRuleTreeFromUrlQuery : String -> Maybe RuleTree
 getRuleTreeFromUrlQuery urlAsString =
-    parseRuleTree <| Debug.log "showUrlQuery" <| showUrlQuery "prooftree" <| Debug.log "fixUrl" <| fixUrl urlAsString
+    Maybe.andThen parseRuleTree <| Debug.log "showUrlQuery" <| getUrlQuery "prooftree" <| Debug.log "fixUrl" <| fixUrl urlAsString
 
 
 fixUrl : String -> String
 fixUrl =
-    case Regex.fromString ".*typechecker[.]html" of
+    case Regex.fromString "file.*typechecker[.]html" of
         Nothing ->
             identity
 
@@ -82,9 +87,10 @@ localPath =
     "file:///D:/0-Drive/Backups/vscode%20project%20-%20typechecker/typechecker.html?prooftree="
 
 
-showUrlQuery : String -> String -> String
-showUrlQuery query urlAsString =
-    Maybe.withDefault "" <| Maybe.withDefault Nothing <| (Url.Parser.parse <| Url.Parser.query <| Query.string query) <| Maybe.withDefault voidUrl (Url.fromString urlAsString)
+getUrlQuery : String -> String -> Maybe String
+getUrlQuery query urlAsString =
+    -- the leftmost call just flattens the nested Maybe value
+    Maybe.withDefault Nothing <| (Url.Parser.parse <| Url.Parser.query <| Query.string query) <| Maybe.withDefault voidUrl (Url.fromString urlAsString)
 
 
 

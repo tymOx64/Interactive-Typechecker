@@ -477,9 +477,9 @@ ruleTreeParser =
         ]
 
 
-parseRuleTree : String -> RuleTree
+parseRuleTree : String -> Maybe RuleTree
 parseRuleTree str =
-    Result.withDefault Hole <| Parser.run ruleTreeParser str
+    Result.toMaybe <| Parser.run ruleTreeParser str
 
 
 boolParser : Parser Bool
