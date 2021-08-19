@@ -143,11 +143,11 @@ update msg model =
 
         TransformInput ->
             ( { model
-                | gammaInput = UserInput.stringToSpecialCharacterRepresantation model.gammaInput
-                , mInput = UserInput.stringToSpecialCharacterRepresantation model.mInput
-                , nInput = UserInput.stringToSpecialCharacterRepresantation model.nInput
-                , sigmaInput = UserInput.stringToSpecialCharacterRepresantation model.sigmaInput
-                , tauInput = UserInput.stringToSpecialCharacterRepresantation model.tauInput
+                | gammaInput = stringOfTypingAssumptionsToTypingRepresantation model.gammaInput
+                , mInput = model.mInput
+                , nInput = model.nInput
+                , sigmaInput = stringToTypingRepresantation model.sigmaInput
+                , tauInput = stringToTypingRepresantation model.tauInput
               }
             , Cmd.none
             )

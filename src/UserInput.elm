@@ -5,6 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
+import List exposing (tail)
 import Parser exposing ((|.), (|=), Parser)
 import SharedStructures as Shared exposing (..)
 import SimplyTypedLambdaCalculus as STLC exposing (createRuleTree, getContextFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showVar)
@@ -362,10 +363,10 @@ tauInput model =
 --    unicode characters:    → λ σ τ Γ ⊢
 
 
-{-| Transforms a Char to its special character representation if possible, otherwise the Char remains unchanged.
+{-| If possible, transforms a Char to its representation we use for typing, otherwise the Char remains unchanged.
 -}
-charToSpecialCharacterRepresentation : Char -> Char
-charToSpecialCharacterRepresentation char =
+charToTypingRepresentation : Char -> Char
+charToTypingRepresentation char =
     case char of
         '\\' ->
             'λ'
@@ -452,9 +453,45 @@ charToSpecialCharacterRepresentation char =
             char
 
 
-stringToSpecialCharacterRepresantation : String -> String
-stringToSpecialCharacterRepresantation str =
-    String.map charToSpecialCharacterRepresentation str |> String.replace "->" "→"
+{-| Used for Strings that are supposed to be a present _just_ a type.
+-}
+stringToTypingRepresantation : String -> String
+stringToTypingRepresantation str =
+    String.map charToTypingRepresentation str
+        |> String.replace "->" "→"
+
+
+{-| For every typing assumption of the form `x:t` where x is an arbitrary variable
+and t an arbitrary type containing standard keyboard characters (e.g. `(a->(b->a))`,
+the function converts it to `x:T` where T is the typing representation of t (e.g. `(α→(β→α))`).
+
+**Example**
+
+    stringOfTypingAssumptionsToTypingRepresantation "x:(a->(b->a)), y:s" => "x:(α→(β→α)),y:σ"
+
+-}
+stringOfTypingAssumptionsToTypingRepresantation : String -> String
+stringOfTypingAssumptionsToTypingRepresantation str =
+    let
+        splitUp str1 =
+            String.split "," str1 |> List.concatMap (String.split ":")
+
+        joinUpAndConvert splittedParts beforeColon =
+            case splittedParts of
+                lastElem :: [] ->
+                    stringToTypingRepresantation lastElem
+
+                head :: tail ->
+                    if beforeColon then
+                        head ++ ":" ++ joinUpAndConvert tail False
+
+                    else
+                        stringToTypingRepresantation head ++ "," ++ joinUpAndConvert tail True
+
+                _ ->
+                    ""
+    in
+    joinUpAndConvert (String.replace " " "" str |> splitUp) True
 
 
 
@@ -652,7 +689,7 @@ validLatinTypeVariableNames =
 
 validGreekTypeVariableNames : List Char
 validGreekTypeVariableNames =
-    List.map charToSpecialCharacterRepresentation validLatinTypeVariableNames
+    List.map charToTypingRepresentation validLatinTypeVariableNames
 
 
 validTypeVariableNames : List Char
