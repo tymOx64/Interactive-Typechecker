@@ -33,6 +33,11 @@ main =
 
 init : String -> ( Model, Cmd Msg )
 init locationHref =
+    {- let
+           _ =
+               Debug.log "FIX URL TEST" <| fixUrl "file:///D:/0-Drive/Backups/vscode%20project%20-%20typechecker/typechecker.html"
+       in
+    -}
     ( { menuState = SelectRule
       , ruleTree = getRuleTreeFromUrlQuery locationHref
       , selectedNodeId = []
@@ -55,22 +60,17 @@ getUrlWithProoftree ruleTree =
 
 getRuleTreeFromUrlQuery : String -> RuleTree
 getRuleTreeFromUrlQuery urlAsString =
-    parseRuleTree <| showUrlQuery "prooftree" <| getValidUrlFromLocalPath urlAsString
-
-
-getValidUrlFromLocalPath : String -> String
-getValidUrlFromLocalPath currentPath =
-    String.replace "file:///D:/0-Drive/Backups/vscode%20project%20-%20typechecker/typechecker.html" "https://www.whatever.de/" currentPath
+    parseRuleTree <| Debug.log "showUrlQuery" <| showUrlQuery "prooftree" <| Debug.log "fixUrl" <| fixUrl urlAsString
 
 
 fixUrl : String -> String
 fixUrl =
-    case Regex.fromString "^file://" of
+    case Regex.fromString ".*typechecker[.]html" of
         Nothing ->
             identity
 
         Just regex ->
-            Regex.replace regex (\_ -> "https://blubb")
+            Regex.replace regex (\_ -> "https://www.foobar.com/")
 
 
 voidUrl : Url.Url
@@ -179,11 +179,10 @@ update msg model =
             )
 
         UrlChanged str ->
-            {- let
-                   _ =
-                       Debug.log "UrlChangedMsg str: " str
-               in
-            -}
+            let
+                _ =
+                    Debug.log "UrlChangedMsg str: " str
+            in
             ( model, Cmd.none )
 
         NoOperation ->
