@@ -52,7 +52,7 @@ init locationHref =
                     "Welcome to the interactive STLC Typechecker. Start by selecting an inference rule right above this message!"
 
                 ( Nothing, _ ) ->
-                    "Parsing Error on the '?prooftree=' query. Did you copy the full URL?"
+                    "Parsing Error on the prooftree query. Did you copy the full URL?"
 
                 ( _, Nothing ) ->
                     "Unable to parse the URL. The application needs to be launched from an html file!"
@@ -82,10 +82,15 @@ fixUrl =
             Regex.replace regex (\_ -> "https://www.foobar.com/")
 
 
-{-| Reduces the URL its beginning parts `scheme`, `authority` and `path`, i.e. it cuts off the parts `query` and `fragment`.
+{-| Reduces the URL to its beginning parts `scheme`, `authority` and `path`, i.e. it cuts off the parts `query` and `fragment`.
 -}
 getBaseUrl : String -> Maybe String
 getBaseUrl str =
+    {- let
+           _ =
+               Debug.log "getBaseUrl" (Regex.find (Maybe.withDefault Regex.never (Regex.fromString ".*[.]html")) str |> List.map .match |> List.head |> Maybe.withDefault "gg")
+       in
+    -}
     Regex.find (Maybe.withDefault Regex.never (Regex.fromString ".*[.]html")) str |> List.map .match |> List.head
 
 

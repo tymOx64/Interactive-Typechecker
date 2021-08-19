@@ -377,7 +377,7 @@ charToSpecialCharacterRepresentation char =
             'β'
 
         'c' ->
-            'γ'
+            'ς'
 
         'd' ->
             'δ'
@@ -386,34 +386,67 @@ charToSpecialCharacterRepresentation char =
             'ε'
 
         'f' ->
-            'ζ'
+            'ξ'
 
         'g' ->
-            'η'
+            'γ'
 
         'h' ->
-            'θ'
+            'ψ'
 
         'i' ->
             'ι'
 
         'j' ->
-            'κ'
+            'Ξ'
 
         'k' ->
-            'λ'
+            'κ'
 
         'l' ->
-            'μ'
+            'Λ'
 
         'm' ->
-            'ν'
+            'μ'
 
         'n' ->
-            'ξ'
+            'η'
 
         'o' ->
             'ο'
+
+        'p' ->
+            'ρ'
+
+        'q' ->
+            'Δ'
+
+        'r' ->
+            'Γ'
+
+        's' ->
+            'σ'
+
+        't' ->
+            'τ'
+
+        'u' ->
+            'υ'
+
+        'v' ->
+            'ν'
+
+        'w' ->
+            'ω'
+
+        'x' ->
+            'χ'
+
+        'y' ->
+            'Υ'
+
+        'z' ->
+            'ζ'
 
         _ ->
             char
@@ -614,7 +647,7 @@ parseTypeEnd str =
 
 validLatinTypeVariableNames : List Char
 validLatinTypeVariableNames =
-    [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o' ]
+    [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' ]
 
 
 validGreekTypeVariableNames : List Char
@@ -634,7 +667,7 @@ isValidTypeVariableName char =
 
 validVariableNames : List Char
 validVariableNames =
-    [ 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' ]
+    validLatinTypeVariableNames
 
 
 isValidVariableName : Char -> Bool

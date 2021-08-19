@@ -8,15 +8,21 @@ Future versions intend to include additional type systems.
 
 TODO
 
+Until a more sophisticated solution for creating starting terms/nodes is provided, the application can be tested by appending one of the following queries which offer a starting node or a full prooftree respectively:
+
+`?prooftree=_AB_{}(λz.((λx.(λy.x))%20z))(α→(β→α))_H_`
+
+`?prooftree=_AB_{}(λz.((λx.(λy.x))%20z))(α→(β→α))_AP_{z:α}((λx.(λy.x))%20z)(β→α)_AB_{z:α}(λx.(λy.x))(α→(β→α))_AB_{z:α,x:α}(λy.x)(β→α)_V_{z:α,y:β,x:α}xαT_V_{z:α}zαT`
+
 ## Usage
 
 TODO `🧹` `💊`
 
-### Hint Function
+#### Hint Function
 
 In case some help is needed, a hint function can be used to get selective guidance for finding the correct input. 
 Therefore, a `💡`-button next to each input field can be clicked.
 
-### Import/Export
+#### Import/Export
 
 TODO
