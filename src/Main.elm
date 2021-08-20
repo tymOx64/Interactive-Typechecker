@@ -173,23 +173,51 @@ update msg model =
             ( changeState newState model, Cmd.none )
 
         KeyDown key ->
-            ( (if key == "ArrowUp" then
+            let
+                cmd =
+                    if key == "Enter" then
+                        pushUrl <| getUrlWithProoftree model <| UserInput.updateSelectedRuleTreeNode model
+
+                    else if key == "Delete" then
+                        pushUrl <| getUrlWithProoftree model (resetRuleTreeNode model.ruleTree model.selectedNodeId)
+
+                    else
+                        Cmd.none
+            in
+            ( if key == "ArrowUp" then
                 { model | selectedNodeId = STLC.getNodeIdForArrowUpKeyEvent model.ruleTree model.selectedNodeId }
+                    |> adjustMenuStateToSelectedRuleTree
 
-               else if key == "ArrowDown" then
+              else if key == "ArrowDown" then
                 { model | selectedNodeId = STLC.getNodeIdForArrowDownKeyEvent model.ruleTree model.selectedNodeId }
+                    |> adjustMenuStateToSelectedRuleTree
 
-               else if key == "ArrowLeft" then
+              else if key == "ArrowLeft" then
                 { model | selectedNodeId = STLC.getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId True }
+                    |> adjustMenuStateToSelectedRuleTree
 
-               else if key == "ArrowRight" then
+              else if key == "ArrowRight" then
                 { model | selectedNodeId = STLC.getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId False }
+                    |> adjustMenuStateToSelectedRuleTree
 
-               else
+              else if key == "1" then
+                changeState VarRule model
+
+              else if key == "2" then
+                changeState AppRule model
+
+              else if key == "3" then
+                changeState AbsRule model
+
+              else if key == "Enter" then
+                adjustMenuStateToSelectedRuleTree model
+
+              else if key == "Delete" then
+                adjustMenuStateToSelectedRuleTree model
+
+              else
                 model
-              )
-                |> adjustMenuStateToSelectedRuleTree
-            , Cmd.none
+            , cmd
             )
 
         UrlChanged newUrl ->
