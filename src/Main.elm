@@ -191,12 +191,17 @@ update msg model =
             , Cmd.none
             )
 
-        UrlChanged str ->
+        UrlChanged newUrl ->
             let
                 _ =
-                    Debug.log "UrlChangedMsg str: " str
+                    Debug.log "UrlChangedMsg str: " newUrl
             in
-            ( model, Cmd.none )
+            case getRuleTreeFromUrlQuery newUrl of
+                Just parsedRuleTree ->
+                    ( { model | ruleTree = parsedRuleTree }, Cmd.none )
+
+                Nothing ->
+                    ( { model | ruleTree = Hole, displayMessage = "Unexpected parsing error on the prooftree query." }, Cmd.none )
 
         NoOperation ->
             ( model, Cmd.none )

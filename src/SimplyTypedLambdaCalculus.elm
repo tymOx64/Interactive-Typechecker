@@ -381,22 +381,10 @@ changeRuleTreeNode ruleTree nodeId singletonNewRuleTree keepOldChildren =
 
         newRuleTree =
             if keepOldChildren then
-                Debug.log "appendNextRT" <| keepChildrenOfOldChildrenIfTreeStructureIsUnchanged ruleTreeNodeToBeChanged singletonNewRuleTree
+                keepChildrenOfOldChildrenIfTreeStructureIsUnchanged ruleTreeNodeToBeChanged singletonNewRuleTree
 
             else
-                Debug.log "singletonNewRT" singletonNewRuleTree
-
-        _ =
-            Debug.log "keepOldChildren" keepOldChildren
-
-        _ =
-            Debug.log "nodeId" nodeId
-
-        _ =
-            Debug.log "newRuleTree" newRuleTree
-
-        _ =
-            Debug.log "ruleTreeNodeToBeChanged" ruleTreeNodeToBeChanged
+                singletonNewRuleTree
     in
     case ( ruleTree, nodeId ) of
         ( RAbs a b c nextRuleTree, 0 :: nextNodeId ) ->
