@@ -159,14 +159,13 @@ update msg model =
             ( UserInput.flushAllInputs model, Cmd.none )
 
         Apply ->
-            ( { model | ruleTree = UserInput.updateSelectedRuleTreeNode model }, pushUrl <| getUrlWithProoftree model model.ruleTree )
+            ( model, pushUrl <| getUrlWithProoftree model <| UserInput.updateSelectedRuleTreeNode model )
 
         SelectTreeNode nodeId ->
             ( adjustMenuStateToSelectedRuleTree { model | selectedNodeId = nodeId }, Cmd.none )
 
         ResetTreeNode nodeId ->
-            ( { model | ruleTree = resetRuleTreeNode model.ruleTree nodeId }
-                |> adjustMenuStateToSelectedRuleTree
+            ( adjustMenuStateToSelectedRuleTree model
             , pushUrl <| getUrlWithProoftree model (resetRuleTreeNode model.ruleTree nodeId)
             )
 

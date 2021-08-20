@@ -202,7 +202,7 @@ updateSelectedRuleTreeNode model =
         context =
             parseContext model.gammaInput
     in
-    case Debug.log "menuState in updateSelectedRuleTreeNode" model.menuState of
+    case model.menuState of
         VarRule ->
             STLC.changeRuleTreeNode model.ruleTree
                 model.selectedNodeId
