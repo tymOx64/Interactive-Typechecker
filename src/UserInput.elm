@@ -500,12 +500,12 @@ stringOfTypingAssumptionsToTypingRepresantation str =
 
 parseVar : Parser Char
 parseVar =
-    Parser.chompIf isValidVariableName |> Parser.getChompedString |> Parser.map getFirstCharFromString
+    Parser.chompIf isValidVariableInput |> Parser.getChompedString |> Parser.map getFirstCharFromString
 
 
 parseTypeVar : Parser Char
 parseTypeVar =
-    Parser.chompIf isValidTypeVariableName |> Parser.getChompedString |> Parser.map getFirstCharFromString
+    Parser.chompIf isValidTypeVarInput |> Parser.getChompedString |> Parser.map getFirstCharFromString
 
 
 {-| Used to parse the RuleTree in the proofterm query of the URL.
@@ -682,34 +682,26 @@ parseTypeEnd str =
     Result.withDefault Untyped <| Parser.run typeParserEnd <| str
 
 
-validLatinTypeVariableNames : List Char
-validLatinTypeVariableNames =
+validVarAndTypeVarInputs : List Char
+validVarAndTypeVarInputs =
     [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' ]
 
 
-validGreekTypeVariableNames : List Char
-validGreekTypeVariableNames =
-    List.map charToTypingRepresentation validLatinTypeVariableNames
+isValidTypeVarInput : Char -> Bool
+isValidTypeVarInput char =
+    let
+        validGreekTypeVarNames =
+            List.map charToTypingRepresentation validVarAndTypeVarInputs
+
+        validTypeVarInputs =
+            validVarAndTypeVarInputs ++ validGreekTypeVarNames
+    in
+    List.member char validTypeVarInputs
 
 
-validTypeVariableNames : List Char
-validTypeVariableNames =
-    validLatinTypeVariableNames ++ validGreekTypeVariableNames
-
-
-isValidTypeVariableName : Char -> Bool
-isValidTypeVariableName char =
-    List.member char validTypeVariableNames
-
-
-validVariableNames : List Char
-validVariableNames =
-    validLatinTypeVariableNames
-
-
-isValidVariableName : Char -> Bool
-isValidVariableName char =
-    List.member char validVariableNames
+isValidVariableInput : Char -> Bool
+isValidVariableInput char =
+    List.member char validVarAndTypeVarInputs
 
 
 getFirstCharFromString : String -> Char
