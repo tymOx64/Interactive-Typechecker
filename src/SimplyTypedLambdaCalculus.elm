@@ -381,10 +381,22 @@ changeRuleTreeNode ruleTree nodeId singletonNewRuleTree keepOldChildren =
 
         newRuleTree =
             if keepOldChildren then
-                appendnextRuleTree ruleTreeNodeToBeChanged singletonNewRuleTree
+                Debug.log "appendNextRT" <| keepChildrenOfOldChildrenIfTreeStructureIsUnchanged ruleTreeNodeToBeChanged singletonNewRuleTree
 
             else
-                singletonNewRuleTree
+                Debug.log "singletonNewRT" singletonNewRuleTree
+
+        _ =
+            Debug.log "keepOldChildren" keepOldChildren
+
+        _ =
+            Debug.log "nodeId" nodeId
+
+        _ =
+            Debug.log "newRuleTree" newRuleTree
+
+        _ =
+            Debug.log "ruleTreeNodeToBeChanged" ruleTreeNodeToBeChanged
     in
     case ( ruleTree, nodeId ) of
         ( RAbs a b c nextRuleTree, 0 :: nextNodeId ) ->
@@ -619,10 +631,34 @@ ruleTreeAsInOrderList ruleTree nodeId level currentUserSelectedNodeId =
             []
 
 
-{-| if the rule is the same for the old and new RuleTree then append the children from the old to the new RuleTree, otherwise don't keep any children
+{-| Keeps the children of the children (_2nd generation children_) if the tree structure **remains unchanged**.
+The newly generated _1st generation children_ **remain new**. But the old 2nd generation children remain old if the
+tree structure allows for that. If the tree structure doesn't allow for that, the 2nd generation gets removed and
+all subsequent generation of the newRuleTree are being kept (which is usually just the one coming from the premise of the inference rule).
+
+The idea behind this is that updating a tree nodes conclusion directly dictates what its premise looks like
+(the premise is the 1st generation of children), so the premise gets updated as well.
+However, the children of the premise (2nd generation) is yet to be decided on how they should change and
+until then we want to keep the old 2nd generation (including all their subsequent generations).
+
 -}
-appendnextRuleTree : RuleTree -> RuleTree -> RuleTree
-appendnextRuleTree oldRuleTree newRuleTree =
+keepChildrenOfOldChildrenIfTreeStructureIsUnchanged : RuleTree -> RuleTree -> RuleTree
+keepChildrenOfOldChildrenIfTreeStructureIsUnchanged oldRuleTree newRuleTree =
+    case ( oldRuleTree, newRuleTree ) of
+        ( RAbs _ _ _ oldChild, RAbs a b c newChild ) ->
+            RAbs a b c <| keepOldChildrenIfRuleIsIdentical oldChild newChild
+
+        ( RApp _ _ _ oldLeftChild oldRightChild, RApp a b c newLeftChild newRightChild ) ->
+            RApp a b c (keepOldChildrenIfRuleIsIdentical oldLeftChild newLeftChild) (keepOldChildrenIfRuleIsIdentical oldRightChild newRightChild)
+
+        ( _, _ ) ->
+            newRuleTree
+
+
+{-| If the rule is the same for the old and new RuleTree then append the children from the old to the new RuleTree, otherwise don't keep any children.
+-}
+keepOldChildrenIfRuleIsIdentical : RuleTree -> RuleTree -> RuleTree
+keepOldChildrenIfRuleIsIdentical oldRuleTree newRuleTree =
     case ( oldRuleTree, newRuleTree ) of
         ( RAbs _ _ _ child, RAbs a b c _ ) ->
             RAbs a b c child
