@@ -173,20 +173,22 @@ update msg model =
             ( changeState newState model, Cmd.none )
 
         KeyDown key ->
-            ( if key == "ArrowUp" then
+            ( (if key == "ArrowUp" then
                 { model | selectedNodeId = STLC.getNodeIdForArrowUpKeyEvent model.ruleTree model.selectedNodeId }
 
-              else if key == "ArrowDown" then
+               else if key == "ArrowDown" then
                 { model | selectedNodeId = STLC.getNodeIdForArrowDownKeyEvent model.ruleTree model.selectedNodeId }
 
-              else if key == "ArrowLeft" then
+               else if key == "ArrowLeft" then
                 { model | selectedNodeId = STLC.getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId True }
 
-              else if key == "ArrowRight" then
+               else if key == "ArrowRight" then
                 { model | selectedNodeId = STLC.getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId False }
 
-              else
+               else
                 model
+              )
+                |> adjustMenuStateToSelectedRuleTree
             , Cmd.none
             )
 
