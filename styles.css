@@ -39,6 +39,15 @@ body {
 	border-width: 3px;
 }
 
+.create-starting-node {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: #cec7c7;
+	height: 100%;
+    white-space: pre;
+}
+
 .display-message-container {
 	margin-top: 29px;
 	margin-bottom: 39px;

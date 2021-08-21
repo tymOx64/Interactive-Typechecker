@@ -235,7 +235,7 @@ type MenuState
     | VarRule
     | AppRule
     | AbsRule
-    | SelectExercise
+    | CreateStartingNode
 
 
 changeState : MenuState -> Model -> Model

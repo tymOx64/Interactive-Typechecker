@@ -36,8 +36,16 @@ init locationHref =
     let
         ruleTreeFromUrlQuery =
             getRuleTreeFromUrlQuery locationHref
+
+        noProoftreeQueryGiven =
+            getUrlQuery "prooftree" (fixLocalUrl locationHref) |> (==) Nothing
     in
-    ( { menuState = SelectRule
+    ( { menuState =
+            if noProoftreeQueryGiven then
+                CreateStartingNode
+
+            else
+                SelectRule
       , ruleTree = ruleTreeFromUrlQuery |> Maybe.withDefault Hole
       , selectedNodeId = []
       , gammaInput = ""
@@ -56,7 +64,7 @@ init locationHref =
 
                 ( _, Nothing ) ->
                     "Unable to parse the URL. The application needs to be launched from an html file!"
-      , baseUrl = getBaseUrl locationHref |> Maybe.withDefault ""
+      , baseUrl = getBaseUrl locationHref |> Maybe.withDefault "https://www.typeCheckerDummyUrl.com/"
       }
     , Cmd.none
     )
@@ -69,17 +77,19 @@ getUrlWithProoftree model ruleTree =
 
 getRuleTreeFromUrlQuery : String -> Maybe RuleTree
 getRuleTreeFromUrlQuery urlAsString =
-    Maybe.andThen parseRuleTree <| Debug.log "showUrlQuery" <| getUrlQuery "prooftree" <| Debug.log "fixUrl" <| fixUrl urlAsString
+    Maybe.andThen parseRuleTree <| Debug.log "showUrlQuery" <| getUrlQuery "prooftree" <| Debug.log "fixUrl" <| fixLocalUrl urlAsString
 
 
-fixUrl : String -> String
-fixUrl =
+{-| Transforms a local URL to a common web URL since Elms current URL packages can't handle local URLs very well (as of 21st August 2021).
+-}
+fixLocalUrl : String -> String
+fixLocalUrl =
     case Regex.fromString "file.*[.]html" of
         Nothing ->
             identity
 
         Just regex ->
-            Regex.replace regex (\_ -> "https://www.foobar.com/")
+            Regex.replace regex (\_ -> "https://www.typeCheckerDummyUrl.com/")
 
 
 {-| Reduces the URL to its beginning parts `scheme`, `authority` and `path`, i.e. it cuts off the parts `query` and `fragment`.
@@ -281,10 +291,15 @@ port pushUrl : String -> Cmd msg
 
 view : Model -> Html Msg
 view model =
-    div [ class "flex-container" ]
-        [ viewLeft model
-        , viewRight model
-        ]
+    case model.menuState of
+        CreateStartingNode ->
+            viewCreateStartingNode model
+
+        _ ->
+            div [ class "flex-container" ]
+                [ viewLeft model
+                , viewRight model
+                ]
 
 
 viewRight : Model -> Html Msg
@@ -306,3 +321,8 @@ viewRight model =
 viewLeft : Model -> Html Msg
 viewLeft model =
     div [ class "tree" ] [ viewRuleTree model.ruleTree [] model (getFirstConflictFromRuleTree model.ruleTree) ]
+
+
+viewCreateStartingNode : Model -> Html Msg
+viewCreateStartingNode model =
+    div [ class "create-starting-node" ] [ text "page not available in current version. use prooftree query" ]
