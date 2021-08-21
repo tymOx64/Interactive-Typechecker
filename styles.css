@@ -39,13 +39,34 @@ body {
 	border-width: 3px;
 }
 
-.create-starting-node {
+.init-starting-node {
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	background-color: #cec7c7;
+	background-color: #e0dfdf;
 	height: 100%;
     white-space: pre;
+}
+
+.init-starting-node__input-block-container {
+	display: flex;
+	flex-direction: row;
+}
+
+.init-starting-node__input-block {
+	margin: 26px 15px;
+}
+
+.init-starting-node__button-block-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.init-starting-node__button-block {
+	margin: 8px 60px;
+	padding: 3px 10px;
 }
 
 .display-message-container {

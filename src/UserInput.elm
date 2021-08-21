@@ -1,6 +1,6 @@
 module UserInput exposing (..)
 
-import Dict exposing (update)
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -11,6 +11,16 @@ import SharedStructures as Shared exposing (..)
 import SimplyTypedLambdaCalculus as STLC exposing (createRuleTree, getContextFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showVar)
 
 
+{-| Creates a new labeled text input field. When losing focus, triggers the Msg `TransformInput`.
+Stops propagation of `KeyDown` events (e.g. to allow arrow keys move the cursor within the text input).
+
+`val`: starting string in the input field
+
+`id`: to which label the input belongs to
+
+`toMsg`: what Msg gets triggered when typing a character in the input
+
+-}
 newInput : String -> String -> (String -> Msg) -> Html Msg
 newInput val id toMsg =
     input
@@ -24,20 +34,73 @@ newInput val id toMsg =
         []
 
 
+{-| Creates a simple button.
+
+`txt`: the text label to be shown on the button itself
+
+`msg`: the Msg to be triggered when the button gets clicked
+
+-}
 newButton : String -> msg -> Html msg
 newButton txt msg =
-    button
-        [ classList []
-        , onClick msg
-        ]
-        [ text txt ]
+    button [ onClick msg ] [ text txt ]
 
 
+{-| Creates an input block consisting of a text input along with its hint button.
+
+`textInput`: the text input field
+
+`model`: the model
+
+`msg`: the Msg to be triggered when the hint button gets clicked
+
+-}
 inputBlock : (Model -> Html Msg) -> Model -> Msg -> Html Msg
-inputBlock inputType model msg =
+inputBlock textInput model msg =
     div [ class "menu__meta-variable-input-block" ]
-        [ inputType model
+        [ textInput model
         , button [ onClick msg ] [ text "💡" ]
+        ]
+
+
+viewContextInitBlock : Model -> Html Msg
+viewContextInitBlock model =
+    div [ class "init-starting-node__input-block" ]
+        [ label [ for "gammaInput", class "capitalLetterLabel" ] [ text "Γ" ]
+        , newInput model.gammaInput "gammaInput" Gamma
+        ]
+
+
+viewTermInitBlock : Model -> Html Msg
+viewTermInitBlock model =
+    div [ class "init-starting-node__input-block" ]
+        [ label [ for "mInput", class "capitalLetterLabel" ] [ text "M" ]
+        , newInput model.mInput "mInput" M
+        ]
+
+
+viewTypeInitBlock : Model -> Html Msg
+viewTypeInitBlock model =
+    div [ class "init-starting-node__input-block" ]
+        [ label [ for "tauInput", class "capitalLetterLabel" ] [ text "τ" ]
+        , newInput model.tauInput "tauInput" Tau
+        ]
+
+
+viewNodeInitiationInputs : Model -> Html Msg
+viewNodeInitiationInputs model =
+    div [ class "init-starting-node__input-block-container" ]
+        [ viewContextInitBlock model
+        , viewTermInitBlock model
+        , viewTypeInitBlock model
+        ]
+
+
+viewNodeInitiationButtons : Model -> Html Msg
+viewNodeInitiationButtons model =
+    div [ class "init-starting-node__button-block-container" ]
+        [ button [ onClick GetUrl, class "init-starting-node__button-block" ] [ text "Get URL" ]
+        , button [ onClick Start, class "init-starting-node__button-block" ] [ text "Start" ]
         ]
 
 
@@ -203,7 +266,7 @@ applyUserInputsToSelectedRuleTreeNode model =
             parseContext model.gammaInput
 
         gammaErr =
-            "Unable to parse the Γ input. Did you forget to put a comma or explicit parantheses for arrow types? Example input: x:a, y:((b->c)->b)"
+            "Unable to parse the Γ input. Did you forget to put explicit parantheses for arrow types? Example input: x:a, y:((b->c)->b)"
 
         xErr =
             "Unable to parse the x input. You should only use lower case latin alphabet characters (a-z). Example input: x"
@@ -371,61 +434,85 @@ adjustMenuStateToSelectedRuleTree model =
             changeState SelectRule model
 
 
+{-| Label for the gamma input.
+-}
 gammaLabel : Html msg
 gammaLabel =
     label [ for "gammaInput" ] [ text "Γ" ]
 
 
+{-| Creates the text input field for gamma.
+-}
 gammaInput : Model -> Html Msg
 gammaInput model =
     newInput model.gammaInput "gammaInput" Gamma
 
 
+{-| Label for the x input.
+-}
 xLabel : Html msg
 xLabel =
     label [ for "xInput" ] [ text "x" ]
 
 
+{-| Creates the text input field for x.
+-}
 xInput : Model -> Html Msg
 xInput model =
     newInput model.xInput "xInput" X
 
 
+{-| Label for the M input.
+-}
 mLabel : Html msg
 mLabel =
     label [ for "mInput", class "capitalLetterLabel" ] [ text "M" ]
 
 
+{-| Creates the text input field for M.
+-}
 mInput : Model -> Html Msg
 mInput model =
     newInput model.mInput "mInput" M
 
 
+{-| Label for the N input.
+-}
 nLabel : Html msg
 nLabel =
     label [ for "nInput", class "capitalLetterLabel" ] [ text "N" ]
 
 
+{-| Creates the text input field for N.
+-}
 nInput : Model -> Html Msg
 nInput model =
     newInput model.nInput "nInput" N
 
 
+{-| Label for the sigma input.
+-}
 sigmaLabel : Html msg
 sigmaLabel =
     label [ for "sigmaInput" ] [ text "σ" ]
 
 
+{-| Creates the text input field for sigma.
+-}
 sigmaInput : Model -> Html Msg
 sigmaInput model =
     newInput model.sigmaInput "sigmaInput" Sigma
 
 
+{-| Label for the tau input.
+-}
 tauLabel : Html msg
 tauLabel =
     label [ for "tauInput" ] [ text "τ" ]
 
 
+{-| Creates the text input field for tau.
+-}
 tauInput : Model -> Html Msg
 tauInput model =
     newInput model.tauInput "tauInput" Tau
@@ -440,9 +527,6 @@ tauInput model =
 charToTypingRepresentation : Char -> Char
 charToTypingRepresentation char =
     case char of
-        '\\' ->
-            'λ'
-
         'a' ->
             'α'
 
@@ -776,6 +860,12 @@ isValidVariableInput char =
     List.member char validVarAndTypeVarInputs
 
 
+{-| Returns the first char from a string if possible, otherise `'#'`.
+
+This is currently not returning a Maybe type to simplify its usage with `Parser`.
+Returning `'#'` as a faulty state needs to get handled seperately.
+
+-}
 getFirstCharFromString : String -> Char
 getFirstCharFromString str =
     case String.uncons str of

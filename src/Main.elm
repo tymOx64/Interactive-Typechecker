@@ -12,7 +12,6 @@ import Regex
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus as STLC exposing (..)
 import Url
-import Url.Builder
 import Url.Parser
 import Url.Parser.Query as Query
 import UserInput exposing (..)
@@ -260,6 +259,12 @@ update msg model =
                 Nothing ->
                     ( { model | ruleTree = Hole, displayMessage = "Unexpected parsing error on the prooftree query." }, Cmd.none )
 
+        Start ->
+            ( model, Cmd.none )
+
+        GetUrl ->
+            ( model, Cmd.none )
+
         NoOperation ->
             ( model, Cmd.none )
 
@@ -293,7 +298,7 @@ view : Model -> Html Msg
 view model =
     case model.menuState of
         CreateStartingNode ->
-            viewCreateStartingNode model
+            viewInitStartingNode model
 
         _ ->
             div [ class "flex-container" ]
@@ -323,6 +328,11 @@ viewLeft model =
     div [ class "tree" ] [ viewRuleTree model.ruleTree [] model (getFirstConflictFromRuleTree model.ruleTree) ]
 
 
-viewCreateStartingNode : Model -> Html Msg
-viewCreateStartingNode model =
-    div [ class "create-starting-node" ] [ text "page not available in current version. use prooftree query" ]
+viewInitStartingNode : Model -> Html Msg
+viewInitStartingNode model =
+    div [ class "init-starting-node" ]
+        [ text "buttons are currently without functionality (only prooftree query working for now); "
+        , text "a detailed description will follow in one of the upcoming versions"
+        , viewNodeInitiationInputs model
+        , viewNodeInitiationButtons model
+        ]

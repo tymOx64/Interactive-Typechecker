@@ -35,6 +35,8 @@ type Msg
     | ChangeState MenuState
     | KeyDown String
     | UrlChanged String
+    | Start
+    | GetUrl
     | NoOperation
 
 
