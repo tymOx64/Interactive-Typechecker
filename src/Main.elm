@@ -144,8 +144,8 @@ update msg model =
         TransformInput ->
             ( { model
                 | gammaInput = stringOfTypingAssumptionsToTypingRepresantation model.gammaInput
-                , mInput = model.mInput
-                , nInput = model.nInput
+                , mInput = String.replace "\\" "λ" model.mInput
+                , nInput = String.replace "\\" "λ" model.nInput
                 , sigmaInput = stringToTypingRepresantation model.sigmaInput
                 , tauInput = stringToTypingRepresantation model.tauInput
               }
@@ -220,6 +220,7 @@ update msg model =
                 changeState AbsRule model
 
               else if key == "Enter" then
+                -- the actual application happens through the cmd (see "let in" above)
                 case UserInput.applyUserInputsToSelectedRuleTreeNode model of
                     Ok _ ->
                         adjustMenuStateToSelectedRuleTree model
@@ -228,6 +229,7 @@ update msg model =
                         { model | displayMessage = err }
 
               else if key == "Delete" then
+                -- the actual deletion happens through the cmd (see "let in" above)
                 adjustMenuStateToSelectedRuleTree model
 
               else
