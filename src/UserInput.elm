@@ -403,6 +403,55 @@ applyUserInputsToSelectedRuleTreeNode model =
             Err "Unexpected error. The menu state was unexpectedly not set to an inference rule."
 
 
+applyUserInitInputs : Model -> Result String RuleTree
+applyUserInitInputs model =
+    let
+        maybeContext =
+            parseContext model.gammaInput
+
+        maybeMTerm =
+            parseTermEnd model.mInput
+
+        maybeTauType =
+            if model.tauInput == "" then
+                Just Untyped
+
+            else
+                parseTypeEnd model.tauInput
+
+        gammaErr =
+            "Unable to parse the Γ input. Did you forget to put explicit parantheses for arrow types? Example input: x:a, y:((b->c)->b)"
+
+        tauErr =
+            "Unable to parse the τ input. Did you forget to put explicit parantheses for arrow types? Example input: ((b->c)->b)"
+
+        mErr =
+            "Unable to parse the M input. Did you forget to put explicit parantheses? Example input: (\\x.(x y))"
+    in
+    case ( maybeContext, maybeMTerm, maybeTauType ) of
+        ( Just context, Just mTerm, Just tauType ) ->
+            (case mTerm of
+                Var _ ->
+                    RVar context mTerm tauType False
+
+                Abs _ _ ->
+                    RAbs context mTerm tauType Hole
+
+                App _ _ ->
+                    RApp context mTerm tauType Hole Hole
+            )
+                |> Ok
+
+        ( Nothing, _, _ ) ->
+            Err gammaErr
+
+        ( _, Nothing, _ ) ->
+            Err mErr
+
+        ( _, _, Nothing ) ->
+            Err tauErr
+
+
 adjustMenuStateToSelectedRuleTree : Model -> Model
 adjustMenuStateToSelectedRuleTree model =
     let

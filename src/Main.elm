@@ -54,15 +54,19 @@ init locationHref =
       , sigmaInput = ""
       , tauInput = ""
       , displayMessage =
-            case ( ruleTreeFromUrlQuery, getBaseUrl locationHref ) of
-                ( Just _, Just _ ) ->
+            case ( ruleTreeFromUrlQuery, getBaseUrl locationHref, noProoftreeQueryGiven ) of
+                ( Just _, Just _, False ) ->
                     "Welcome to the interactive STLC Typechecker. Start by selecting an inference rule right above this message!"
 
-                ( Nothing, _ ) ->
+                ( Nothing, _, False ) ->
                     "Parsing Error on the prooftree query. Did you copy the full URL?"
 
-                ( _, Nothing ) ->
+                ( _, Nothing, False ) ->
                     "Unable to parse the URL. The application needs to be launched from an html file!"
+
+                -- for the init screen, don't show any display message initially
+                ( _, _, True ) ->
+                    ""
       , baseUrl = getBaseUrl locationHref |> Maybe.withDefault "https://www.typeCheckerDummyUrl.com/"
       }
     , Cmd.none
@@ -260,10 +264,20 @@ update msg model =
                     ( { model | ruleTree = Hole, displayMessage = "Unexpected parsing error on the prooftree query." }, Cmd.none )
 
         Start ->
-            ( model, Cmd.none )
+            case applyUserInitInputs model of
+                Ok ruleTree ->
+                    ( changeState SelectRule model, pushUrl <| getUrlWithProoftree model ruleTree )
+
+                Err err ->
+                    ( { model | displayMessage = err }, Cmd.none )
 
         GetUrl ->
-            ( model, Cmd.none )
+            case applyUserInitInputs model of
+                Ok ruleTree ->
+                    ( { model | displayMessage = "Here is your generated link: " ++ getUrlWithProoftree model ruleTree }, pushUrl <| getUrlWithProoftree model ruleTree )
+
+                Err err ->
+                    ( { model | displayMessage = err }, Cmd.none )
 
         NoOperation ->
             ( model, Cmd.none )
@@ -333,6 +347,7 @@ viewInitStartingNode model =
     div [ class "init-starting-node" ]
         [ text "buttons are currently without functionality (only prooftree query working for now); "
         , text "a detailed description will follow in one of the upcoming versions"
+        , div [] [ text model.displayMessage ]
         , viewNodeInitiationInputs model
         , viewNodeInitiationButtons model
         ]
