@@ -161,7 +161,7 @@ update msg model =
         Apply ->
             case UserInput.applyUserInputsToSelectedRuleTreeNode model of
                 Ok ruleTree ->
-                    ( model, pushUrl <| getUrlWithProoftree model ruleTree )
+                    ( flushAllInputs model, pushUrl <| getUrlWithProoftree model ruleTree )
 
                 Err err ->
                     ( { model | displayMessage = err }, Cmd.none )
@@ -224,6 +224,7 @@ update msg model =
                 case UserInput.applyUserInputsToSelectedRuleTreeNode model of
                     Ok _ ->
                         adjustMenuStateToSelectedRuleTree model
+                            |> flushAllInputs
 
                     Err err ->
                         { model | displayMessage = err }
