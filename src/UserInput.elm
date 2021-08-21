@@ -19,7 +19,7 @@ newInput val id toMsg =
         , for id
         , onInput toMsg
         , onBlur TransformInput
-        , stopPropagationOn "keydown" (Decode.succeed ( NoOperation, True )) -- Is required to stop unwanted key events from happening when typing in the text inputs.
+        , Html.Events.stopPropagationOn "keydown" (Decode.succeed ( NoOperation, True )) -- Is required to stop unwanted key events from happening when typing in the text inputs.
         ]
         []
 
@@ -196,76 +196,148 @@ viewRuleUserInterface model =
 
 {-| Parses all user inputs and updates the selected RuleTree accordingly.
 -}
-updateSelectedRuleTreeNode : Model -> RuleTree
-updateSelectedRuleTreeNode model =
+applyUserInputsToSelectedRuleTreeNode : Model -> Result String RuleTree
+applyUserInputsToSelectedRuleTreeNode model =
     let
-        context =
+        maybeContext =
             parseContext model.gammaInput
+
+        gammaErr =
+            "Unable to parse the Γ input. Did you forget to put a comma or explicit parantheses for arrow types? Example input: x:a, y:((b->c)->b)"
+
+        xErr =
+            "Unable to parse the x input. You should only use lower case latin alphabet characters (a-z). Example input: x"
+
+        sigmaErr =
+            "Unable to parse the σ input. Did you forget to put explicit parantheses for arrow types? Example input: ((b->c)->b)"
+
+        tauErr =
+            "Unable to parse the τ input. Did you forget to put explicit parantheses for arrow types? Example input: ((b->c)->b)"
+
+        mErr =
+            "Unable to parse the M input. Did you forget to put explicit parantheses? Example input: (\\x.(x y))"
+
+        nErr =
+            "Unable to parse the N input. Did you forget to put explicit parantheses? Example input: (\\x.(x y))"
     in
     case model.menuState of
         VarRule ->
-            STLC.changeRuleTreeNode model.ruleTree
-                model.selectedNodeId
-                (RVar context
-                    (parseTermEnd model.xInput)
-                    (parseTypeEnd model.sigmaInput)
-                    True
-                )
-                True
+            case ( maybeContext, parseTermEnd model.xInput, parseTypeEnd model.sigmaInput ) of
+                ( Just context, Just xTerm, Just typ ) ->
+                    STLC.changeRuleTreeNode model.ruleTree
+                        model.selectedNodeId
+                        (RVar context
+                            xTerm
+                            typ
+                            True
+                        )
+                        True
+                        |> Ok
+
+                ( Nothing, _, _ ) ->
+                    Err gammaErr
+
+                ( _, Nothing, _ ) ->
+                    Err xErr
+
+                ( _, _, Nothing ) ->
+                    Err sigmaErr
 
         AbsRule ->
             let
+                -- not necessary to handle nextContext as a Maybe type because the other Maybe types cover all invalid input already
                 nextContext =
-                    STLC.addTypingAssumptionToContext (getFirstCharFromString model.xInput) (parseTypeEnd model.sigmaInput) context
+                    STLC.addTypingAssumptionToContext
+                        (getFirstCharFromString model.xInput)
+                        (parseTypeEnd model.sigmaInput |> Maybe.withDefault (BasicType '#'))
+                        (maybeContext |> Maybe.withDefault (Context Dict.empty))
 
-                nextTerm =
+                maybeTerm =
+                    parseTerm <| "(λ" ++ model.xInput ++ "." ++ model.mInput ++ ")"
+
+                maybeType =
+                    parseType <| "(" ++ model.sigmaInput ++ "→" ++ model.tauInput ++ ")"
+
+                maybeNextMTerm =
                     parseTermEnd model.mInput
 
-                nextType =
+                maybeNextType =
                     parseTypeEnd model.tauInput
             in
-            STLC.changeRuleTreeNode model.ruleTree
-                model.selectedNodeId
-                (RAbs context
-                    (parseTerm <| "(λ" ++ model.xInput ++ "." ++ model.mInput ++ ")")
-                    (parseType <| "(" ++ model.sigmaInput ++ "→" ++ model.tauInput ++ ")")
-                    (createRuleTree nextContext nextTerm nextType)
-                )
-                True
+            -- tuples with more than 3 values are disallowed in elm, so we are using nested tuples here
+            case ( maybeContext, maybeTerm, ( maybeType, maybeNextMTerm, maybeNextType ) ) of
+                ( Just context, Just term, ( Just typ, Just nextMTerm, Just nextType ) ) ->
+                    STLC.changeRuleTreeNode model.ruleTree
+                        model.selectedNodeId
+                        (RAbs context
+                            term
+                            typ
+                            (createRuleTree nextContext nextMTerm nextType)
+                        )
+                        True
+                        |> Ok
+
+                ( Nothing, _, ( _, _, _ ) ) ->
+                    Err gammaErr
+
+                ( _, Nothing, ( _, Just _, _ ) ) ->
+                    Err xErr
+
+                ( _, _, ( Nothing, _, Just _ ) ) ->
+                    Err sigmaErr
+
+                ( _, _, ( _, Nothing, _ ) ) ->
+                    Err mErr
+
+                ( _, _, ( _, _, Nothing ) ) ->
+                    Err tauErr
 
         AppRule ->
             let
-                nextTerm1 =
+                maybeMTerm =
                     parseTermEnd model.mInput
 
-                nextType1 =
-                    Arrow (parseTypeEnd model.sigmaInput) (parseTypeEnd model.tauInput)
-
-                nextRuleTree1 =
-                    createRuleTree context nextTerm1 nextType1
-
-                nextTerm2 =
-                    parseTermEnd model.nInput
-
-                nextType2 =
+                maybeSigmaType =
                     parseTypeEnd model.sigmaInput
 
-                nextRuleTree2 =
-                    createRuleTree context nextTerm2 nextType2
+                maybeTauType =
+                    parseTypeEnd model.tauInput
+
+                maybeNTerm =
+                    parseTermEnd model.nInput
             in
-            STLC.changeRuleTreeNode
-                model.ruleTree
-                model.selectedNodeId
-                (RApp context
-                    (parseTermEnd <| "(" ++ model.mInput ++ " " ++ model.nInput ++ ")")
-                    (parseTypeEnd model.tauInput)
-                    nextRuleTree1
-                    nextRuleTree2
-                )
-                True
+            -- tuples with more than 3 values are disallowed in elm, so we are using nested tuples here
+            case ( maybeContext, maybeMTerm, ( maybeNTerm, maybeSigmaType, maybeTauType ) ) of
+                ( Just context, Just mTerm, ( Just nTerm, Just sigmaType, Just tauType ) ) ->
+                    STLC.changeRuleTreeNode
+                        model.ruleTree
+                        model.selectedNodeId
+                        (RApp context
+                            (parseTermEnd ("(" ++ model.mInput ++ " " ++ model.nInput ++ ")") |> Maybe.withDefault (Var '#'))
+                            tauType
+                            (createRuleTree context mTerm (Arrow sigmaType tauType))
+                            (createRuleTree context nTerm sigmaType)
+                        )
+                        True
+                        |> Ok
+
+                ( Nothing, _, ( _, _, _ ) ) ->
+                    Err gammaErr
+
+                ( _, Nothing, ( _, _, _ ) ) ->
+                    Err mErr
+
+                ( _, _, ( Nothing, _, _ ) ) ->
+                    Err nErr
+
+                ( _, _, ( _, Nothing, _ ) ) ->
+                    Err sigmaErr
+
+                ( _, _, ( _, _, Nothing ) ) ->
+                    Err tauErr
 
         _ ->
-            Hole
+            Err "Unexpected error. The menu state was unexpectedly not set to an inference rule."
 
 
 adjustMenuStateToSelectedRuleTree : Model -> Model
@@ -602,14 +674,14 @@ termParserEnd =
 -}
 
 
-parseTermEnd : String -> Term
+parseTermEnd : String -> Maybe Term
 parseTermEnd str =
-    Result.withDefault (Var '#') <| Parser.run (Parser.backtrackable termParserEnd) str
+    Parser.run (Parser.backtrackable termParserEnd) str |> Result.toMaybe
 
 
-parseTerm : String -> Term
+parseTerm : String -> Maybe Term
 parseTerm str =
-    Result.withDefault (Var '#') <| Parser.run (Parser.backtrackable termParser) str
+    Result.toMaybe <| Parser.run (Parser.backtrackable termParser) str
 
 
 typingAssumptionParser : Parser ( Shared.Var, Shared.SType )
@@ -637,9 +709,9 @@ contextAsListParser =
 
 {-| Used to parse the gamma text input.
 -}
-parseContext : String -> SContext
+parseContext : String -> Maybe SContext
 parseContext str =
-    Context <| Dict.fromList <| Result.withDefault [] <| Parser.run contextAsListParser ("{" ++ str ++ "}")
+    Parser.run contextAsListParser ("{" ++ str ++ "}") |> Result.toMaybe |> Maybe.map Dict.fromList |> Maybe.map Context
 
 
 {-| Used to parse Contexts in the proofterm query of the URL.
@@ -672,14 +744,14 @@ typeParserEnd =
         |. Parser.end
 
 
-parseType : String -> Type Char
+parseType : String -> Maybe SType
 parseType str =
-    Result.withDefault Untyped <| Parser.run typeParser <| str
+    Parser.run typeParser str |> Result.toMaybe
 
 
-parseTypeEnd : String -> Type Char
+parseTypeEnd : String -> Maybe SType
 parseTypeEnd str =
-    Result.withDefault Untyped <| Parser.run typeParserEnd <| str
+    Parser.run typeParserEnd str |> Result.toMaybe
 
 
 validVarAndTypeVarInputs : List Char

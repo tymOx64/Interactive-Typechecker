@@ -159,7 +159,12 @@ update msg model =
             ( UserInput.flushAllInputs model, Cmd.none )
 
         Apply ->
-            ( model, pushUrl <| getUrlWithProoftree model <| UserInput.updateSelectedRuleTreeNode model )
+            case UserInput.applyUserInputsToSelectedRuleTreeNode model of
+                Ok ruleTree ->
+                    ( model, pushUrl <| getUrlWithProoftree model ruleTree )
+
+                Err err ->
+                    ( { model | displayMessage = err }, Cmd.none )
 
         SelectTreeNode nodeId ->
             ( adjustMenuStateToSelectedRuleTree { model | selectedNodeId = nodeId }, Cmd.none )
@@ -176,7 +181,12 @@ update msg model =
             let
                 cmd =
                     if key == "Enter" then
-                        pushUrl <| getUrlWithProoftree model <| UserInput.updateSelectedRuleTreeNode model
+                        case UserInput.applyUserInputsToSelectedRuleTreeNode model of
+                            Ok ruleTree ->
+                                pushUrl <| getUrlWithProoftree model ruleTree
+
+                            Err _ ->
+                                Cmd.none
 
                     else if key == "Delete" then
                         pushUrl <| getUrlWithProoftree model (resetRuleTreeNode model.ruleTree model.selectedNodeId)
@@ -210,7 +220,12 @@ update msg model =
                 changeState AbsRule model
 
               else if key == "Enter" then
-                adjustMenuStateToSelectedRuleTree model
+                case UserInput.applyUserInputsToSelectedRuleTreeNode model of
+                    Ok _ ->
+                        adjustMenuStateToSelectedRuleTree model
+
+                    Err err ->
+                        { model | displayMessage = err }
 
               else if key == "Delete" then
                 adjustMenuStateToSelectedRuleTree model
