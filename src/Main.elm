@@ -274,7 +274,7 @@ update msg model =
         GetUrl ->
             case applyUserInitInputs model of
                 Ok ruleTree ->
-                    ( { model | displayMessage = "Here is your generated link: " ++ getUrlWithProoftree model ruleTree }, pushUrl <| getUrlWithProoftree model ruleTree )
+                    ( { model | displayMessage = getUrlWithProoftree model ruleTree }, pushUrl <| getUrlWithProoftree model ruleTree )
 
                 Err err ->
                     ( { model | displayMessage = err }, Cmd.none )
@@ -345,9 +345,8 @@ viewLeft model =
 viewInitStartingNode : Model -> Html Msg
 viewInitStartingNode model =
     div [ class "init-starting-node" ]
-        [ text "buttons are currently without functionality (only prooftree query working for now); "
-        , text "a detailed description will follow in one of the upcoming versions"
-        , div [] [ text model.displayMessage ]
+        [ text "a detailed description will follow in one of the upcoming versions"
         , viewNodeInitiationInputs model
         , viewNodeInitiationButtons model
+        , strong [ style "margin" "30px" ] [ text model.displayMessage ]
         ]
