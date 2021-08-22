@@ -346,10 +346,10 @@ viewInitStartingNode : Model -> Html Msg
 viewInitStartingNode model =
     div [ class "init-starting-node" ]
         [ text "/* a more detailed description will follow in one of the upcoming versions */"
-        , div []
+        , div [ style "font-size" "115%" ]
             [ text "Set up the Typing Relation"
             , span [ style "font-family" "Georgia, Serif", style "white-space" "pre" ] [ text "    Γ  ⊢  M  :  τ    " ]
-            , text "you would like for your Proof Tree to start with!"
+            , text "you would like your Proof Tree to start with!"
             ]
         , viewNodeInitiationInputs model
         , viewNodeInitiationButtons

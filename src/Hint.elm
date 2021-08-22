@@ -6,7 +6,7 @@ import Json.Decode exposing (dict)
 import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
-import UserInput exposing (fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree)
+import UserInput exposing (charToTypingRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, validVarAndTypeVarInputs)
 
 
 
@@ -150,17 +150,59 @@ getHint inputKind model =
                             termAndRuleDoNotMatchUp
 
                 SigmaInput ->
-                    case ( term, getUnusedTypeVar 0 ) of
-                        ( App _ _, Just unusedTypeVar ) ->
-                            { model
-                                | sigmaInput =
-                                    getTermTypeFromRuleTree nextRuleTree2
-                                        |> Maybe.map showType
-                                        |> Maybe.withDefault (String.fromChar unusedTypeVar)
-                            }
+                    let
+                        typeFromRuleTreeOrUnusedTypeVar =
+                            case getUnusedTypeVar 0 of
+                                Just unusedTypeVar ->
+                                    { model
+                                        | sigmaInput =
+                                            getTermTypeFromRuleTree nextRuleTree2
+                                                |> Maybe.map showType
+                                                |> Maybe.withDefault (String.fromChar unusedTypeVar)
+                                    }
 
-                        ( _, Nothing ) ->
-                            tooManyTypeVarInUse
+                                Nothing ->
+                                    tooManyTypeVarInUse
+                    in
+                    case term of
+                        -- if term M is a certain variable x, and x has an Arrow type in this or the parents context, then we hint sigma to be the left type of that Arrow type
+                        App (Var var) _ ->
+                            getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
+                                |> (\typ ->
+                                        case typ of
+                                            Just (Arrow sigmaTyp _) ->
+                                                { model | sigmaInput = showType sigmaTyp }
+
+                                            _ ->
+                                                typeFromRuleTreeOrUnusedTypeVar
+                                   )
+
+                        -- if term M is a certain abstraction (\x.M), and x has a type in this or the parents context, then we hint sigma to be that type
+                        App (Abs var _) _ ->
+                            getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
+                                |> (\typ ->
+                                        case typ of
+                                            Just sigmaTyp ->
+                                                { model | sigmaInput = showType sigmaTyp }
+
+                                            _ ->
+                                                typeFromRuleTreeOrUnusedTypeVar
+                                   )
+
+                        -- if term N is a certain variable x, and x has a type in some this or the parents context, then we hint sigma to be that type
+                        App _ (Var var) ->
+                            getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
+                                |> (\typ ->
+                                        case typ of
+                                            Just sigmaTyp ->
+                                                { model | sigmaInput = showType sigmaTyp }
+
+                                            _ ->
+                                                typeFromRuleTreeOrUnusedTypeVar
+                                   )
+
+                        App _ _ ->
+                            typeFromRuleTreeOrUnusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
@@ -209,9 +251,30 @@ getHint inputKind model =
             }
 
 
+{-| Gets the type for `var` from the nodes context if available, otherwise from the parents context.
+-}
+getTypeForVarFromLocalOrParentNode : Var -> List Int -> RuleTree -> Model -> Maybe SType
+getTypeForVarFromLocalOrParentNode var nodeId ruleTree model =
+    let
+        getTypeFromRuleTreeContext ruleTree1 var1 =
+            getContextFromRuleTree ruleTree1 |> getTypeFromContext var1
+    in
+    case getTypeFromRuleTreeContext ruleTree var of
+        Just typ ->
+            Just typ
+
+        Nothing ->
+            case nodeId of
+                _ :: parentRT ->
+                    getTypeFromRuleTreeContext (getRuleTreeNode model.ruleTree parentRT) var
+
+                _ ->
+                    Nothing
+
+
 setOfAllTypeVariables : Set Var
 setOfAllTypeVariables =
-    Set.fromList [ 'α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν', 'ξ', 'ο' ]
+    List.map charToTypingRepresentation validVarAndTypeVarInputs |> Set.fromList
 
 
 getUsedTypeVariables : RuleTree -> Set Char
