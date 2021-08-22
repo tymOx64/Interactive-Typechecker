@@ -1,6 +1,6 @@
 # Interactive Typechecker
 
-This interactive webapplication is aimed towards students who want to learn the fundamental concepts of type inference in the *simply typed lambda calculus*.
+This interactive web application is aimed towards students who want to learn the fundamental concepts of type inference in the *simply typed lambda calculus*.
 The type inference is performed in natural deduction style, building a proof tree by making use of the type inference rules.
 Future versions intend to include additional type systems. 
 
@@ -8,7 +8,7 @@ Future versions intend to include additional type systems.
 
 TODO
 
-Until a more sophisticated solution for creating starting terms/nodes is provided, the application can be tested by appending one of the following queries which offer a starting node or a full prooftree respectively:
+Queries for testing purposes (giving you a starting node or a full prooftree respectively):
 
 `?prooftree=_AB_{}(λz.((λx.(λy.x))%20z))(α→(β→α))_H_`
 
