@@ -11,4 +11,12 @@ Elms Random package requires to use Cmd, so for sake of simplicity we don't use 
 -}
 getSuccessEmoji : Int -> String
 getSuccessEmoji rngInt =
-    Array.fromList [ "🎈", "🎉", "🥳" ] |> Array.get (modBy rngInt 3) |> Maybe.withDefault "🥳"
+    let
+        rngIntFix =
+            if rngInt == 0 then
+                1
+
+            else
+                rngInt
+    in
+    Array.fromList [ "🎈", "🎉", "🥳" ] |> Array.get (modBy rngIntFix 3) |> Maybe.withDefault "🥳"
