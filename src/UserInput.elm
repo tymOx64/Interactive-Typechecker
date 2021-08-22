@@ -96,11 +96,13 @@ viewNodeInitiationInputs model =
         ]
 
 
-viewNodeInitiationButtons : Model -> Html Msg
-viewNodeInitiationButtons model =
+{-| View the _Get URL_ and _Start_ button for the home screen.
+-}
+viewNodeInitiationButtons : Html Msg
+viewNodeInitiationButtons =
     div [ class "init-starting-node__button-block-container" ]
-        [ button [ onClick GetUrl, class "init-starting-node__button-block" ] [ text "Get URL" ]
-        , button [ onClick Start, class "init-starting-node__button-block" ] [ text "Start" ]
+        [ button [ onClick GetUrl, class "init-starting-node__button-block" ] [ text "Get URL 🌐" ]
+        , button [ onClick Start, class "init-starting-node__button-block" ] [ text "Start 🚀" ]
         ]
 
 
@@ -697,6 +699,7 @@ stringOfTypingAssumptionsToTypingRepresantation str =
                     ""
     in
     joinUpAndConvert (String.replace " " "" str |> splitUp) True
+        |> String.replace "," ", "
 
 
 
