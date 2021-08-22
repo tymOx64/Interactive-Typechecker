@@ -152,7 +152,7 @@ getHint inputKind model =
                 SigmaInput ->
                     let
                         typeFromRuleTreeOrUnusedTypeVar =
-                            case getUnusedTypeVar 0 of
+                            case Debug.log "unusedTypeVar" (getUnusedTypeVar 0) of
                                 Just unusedTypeVar ->
                                     { model
                                         | sigmaInput =
@@ -163,45 +163,70 @@ getHint inputKind model =
 
                                 Nothing ->
                                     tooManyTypeVarInUse
-                    in
-                    case term of
-                        -- if term M is a certain variable x, and x has an Arrow type in this or the parents context, then we hint sigma to be the left type of that Arrow type
-                        App (Var var) _ ->
-                            getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
-                                |> (\typ ->
-                                        case typ of
-                                            Just (Arrow sigmaTyp _) ->
-                                                { model | sigmaInput = showType sigmaTyp }
 
-                                            _ ->
-                                                typeFromRuleTreeOrUnusedTypeVar
-                                   )
+                        -- if term N is a certain variable x, and x has a type in this or the parents context, then we hint sigma to be that type
+                        termNOfFormVar =
+                            case term of
+                                App _ (Var var) ->
+                                    getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
+                                        |> (\typ ->
+                                                case typ of
+                                                    Just sigmaTyp ->
+                                                        Just { model | sigmaInput = showType sigmaTyp }
+
+                                                    _ ->
+                                                        Nothing
+                                           )
+
+                                _ ->
+                                    Nothing
+
+                        -- if term M is a certain variable x, and x has an Arrow type in this or the parents context, then we hint sigma to be the left type of that Arrow type
+                        termMOfFormVar =
+                            case term of
+                                App (Var var) _ ->
+                                    getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
+                                        |> (\typ ->
+                                                case typ of
+                                                    Just (Arrow sigmaTyp _) ->
+                                                        Just { model | sigmaInput = showType sigmaTyp }
+
+                                                    _ ->
+                                                        Nothing
+                                           )
+
+                                _ ->
+                                    Nothing
 
                         -- if term M is a certain abstraction (\x.M), and x has a type in this or the parents context, then we hint sigma to be that type
-                        App (Abs var _) _ ->
-                            getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
-                                |> (\typ ->
-                                        case typ of
-                                            Just sigmaTyp ->
-                                                { model | sigmaInput = showType sigmaTyp }
+                        termMOfFormAbs =
+                            case term of
+                                App (Abs var _) _ ->
+                                    getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
+                                        |> (\typ ->
+                                                case typ of
+                                                    Just sigmaTyp ->
+                                                        Just { model | sigmaInput = showType sigmaTyp }
 
-                                            _ ->
-                                                typeFromRuleTreeOrUnusedTypeVar
-                                   )
+                                                    _ ->
+                                                        Nothing
+                                           )
 
-                        -- if term N is a certain variable x, and x has a type in some this or the parents context, then we hint sigma to be that type
-                        App _ (Var var) ->
-                            getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
-                                |> (\typ ->
-                                        case typ of
-                                            Just sigmaTyp ->
-                                                { model | sigmaInput = showType sigmaTyp }
+                                _ ->
+                                    Nothing
+                    in
+                    -- trying to find a type for sigma in the local or parents context, otherweise we use an unused typeVar or term and rule doesnt match up
+                    case ( termNOfFormVar, termMOfFormAbs, ( termMOfFormVar, term ) ) of
+                        ( Just newModel, _, ( _, _ ) ) ->
+                            newModel
 
-                                            _ ->
-                                                typeFromRuleTreeOrUnusedTypeVar
-                                   )
+                        ( _, Just newModel, ( _, _ ) ) ->
+                            newModel
 
-                        App _ _ ->
+                        ( _, _, ( Just newModel, _ ) ) ->
+                            newModel
+
+                        ( _, _, ( _, App _ _ ) ) ->
                             typeFromRuleTreeOrUnusedTypeVar
 
                         _ ->
@@ -265,8 +290,8 @@ getTypeForVarFromLocalOrParentNode var nodeId ruleTree model =
 
         Nothing ->
             case nodeId of
-                _ :: parentRT ->
-                    getTypeFromRuleTreeContext (getRuleTreeNode model.ruleTree parentRT) var
+                _ :: parentNodeId ->
+                    getTypeFromRuleTreeContext (getRuleTreeNode model.ruleTree parentNodeId) var
 
                 _ ->
                     Nothing
