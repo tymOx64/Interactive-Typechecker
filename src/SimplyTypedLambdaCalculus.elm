@@ -33,6 +33,7 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
                 )
                 []
                 pointersToHighlight
+                |> Debug.log "pointers to highlight: "
     in
     case ruleTree of
         RVar context term typ hasBeenApplied ->
@@ -802,6 +803,7 @@ viewType typ conflictElements =
         highlightFullTypeOrFullRule =
             List.member (TypePointer () FullType) conflictElements
                 || List.member (FullNode ()) conflictElements
+                || List.member (TermAndType ()) conflictElements
 
         highlightLeft =
             List.member (TypePointer () ArrLeft) conflictElements

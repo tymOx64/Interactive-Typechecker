@@ -7,18 +7,7 @@ import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
 import Tuple exposing (first)
-import UserInput exposing (charToTypingRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, tauInput, validVarAndTypeVarInputs)
-
-
-
-{- type InputField
-   = GammaInput
-   | XInput
-   | MInput
-   | NInput
-   | SigmaInput
-   | TauInput
--}
+import UserInput exposing (charToTypingRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, validVarAndTypeVarInputs)
 
 
 getHint : InputKind -> Model -> Model
