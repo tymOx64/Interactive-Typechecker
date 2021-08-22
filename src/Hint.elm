@@ -7,7 +7,7 @@ import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
 import Tuple exposing (first)
-import UserInput exposing (charToTypingRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, validVarAndTypeVarInputs)
+import UserInput exposing (charToTypingRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, sigmaInput, validVarAndTypeVarInputs)
 
 
 getHint : InputKind -> Model -> Model
@@ -62,13 +62,13 @@ getHint inputKind model =
                 _ ->
                     model
 
-        ( RAbs _ term _ nextRuleTree, AbsRule ) ->
+        ( RAbs _ thisTerm thisType nextRuleTree, AbsRule ) ->
             case inputKind of
                 GammaInput ->
                     fillGammaInputFromRuleTree selectedRuleTree model
 
                 XInput ->
-                    case term of
+                    case thisTerm of
                         Abs _ _ ->
                             fillXInputFromRuleTree selectedRuleTree model
 
@@ -76,7 +76,7 @@ getHint inputKind model =
                             termAndRuleDoNotMatchUp
 
                 MInput ->
-                    case term of
+                    case thisTerm of
                         Abs _ _ ->
                             fillMInputFromRuleTree selectedRuleTree model
 
@@ -84,33 +84,106 @@ getHint inputKind model =
                             termAndRuleDoNotMatchUp
 
                 SigmaInput ->
-                    case ( term, getUnusedTypeVar 0 ) of
-                        ( Abs var _, Just unusedTypeVar ) ->
-                            { model
-                                | sigmaInput =
-                                    getTypeFromContext var (getContextFromRuleTree nextRuleTree)
-                                        |> Maybe.map showType
-                                        |> Maybe.withDefault (String.fromChar unusedTypeVar)
-                            }
+                    let
+                        -- if thisTerms type is of form Arrow sigma' _, we hint for that sigma' rather than an unused typeVar
+                        typeFromThisRuleTreeOrUnusedTypeVar =
+                            case getUnusedTypeVar 0 of
+                                Just unusedTypeVar ->
+                                    { model
+                                        | sigmaInput =
+                                            case thisType of
+                                                Arrow left _ ->
+                                                    showType left
 
-                        ( _, Nothing ) ->
-                            tooManyTypeVarInUse
+                                                _ ->
+                                                    String.fromChar unusedTypeVar
+                                    }
+
+                                Nothing ->
+                                    tooManyTypeVarInUse
+
+                        -- for the abstractions variable x, traverse the full ruleTree to the first context that contains the type for x
+                        typingAssumptionForX =
+                            case thisTerm of
+                                Abs var _ ->
+                                    getTypeForVarFromFirstContextMatch var model.ruleTree
+                                        |> (\typ ->
+                                                case typ of
+                                                    Just sigmaType ->
+                                                        Just { model | sigmaInput = showType sigmaType }
+
+                                                    _ ->
+                                                        Nothing
+                                           )
+
+                                _ ->
+                                    Nothing
+                    in
+                    case ( typingAssumptionForX, thisTerm ) of
+                        ( Just newModel, _ ) ->
+                            newModel
+
+                        ( _, Abs _ _ ) ->
+                            typeFromThisRuleTreeOrUnusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
 
                 TauInput ->
-                    case ( term, getUnusedTypeVar 1 ) of
-                        ( Abs _ _, Just unusedTypeVar ) ->
-                            { model
-                                | tauInput =
-                                    getTermTypeFromRuleTree nextRuleTree
-                                        |> Maybe.map showType
-                                        |> Maybe.withDefault (String.fromChar unusedTypeVar)
-                            }
+                    let
+                        typeFromThisRuleTreeOrUnusedTypeVar =
+                            case getUnusedTypeVar 1 of
+                                Just unusedTypeVar ->
+                                    { model
+                                        | tauInput =
+                                            case thisType of
+                                                Arrow _ right ->
+                                                    showType right
 
-                        ( _, Nothing ) ->
-                            tooManyTypeVarInUse
+                                                _ ->
+                                                    String.fromChar unusedTypeVar
+                                    }
+
+                                Nothing ->
+                                    tooManyTypeVarInUse
+
+                        -- if term M is a certain variable x, traverse the full ruleTree to the first context that contains the type for x
+                        termMOfFormVar =
+                            case thisTerm of
+                                Abs _ (Var var) ->
+                                    getTypeForVarFromFirstContextMatch var model.ruleTree
+                                        |> (\typ ->
+                                                case typ of
+                                                    Just typ1 ->
+                                                        Just { model | tauInput = showType typ1 }
+
+                                                    _ ->
+                                                        Nothing
+                                           )
+
+                                _ ->
+                                    Nothing
+
+                        typeFromNextRuleTree =
+                            getTermTypeFromRuleTree nextRuleTree
+                                |> (\typ ->
+                                        case typ of
+                                            Just typ1 ->
+                                                Just { model | tauInput = showType typ1 }
+
+                                            _ ->
+                                                Nothing
+                                   )
+                    in
+                    case ( termMOfFormVar, typeFromNextRuleTree, thisTerm ) of
+                        ( Just newModel, _, _ ) ->
+                            newModel
+
+                        ( _, Just newModel, _ ) ->
+                            newModel
+
+                        ( _, _, Abs _ _ ) ->
+                            typeFromThisRuleTreeOrUnusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
@@ -141,7 +214,7 @@ getHint inputKind model =
 
                 SigmaInput ->
                     let
-                        -- nextRuleTree2 has a typing of form N : sigma' and we hint for that sigma' before an unused typeVar
+                        -- nextRuleTree2 has a typing of form N : sigma' and we hint for that sigma' rather than an unused typeVar
                         typeFromNextRuleTree2_OrUnusedTypeVar =
                             case getUnusedTypeVar 0 of
                                 Just unusedTypeVar ->
@@ -259,7 +332,7 @@ getHint inputKind model =
                                 _ ->
                                     Nothing
 
-                        -- if we find them terms type in ruleTree1 to be an Arrow type, we take the right type (tauType) of that
+                        -- if we find the terms type in ruleTree1 to be an Arrow type, we take the right type (tauType) of that
                         tauTypeFromRuleTree1 =
                             getTermTypeFromRuleTree nextRuleTree1
                                 |> (\typ ->
