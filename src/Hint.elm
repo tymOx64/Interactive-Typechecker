@@ -7,9 +7,14 @@ import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
 import Tuple exposing (first)
-import UserInput exposing (charToTypingRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, sigmaInput, validVarAndTypeVarInputs)
+import UserInput exposing (charToTypingRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, validVarAndTypeVarInputs)
 
 
+{-| Gives a hint based on some limited information from the `RuleTree`. Hints may be _incorrect_.
+This is just to a certain extend a tool for finding new correct steps and to some other extend a tool
+that allows a user to autofill an input field or to proceed some changes through the RuleTree after
+updating a certain node.
+-}
 getHint : InputKind -> Model -> Model
 getHint inputKind model =
     let
@@ -30,13 +35,13 @@ getHint inputKind model =
             getUnusedTypeVariableFromRuleTree model.ruleTree index
     in
     case ( selectedRuleTree, model.menuState ) of
-        ( RVar context term _ _, VarRule ) ->
+        ( RVar _ thisTerm thisType _, VarRule ) ->
             case inputKind of
                 GammaInput ->
                     fillGammaInputFromRuleTree selectedRuleTree model
 
                 XInput ->
-                    case term of
+                    case thisTerm of
                         Var _ ->
                             fillXInputFromRuleTree selectedRuleTree model
 
@@ -44,17 +49,46 @@ getHint inputKind model =
                             termAndRuleDoNotMatchUp
 
                 SigmaInput ->
-                    case ( term, getUnusedTypeVar 0 ) of
-                        ( Var var, Just unusedTypeVar ) ->
-                            { model
-                                | sigmaInput =
-                                    getTypeFromContext var context
-                                        |> Maybe.map showType
-                                        |> Maybe.withDefault (String.fromChar unusedTypeVar)
-                            }
+                    let
+                        -- if thisTerm is already typed, we hint that type for sigma
+                        typeFromThisRuleTreeOrUnusedTypeVar =
+                            case getUnusedTypeVar 0 of
+                                Just unusedTypeVar ->
+                                    { model
+                                        | sigmaInput =
+                                            if thisType /= Untyped then
+                                                showType thisType
 
-                        ( _, Nothing ) ->
-                            tooManyTypeVarInUse
+                                            else
+                                                String.fromChar unusedTypeVar
+                                    }
+
+                                Nothing ->
+                                    tooManyTypeVarInUse
+
+                        -- for variable x, traverse the full ruleTree to the first context that contains the type for x
+                        typingAssumptionForX =
+                            case thisTerm of
+                                Var var ->
+                                    getTypeForVarFromFirstContextMatch var model.ruleTree
+                                        |> (\typ ->
+                                                case typ of
+                                                    Just sigmaType ->
+                                                        Just { model | sigmaInput = showType sigmaType }
+
+                                                    _ ->
+                                                        Nothing
+                                           )
+
+                                _ ->
+                                    Nothing
+                    in
+                    case ( typingAssumptionForX, thisTerm ) of
+                        ( Just newModel, _ ) ->
+                            newModel
+
+                        ( _, Var _ ) ->
+                            typeFromThisRuleTreeOrUnusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
