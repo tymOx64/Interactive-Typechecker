@@ -6,7 +6,8 @@ import Json.Decode exposing (dict)
 import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
-import UserInput exposing (charToTypingRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, validVarAndTypeVarInputs)
+import Tuple exposing (first)
+import UserInput exposing (charToTypingRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, tauInput, validVarAndTypeVarInputs)
 
 
 
@@ -128,13 +129,13 @@ getHint inputKind model =
                 _ ->
                     model
 
-        ( RApp _ term _ nextRuleTree1 nextRuleTree2, AppRule ) ->
+        ( RApp _ thisTerm thisType nextRuleTree1 nextRuleTree2, AppRule ) ->
             case inputKind of
                 GammaInput ->
                     fillGammaInputFromRuleTree selectedRuleTree model
 
                 MInput ->
-                    case term of
+                    case thisTerm of
                         App _ _ ->
                             fillMInputFromRuleTree selectedRuleTree model
 
@@ -142,7 +143,7 @@ getHint inputKind model =
                             termAndRuleDoNotMatchUp
 
                 NInput ->
-                    case term of
+                    case thisTerm of
                         App _ _ ->
                             fillNInputFromRuleTree selectedRuleTree model
 
@@ -151,8 +152,9 @@ getHint inputKind model =
 
                 SigmaInput ->
                     let
-                        typeFromRuleTreeOrUnusedTypeVar =
-                            case Debug.log "unusedTypeVar" (getUnusedTypeVar 0) of
+                        -- nextRuleTree2 has a typing of form N : sigma' and we hint for that sigma' before an unused typeVar
+                        typeFromNextRuleTree2_OrUnusedTypeVar =
+                            case getUnusedTypeVar 0 of
                                 Just unusedTypeVar ->
                                     { model
                                         | sigmaInput =
@@ -164,15 +166,15 @@ getHint inputKind model =
                                 Nothing ->
                                     tooManyTypeVarInUse
 
-                        -- if term N is a certain variable x, and x has a type in this or the parents context, then we hint sigma to be that type
+                        -- if term N is a certain variable x, traverse the full ruleTree to the first context that contains the type for x
                         termNOfFormVar =
-                            case term of
+                            case thisTerm of
                                 App _ (Var var) ->
-                                    getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
+                                    getTypeForVarFromFirstContextMatch var model.ruleTree
                                         |> (\typ ->
                                                 case typ of
-                                                    Just sigmaTyp ->
-                                                        Just { model | sigmaInput = showType sigmaTyp }
+                                                    Just sigmaType ->
+                                                        Just { model | sigmaInput = showType sigmaType }
 
                                                     _ ->
                                                         Nothing
@@ -181,15 +183,15 @@ getHint inputKind model =
                                 _ ->
                                     Nothing
 
-                        -- if term M is a certain variable x, and x has an Arrow type in this or the parents context, then we hint sigma to be the left type of that Arrow type
+                        -- if term M is a certain variable x, traverse the full ruleTree to the first context that contains the type for x
                         termMOfFormVar =
-                            case term of
+                            case thisTerm of
                                 App (Var var) _ ->
-                                    getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
+                                    getTypeForVarFromFirstContextMatch var model.ruleTree
                                         |> (\typ ->
                                                 case typ of
-                                                    Just (Arrow sigmaTyp _) ->
-                                                        Just { model | sigmaInput = showType sigmaTyp }
+                                                    Just (Arrow sigmaType _) ->
+                                                        Just { model | sigmaInput = showType sigmaType }
 
                                                     _ ->
                                                         Nothing
@@ -198,15 +200,15 @@ getHint inputKind model =
                                 _ ->
                                     Nothing
 
-                        -- if term M is a certain abstraction (\x.M), and x has a type in this or the parents context, then we hint sigma to be that type
+                        -- if term M is a certain abstraction (\x.T), traverse the full ruleTree to the first context that contains the type for x
                         termMOfFormAbs =
-                            case term of
+                            case thisTerm of
                                 App (Abs var _) _ ->
-                                    getTypeForVarFromLocalOrParentNode var model.selectedNodeId selectedRuleTree model
+                                    getTypeForVarFromFirstContextMatch var model.ruleTree
                                         |> (\typ ->
                                                 case typ of
-                                                    Just sigmaTyp ->
-                                                        Just { model | sigmaInput = showType sigmaTyp }
+                                                    Just sigmaType ->
+                                                        Just { model | sigmaInput = showType sigmaType }
 
                                                     _ ->
                                                         Nothing
@@ -215,8 +217,9 @@ getHint inputKind model =
                                 _ ->
                                     Nothing
                     in
-                    -- trying to find a type for sigma in the local or parents context, otherweise we use an unused typeVar or term and rule doesnt match up
-                    case ( termNOfFormVar, termMOfFormAbs, ( termMOfFormVar, term ) ) of
+                    -- trying to find a type for sigma all other contexts, otherwise we use an unused typeVar or term and rule doesnt match up
+                    -- using nested tuples here just because Elm v0.19.1 does not allow tuples with more than 3 values
+                    case ( termNOfFormVar, termMOfFormAbs, ( termMOfFormVar, thisTerm ) ) of
                         ( Just newModel, _, ( _, _ ) ) ->
                             newModel
 
@@ -227,23 +230,67 @@ getHint inputKind model =
                             newModel
 
                         ( _, _, ( _, App _ _ ) ) ->
-                            typeFromRuleTreeOrUnusedTypeVar
+                            typeFromNextRuleTree2_OrUnusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
 
                 TauInput ->
-                    case ( term, getUnusedTypeVar 1 ) of
-                        ( Abs _ _, Just unusedTypeVar ) ->
-                            { model
-                                | tauInput =
-                                    getSigmaTypeFromAbsRuleTree nextRuleTree1
-                                        |> Maybe.map showType
-                                        |> Maybe.withDefault (String.fromChar unusedTypeVar)
-                            }
+                    let
+                        typeFromThisRuleTreeOrUnusedTypeVar =
+                            case getUnusedTypeVar 1 of
+                                Just unusedTypeVar ->
+                                    { model
+                                        | tauInput =
+                                            if thisType /= Untyped then
+                                                showType thisType
 
-                        ( _, Nothing ) ->
-                            tooManyTypeVarInUse
+                                            else
+                                                String.fromChar unusedTypeVar
+                                    }
+
+                                Nothing ->
+                                    tooManyTypeVarInUse
+
+                        -- if term M is a certain variable x, traverse the full ruleTree to the first context that contains the type for x
+                        -- and if x is an Arrow type then we hint sigma to be the right type of that Arrow type
+                        termMOfFormVar =
+                            case thisTerm of
+                                App (Var var) _ ->
+                                    getTypeForVarFromFirstContextMatch var model.ruleTree
+                                        |> (\typ ->
+                                                case typ of
+                                                    Just (Arrow _ tauType) ->
+                                                        Just { model | sigmaInput = showType tauType }
+
+                                                    _ ->
+                                                        Nothing
+                                           )
+
+                                _ ->
+                                    Nothing
+
+                        -- if we find them terms type in ruleTree1 to be an Arrow type, we take the right type (tauType) of that
+                        tauTypeFromRuleTree1 =
+                            getTermTypeFromRuleTree nextRuleTree1
+                                |> (\typ ->
+                                        case typ of
+                                            Just (Arrow _ tauType) ->
+                                                Just { model | sigmaInput = showType tauType }
+
+                                            _ ->
+                                                Nothing
+                                   )
+                    in
+                    case ( termMOfFormVar, tauTypeFromRuleTree1, thisTerm ) of
+                        ( Just newModel, _, _ ) ->
+                            newModel
+
+                        ( _, Just newModel, _ ) ->
+                            newModel
+
+                        ( _, _, App _ _ ) ->
+                            typeFromThisRuleTreeOrUnusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
@@ -276,25 +323,37 @@ getHint inputKind model =
             }
 
 
-{-| Gets the type for `var` from the nodes context if available, otherwise from the parents context.
+{-| Traverses `ruleTree` and returns the type for `var` from the first context if available, otherwise from the parents context.
 -}
-getTypeForVarFromLocalOrParentNode : Var -> List Int -> RuleTree -> Model -> Maybe SType
-getTypeForVarFromLocalOrParentNode var nodeId ruleTree model =
+getTypeForVarFromFirstContextMatch : Var -> RuleTree -> Maybe SType
+getTypeForVarFromFirstContextMatch var ruleTree =
     let
-        getTypeFromRuleTreeContext ruleTree1 var1 =
-            getContextFromRuleTree ruleTree1 |> getTypeFromContext var1
-    in
-    case getTypeFromRuleTreeContext ruleTree var of
-        Just typ ->
-            Just typ
+        getTypeFromRuleTreeContext ruleTree_ =
+            getContextFromRuleTree ruleTree_ |> getTypeFromContext var
 
-        Nothing ->
-            case nodeId of
-                _ :: parentNodeId ->
-                    getTypeFromRuleTreeContext (getRuleTreeNode model.ruleTree parentNodeId) var
+        returnSecondIfItsAJust first second =
+            case second of
+                Just _ ->
+                    second
 
                 _ ->
-                    Nothing
+                    first
+    in
+    case ruleTree of
+        RVar _ _ _ _ ->
+            getTypeFromRuleTreeContext ruleTree
+
+        RAbs _ _ _ nextRuleTree ->
+            getTypeFromRuleTreeContext ruleTree
+                |> returnSecondIfItsAJust (getTypeForVarFromFirstContextMatch var nextRuleTree)
+
+        RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
+            getTypeFromRuleTreeContext ruleTree
+                |> returnSecondIfItsAJust (getTypeForVarFromFirstContextMatch var nextRuleTree1)
+                |> returnSecondIfItsAJust (getTypeForVarFromFirstContextMatch var nextRuleTree2)
+
+        Hole ->
+            Nothing
 
 
 setOfAllTypeVariables : Set Var
