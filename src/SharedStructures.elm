@@ -14,6 +14,7 @@ type alias Model =
     , sigmaInput : String
     , tauInput : String
     , displayMessage : String
+    , ruleTreeSuccessful : Bool
     , baseUrl : String
     }
 

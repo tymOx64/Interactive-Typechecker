@@ -8,6 +8,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode exposing (dict)
 import SharedStructures as Shared exposing (..)
+import Utilities exposing (getSuccessEmoji)
 
 
 viewRuleTree : RuleTree -> List Int -> Model -> List Pointer -> Html Msg
@@ -33,13 +34,15 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
                 )
                 []
                 pointersToHighlight
-                |> Debug.log "pointers to highlight: "
     in
     case ruleTree of
         RVar context term typ hasBeenApplied ->
             let
                 premise =
-                    if hasBeenApplied then
+                    if model.ruleTreeSuccessful then
+                        div [ class "premise", class "hole", onClickSelect ] [ text (getSuccessEmoji <| String.length (showContext context)) ]
+
+                    else if hasBeenApplied then
                         text ""
 
                     else
@@ -1001,3 +1004,24 @@ determineCorrespondingRule term =
 
         App _ _ ->
             AppRule
+
+
+ruleTreeIsComplete : RuleTree -> Bool
+ruleTreeIsComplete ruleTree =
+    case ruleTree of
+        RVar _ _ _ hasBeenApplied ->
+            hasBeenApplied
+
+        RAbs _ _ _ nextRuleTree ->
+            ruleTreeIsComplete nextRuleTree
+
+        RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
+            ruleTreeIsComplete nextRuleTree1 && ruleTreeIsComplete nextRuleTree2
+
+        Hole ->
+            False
+
+
+ruleTreeIsSuccessful : RuleTree -> List Pointer -> Bool
+ruleTreeIsSuccessful ruleTree conflictPointers =
+    ruleTreeIsComplete ruleTree && List.isEmpty conflictPointers

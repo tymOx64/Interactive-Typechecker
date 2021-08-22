@@ -38,6 +38,9 @@ init locationHref =
 
         noProoftreeQueryGiven =
             getUrlQuery "prooftree" (fixLocalUrl locationHref) |> (==) Nothing
+
+        initialRuleTree =
+            ruleTreeFromUrlQuery |> Maybe.withDefault Hole
     in
     ( { menuState =
             if noProoftreeQueryGiven then
@@ -45,7 +48,7 @@ init locationHref =
 
             else
                 SelectRule
-      , ruleTree = ruleTreeFromUrlQuery |> Maybe.withDefault Hole
+      , ruleTree = initialRuleTree
       , selectedNodeId = []
       , gammaInput = ""
       , xInput = ""
@@ -67,6 +70,7 @@ init locationHref =
                 -- for the init screen, don't show any display message initially
                 ( _, _, True ) ->
                     ""
+      , ruleTreeSuccessful = ruleTreeIsSuccessful initialRuleTree (getFirstConflictFromRuleTree initialRuleTree)
       , baseUrl = getBaseUrl locationHref |> Maybe.withDefault "https://www.typeCheckerDummyUrl.com/"
       }
     , Cmd.none
@@ -252,13 +256,20 @@ update msg model =
             )
 
         UrlChanged newUrl ->
-            let
-                _ =
-                    Debug.log "UrlChangedMsg str: " newUrl
-            in
             case getRuleTreeFromUrlQuery newUrl of
                 Just parsedRuleTree ->
-                    ( { model | ruleTree = parsedRuleTree }, Cmd.none )
+                    ( { model
+                        | ruleTree = parsedRuleTree
+                        , ruleTreeSuccessful = ruleTreeIsSuccessful parsedRuleTree (getFirstConflictFromRuleTree parsedRuleTree)
+                        , displayMessage =
+                            if ruleTreeIsSuccessful parsedRuleTree (getFirstConflictFromRuleTree parsedRuleTree) then
+                                "Your Proof Tree is complete and correct - Great Job!"
+
+                            else
+                                model.displayMessage
+                      }
+                    , Cmd.none
+                    )
 
                 Nothing ->
                     ( { model | ruleTree = Hole, displayMessage = "Unexpected parsing error on the prooftree query." }, Cmd.none )
