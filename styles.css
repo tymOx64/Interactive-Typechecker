@@ -52,6 +52,7 @@ body {
 .init-starting-node__input-block-container {
 	display: flex;
 	flex-direction: row;
+	margin-top: 36px;
 }
 
 .init-starting-node__input-block {

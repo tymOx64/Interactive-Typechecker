@@ -63,6 +63,8 @@ inputBlock textInput model msg =
         ]
 
 
+{-| Views the gamma input and its label for the init screen.
+-}
 viewContextInitBlock : Model -> Html Msg
 viewContextInitBlock model =
     div [ class "init-starting-node__input-block" ]
@@ -71,6 +73,8 @@ viewContextInitBlock model =
         ]
 
 
+{-| Views the term input (M) and its label for the init screen.
+-}
 viewTermInitBlock : Model -> Html Msg
 viewTermInitBlock model =
     div [ class "init-starting-node__input-block" ]
@@ -79,6 +83,8 @@ viewTermInitBlock model =
         ]
 
 
+{-| Views the type input (tau) and its label for the init screen.
+-}
 viewTypeInitBlock : Model -> Html Msg
 viewTypeInitBlock model =
     div [ class "init-starting-node__input-block" ]
@@ -87,6 +93,8 @@ viewTypeInitBlock model =
         ]
 
 
+{-| Views the three inputs `Γ, M, τ` for the init screen.
+-}
 viewNodeInitiationInputs : Model -> Html Msg
 viewNodeInitiationInputs model =
     div [ class "init-starting-node__input-block-container" ]
@@ -106,6 +114,8 @@ viewNodeInitiationButtons =
         ]
 
 
+{-| Fills the gamma input from given `ruleTree`.
+-}
 fillGammaInputFromRuleTree : RuleTree -> Model -> Model
 fillGammaInputFromRuleTree ruleTree model =
     let
@@ -115,6 +125,8 @@ fillGammaInputFromRuleTree ruleTree model =
     { model | gammaInput = contextAsString }
 
 
+{-| Fills the x input from given `ruleTree`.
+-}
 fillXInputFromRuleTree : RuleTree -> Model -> Model
 fillXInputFromRuleTree ruleTree model =
     case ruleTree of
@@ -128,6 +140,8 @@ fillXInputFromRuleTree ruleTree model =
             model
 
 
+{-| Fills the M input from given `ruleTree`.
+-}
 fillMInputFromRuleTree : RuleTree -> Model -> Model
 fillMInputFromRuleTree ruleTree model =
     case ruleTree of
@@ -141,6 +155,8 @@ fillMInputFromRuleTree ruleTree model =
             model
 
 
+{-| Fills the N input from given `ruleTree`.
+-}
 fillNInputFromRuleTree : RuleTree -> Model -> Model
 fillNInputFromRuleTree ruleTree model =
     case ruleTree of
@@ -151,6 +167,8 @@ fillNInputFromRuleTree ruleTree model =
             model
 
 
+{-| Fills the sigma input from given `ruleTree`.
+-}
 fillSigmaInputFromRuleTree : RuleTree -> Model -> Model
 fillSigmaInputFromRuleTree ruleTree model =
     case ruleTree of
@@ -172,6 +190,8 @@ fillSigmaInputFromRuleTree ruleTree model =
             model
 
 
+{-| Fills the tau input from given `ruleTree`.
+-}
 fillTauInputFromRuleTree : RuleTree -> Model -> Model
 fillTauInputFromRuleTree ruleTree model =
     case ruleTree of
@@ -185,6 +205,8 @@ fillTauInputFromRuleTree ruleTree model =
             model
 
 
+{-| Fills all inputs from given `ruleTree`.
+-}
 fillAllInputsFromRuleTree : RuleTree -> Model -> Model
 fillAllInputsFromRuleTree ruleTree =
     flushAllInputs
@@ -196,6 +218,8 @@ fillAllInputsFromRuleTree ruleTree =
         >> fillTauInputFromRuleTree ruleTree
 
 
+{-| Clears all inputs to be fully empty.
+-}
 flushAllInputs : Model -> Model
 flushAllInputs model =
     { model | gammaInput = "", xInput = "", mInput = "", nInput = "", sigmaInput = "", tauInput = "" }

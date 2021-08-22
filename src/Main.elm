@@ -345,8 +345,13 @@ viewLeft model =
 viewInitStartingNode : Model -> Html Msg
 viewInitStartingNode model =
     div [ class "init-starting-node" ]
-        [ text "a detailed description will follow in one of the upcoming versions"
+        [ text "/* a more detailed description will follow in one of the upcoming versions */"
+        , div []
+            [ text "Set up the Typing Relation"
+            , span [ style "font-family" "Georgia, Serif", style "white-space" "pre" ] [ text "    Γ  ⊢  M  :  τ    " ]
+            , text "you would like for your Proof Tree to start with!"
+            ]
         , viewNodeInitiationInputs model
-        , viewNodeInitiationButtons model
+        , viewNodeInitiationButtons
         , strong [ style "margin" "30px" ] [ text model.displayMessage ]
         ]
