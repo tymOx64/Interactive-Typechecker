@@ -597,10 +597,10 @@ tauInput model =
 --    unicode characters:    → λ σ τ Γ ⊢
 
 
-{-| If possible, transforms a Char to its representation we use for typing, otherwise the Char remains unchanged.
+{-| If there is a greek counterpart for the given `char` we transform it to its greek representation we use for typing, otherwise `char` remains unchanged.
 -}
-charToTypingRepresentation : Char -> Char
-charToTypingRepresentation char =
+charLatinToGreekRepresentation : Char -> Char
+charLatinToGreekRepresentation char =
     case char of
         'a' ->
             'α'
@@ -608,53 +608,43 @@ charToTypingRepresentation char =
         'b' ->
             'β'
 
-        'c' ->
-            'ς'
-
+        --'c'
         'd' ->
             'δ'
 
         'e' ->
             'ε'
 
-        'f' ->
-            'ξ'
-
+        -- 'f'
         'g' ->
             'γ'
 
-        'h' ->
-            'ψ'
-
+        -- 'h'
         'i' ->
             'ι'
 
-        'j' ->
-            'Ξ'
-
+        -- 'j'
         'k' ->
             'κ'
 
         'l' ->
-            'Λ'
+            'λ'
 
         'm' ->
             'μ'
 
         'n' ->
-            'η'
+            'ν'
 
         'o' ->
             'ο'
 
         'p' ->
-            'ρ'
+            'π'
 
-        'q' ->
-            'Δ'
-
+        -- 'q'
         'r' ->
-            'Γ'
+            'ρ'
 
         's' ->
             'σ'
@@ -665,18 +655,12 @@ charToTypingRepresentation char =
         'u' ->
             'υ'
 
-        'v' ->
-            'ν'
-
-        'w' ->
-            'ω'
-
+        -- 'v'
+        -- 'w'
         'x' ->
             'χ'
 
-        'y' ->
-            'Υ'
-
+        -- 'y'
         'z' ->
             'ζ'
 
@@ -688,7 +672,7 @@ charToTypingRepresentation char =
 -}
 stringToTypingRepresantation : String -> String
 stringToTypingRepresantation str =
-    String.map charToTypingRepresentation str
+    String.map charLatinToGreekRepresentation str
         |> String.replace "->" "→"
 
 
@@ -923,7 +907,7 @@ isValidTypeVarInput : Char -> Bool
 isValidTypeVarInput char =
     let
         validGreekTypeVarNames =
-            List.map charToTypingRepresentation validVarAndTypeVarInputs
+            List.map charLatinToGreekRepresentation validVarAndTypeVarInputs
 
         validTypeVarInputs =
             validVarAndTypeVarInputs ++ validGreekTypeVarNames
