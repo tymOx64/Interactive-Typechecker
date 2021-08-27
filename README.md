@@ -10,9 +10,9 @@ TODO
 
 Queries for testing purposes (giving you a starting node or a full prooftree respectively):
 
-`?prooftree=_AB_{}(λz.((λx.(λy.x))%20z))(α→(β→α))_H_`
+`?prooftree=_AB_{}(λz.((λx.(λy.x))%20z))$?$_H_`
 
-`?prooftree=_AB_{}(λz.((λx.(λy.x))%20z))(α→(β→α))_AP_{z:α}((λx.(λy.x))%20z)(β→α)_AB_{z:α}(λx.(λy.x))(α→(β→α))_AB_{z:α,x:α}(λy.x)(β→α)_V_{z:α,y:β,x:α}xαT_V_{z:α}zαT`
+`?prooftree=_AB_{}(λz.((λx.(λy.x))%20z))$(a→(b→a))$_AP_{z:a}((λx.(λy.x))%20z)$(b→a)$_AB_{z:a}(λx.(λy.x))$(a→(b→a))$_AB_{z:a,x:a}(λy.x)$(b→a)$_V_{z:a,y:b,x:a}x$a$T_V_{z:a}z$a$T`
 
 ## Usage
 
