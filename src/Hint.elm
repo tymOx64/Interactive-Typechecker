@@ -421,7 +421,7 @@ getHint inputKind model =
 
 {-| Traverses `ruleTree` and returns the type for `var` from the first context if available, otherwise from the parents context.
 -}
-getTypeForVarFromFirstContextMatch : Var -> RuleTree -> Maybe SType
+getTypeForVarFromFirstContextMatch : TermVar -> RuleTree -> Maybe SType
 getTypeForVarFromFirstContextMatch var ruleTree =
     let
         getTypeFromRuleTreeContext ruleTree_ =
@@ -452,7 +452,7 @@ getTypeForVarFromFirstContextMatch var ruleTree =
             Nothing
 
 
-setOfAllTypeVariables : Set Var
+setOfAllTypeVariables : Set TermVar
 setOfAllTypeVariables =
     List.map charLatinToGreekRepresentation validVarAndTypeVarInputs |> Set.fromList
 

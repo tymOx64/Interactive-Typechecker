@@ -45,7 +45,7 @@ type Msg
 -- STLC
 
 
-type alias Var =
+type alias TermVar =
     Char
 
 
@@ -59,23 +59,17 @@ type alias SType =
     Type String
 
 
-
-{- type Context basicType
-   = Context (Dict Var (Type basicType))
--}
-
-
-type AContext var typ
-    = Context (Dict var typ)
+type AContext termVar typ
+    = Context (Dict termVar typ)
 
 
 type alias SContext =
-    AContext Var SType
+    AContext TermVar SType
 
 
 type Term
-    = Var Var
-    | Abs Var Term
+    = Var TermVar
+    | Abs TermVar Term
     | App Term Term
 
 
@@ -186,14 +180,18 @@ type AContPointer var
 -}
 
 
-type alias AContextHandler term typ =
-    { showTerm : term -> String
+type alias AContextHandler termVar typ =
+    { showTermVar : termVar -> String
     , showType : typ -> String
     }
 
 
+type alias SContextHandler =
+    AContextHandler TermVar SType
+
+
 type alias ContPointer =
-    AContPointer Var
+    AContPointer TermVar
 
 
 type TypePointer

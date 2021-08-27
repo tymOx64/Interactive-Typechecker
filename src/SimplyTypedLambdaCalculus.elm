@@ -283,7 +283,7 @@ contextsAreEqual (Context dict1) (Context dict2) =
     Dict.union dict1 dict2 |> (==) dict2
 
 
-termAndTypeMissesTypingAssumption : Var -> SContext -> Bool
+termAndTypeMissesTypingAssumption : TermVar -> SContext -> Bool
 termAndTypeMissesTypingAssumption var (Context dict) =
     Dict.foldl
         (\varFromContext _ typingAssumptionIsMissing ->
@@ -309,7 +309,7 @@ As the last example shows the function always returns `False` if the according
 typing assumption is missing. If you need to check for that, use `termAndTypeMissesTypingAssumption`.
 
 -}
-termAndTypeConflictsExistingTypingAssumption : Var -> SType -> SContext -> Bool
+termAndTypeConflictsExistingTypingAssumption : TermVar -> SType -> SContext -> Bool
 termAndTypeConflictsExistingTypingAssumption var typ (Context dict) =
     Dict.foldl
         (\varFromContext typFromContext conflictFound ->
@@ -391,7 +391,7 @@ getTauTypeFromAbsRuleTree ruleTree =
             Untyped
 
 
-getTypeFromContext : Var -> SContext -> Maybe SType
+getTypeFromContext : TermVar -> SContext -> Maybe SType
 getTypeFromContext var (Context dict) =
     Dict.get var dict
 
@@ -723,7 +723,7 @@ viewContext contextHandler (Context dict) conflictPointers =
 
         typingAssumptionToHtmlList var typ =
             [ span []
-                [ span [ classList [ ( "ruletree-text-highlight", highlightVar var ) ] ] [ text (contextHandler.showVar var) ]
+                [ span [ classList [ ( "ruletree-text-highlight", highlightVar var ) ] ] [ text (contextHandler.showTermVar var) ]
                 , span [ classList [ ( "ruletree-text-highlight", highlightColon var ) ] ] [ text ":" ]
                 , span [ classList [ ( "ruletree-text-highlight", highlightType var ) ] ] [ text (contextHandler.showType typ) ]
                 ]
@@ -778,7 +778,7 @@ viewTerm term conflictElementsRaw =
                         List.member (TermPointer () AbsBody) conflictElements
                 in
                 [ text "(λ"
-                , span [ classList [ ( "ruletree-text-highlight", highlightAbsVar ) ] ] [ text <| showVar var ]
+                , span [ classList [ ( "ruletree-text-highlight", highlightAbsVar ) ] ] [ text <| showTermVar var ]
                 , text "."
                 , span [ classList [ ( "ruletree-text-highlight", highlightAbsBody ) ] ] [ text <| showTerm mTerm ]
                 , text ")"
@@ -854,12 +854,12 @@ viewRuleContent context term typ pointersToHighlightRaw =
         :: viewType typ pointersToHighlight
 
 
-stlcContextHandler : AContextHandler Term SType
+stlcContextHandler : SContextHandler
 stlcContextHandler =
-    AContextHandler showTerm showType
+    AContextHandler showTermVar showType
 
 
-addTypingAssumptionToContext : Var -> SType -> SContext -> SContext
+addTypingAssumptionToContext : TermVar -> SType -> SContext -> SContext
 addTypingAssumptionToContext var typ (Context dict) =
     Context <| Dict.insert var typ dict
 
@@ -889,6 +889,11 @@ encodeRuleTreeAsString ruleTree =
 
         Hole ->
             "_H_"
+
+
+showTermVar : TermVar -> String
+showTermVar =
+    String.fromChar
 
 
 showTerm : Term -> String
@@ -947,27 +952,16 @@ showType typ =
 
 showContext : SContext -> String
 showContext (Context dict) =
-    Dict.foldl (\var type1 outputString -> showVar var ++ ":" ++ showType type1 ++ ", " ++ outputString) "endIndicator" dict
+    Dict.foldl (\var typ outputString -> showTermVar var ++ ":" ++ showType typ ++ ", " ++ outputString) "endIndicator" dict
+        -- removes the comma when there is at least one element in the context
         |> String.replace ", endIndicator" ""
+        -- removes the indicator when the context is empty
         |> String.replace "endIndicator" ""
 
 
-isEmptyContext : AContext var typ -> Bool
+isEmptyContext : AContext term typ -> Bool
 isEmptyContext (Context dict) =
     Dict.isEmpty dict
-
-
-showRules : Term -> String
-showRules term =
-    case term of
-        Var _ ->
-            "Axiom, "
-
-        Abs _ subterm ->
-            "Abstraction, " ++ showRules subterm
-
-        App subterm1 subterm2 ->
-            "Application, " ++ showRules subterm1 ++ showRules subterm2
 
 
 viewVarRule : Model -> Html Msg

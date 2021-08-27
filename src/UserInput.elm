@@ -7,8 +7,9 @@ import Html.Events exposing (..)
 import Json.Decode as Decode
 import List exposing (tail)
 import Parser exposing ((|.), (|=), Parser)
+import Set
 import SharedStructures as Shared exposing (..)
-import SimplyTypedLambdaCalculus as STLC exposing (createRuleTree, getContextFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showVar)
+import SimplyTypedLambdaCalculus as STLC exposing (createRuleTree, getContextFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showTermVar)
 
 
 {-| Creates a new labeled text input field. When losing focus, triggers the Msg `TransformInput`.
@@ -131,10 +132,10 @@ fillXInputFromRuleTree : RuleTree -> Model -> Model
 fillXInputFromRuleTree ruleTree model =
     case ruleTree of
         RVar _ (Var var) _ _ ->
-            { model | xInput = showVar var }
+            { model | xInput = showTermVar var }
 
         RAbs _ (Abs var _) _ _ ->
-            { model | xInput = showVar var }
+            { model | xInput = showTermVar var }
 
         _ ->
             model
@@ -338,7 +339,7 @@ applyUserInputsToSelectedRuleTreeNode model =
                 nextContext =
                     STLC.addTypingAssumptionToContext
                         (getFirstCharFromString model.xInput)
-                        (parseTypeEnd model.sigmaInput |> Maybe.withDefault (BasicType '#'))
+                        (parseTypeEnd model.sigmaInput |> Maybe.withDefault (BasicType "#"))
                         (maybeContext |> Maybe.withDefault (Context Dict.empty))
 
                 maybeTerm =
@@ -715,14 +716,14 @@ stringOfTypingAssumptionsToTypingRepresantation str =
 -- PARSING
 
 
-parseVar : Parser Char
-parseVar =
-    Parser.chompIf isValidVariableInput |> Parser.getChompedString |> Parser.map getFirstCharFromString
+parseTermVar : Parser Char
+parseTermVar =
+    Parser.chompIf Char.isAlpha |> Parser.getChompedString |> Parser.map getFirstCharFromString
 
 
-parseTypeVar : Parser Char
+parseTypeVar : Parser String
 parseTypeVar =
-    Parser.chompIf isValidTypeVarInput |> Parser.getChompedString |> Parser.map getFirstCharFromString
+    Parser.variable { start = Char.isAlpha, inner = \c -> Char.isAlphaNum c || c == '\'' || c == '_', reserved = Set.empty }
 
 
 {-| Used to parse the RuleTree in the proofterm query of the URL.
@@ -783,11 +784,11 @@ termParser : Parser Term
 termParser =
     Parser.oneOf
         [ Parser.succeed Var
-            |= parseVar
+            |= parseTermVar
         , Parser.succeed Abs
             |. (Parser.backtrackable <| Parser.symbol "(")
             |. (Parser.backtrackable <| Parser.symbol "λ")
-            |= parseVar
+            |= parseTermVar
             |. Parser.symbol "."
             |= Parser.lazy (\_ -> termParser)
             |. Parser.symbol ")"
@@ -829,10 +830,10 @@ parseTerm str =
     Result.toMaybe <| Parser.run (Parser.backtrackable termParser) str
 
 
-typingAssumptionParser : Parser ( Shared.Var, Shared.SType )
+typingAssumptionParser : Parser ( Shared.TermVar, Shared.SType )
 typingAssumptionParser =
     Parser.succeed Tuple.pair
-        |= parseVar
+        |= parseTermVar
         |. Parser.symbol ":"
         |= typeParser
 
@@ -840,7 +841,7 @@ typingAssumptionParser =
 {-| Auxiliary parser; required for parsing an arbitrary amount of typing assumptions from the Context into List format.
 Use parseContext or contextParser to get the Context format.
 -}
-contextAsListParser : Parser (List ( Shared.Var, Shared.SType ))
+contextAsListParser : Parser (List ( Shared.TermVar, Shared.SType ))
 contextAsListParser =
     Parser.sequence
         { start = "{"
@@ -866,18 +867,18 @@ contextParser =
     Parser.map (\list -> Context <| Dict.fromList list) contextAsListParser
 
 
-typeParser : Parser Shared.SType
+typeParser : Parser SType
 typeParser =
     Parser.oneOf
-        [ Parser.succeed Shared.BasicType
+        [ Parser.succeed BasicType
             |= parseTypeVar
-        , Parser.succeed Shared.Arrow
+        , Parser.succeed Arrow
             |. Parser.symbol "("
             |= Parser.lazy (\_ -> typeParser)
             |. Parser.symbol "→"
             |= Parser.lazy (\_ -> typeParser)
             |. Parser.symbol ")"
-        , Parser.succeed Shared.Untyped
+        , Parser.succeed Untyped
             |. Parser.symbol "?"
         ]
 
@@ -901,24 +902,7 @@ parseTypeEnd str =
 
 validVarAndTypeVarInputs : List Char
 validVarAndTypeVarInputs =
-    [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' ]
-
-
-isValidTypeVarInput : Char -> Bool
-isValidTypeVarInput char =
-    let
-        validGreekTypeVarNames =
-            List.map charLatinToGreekRepresentation validVarAndTypeVarInputs
-
-        validTypeVarInputs =
-            validVarAndTypeVarInputs ++ validGreekTypeVarNames
-    in
-    List.member char validTypeVarInputs
-
-
-isValidVariableInput : Char -> Bool
-isValidVariableInput char =
-    List.member char validVarAndTypeVarInputs
+    List.range (Char.toCode 'a') (Char.toCode 'z') |> List.map Char.fromCode
 
 
 {-| Returns the first char from a string if possible, otherise `'#'`.
