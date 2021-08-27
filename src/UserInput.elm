@@ -670,48 +670,6 @@ charLatinToGreekRepresentation char =
             char
 
 
-{-| Used for Strings that are supposed to be a present _just_ a type.
--}
-stringToTypingRepresantation : String -> String
-stringToTypingRepresantation str =
-    String.map charLatinToGreekRepresentation str
-        |> String.replace "->" "→"
-
-
-{-| For every typing assumption of the form `x:t` where x is an arbitrary variable
-and t an arbitrary type containing standard keyboard characters (e.g. `(a->(b->a))`,
-the function converts it to `x:T` where T is the typing representation of t (e.g. `(α→(β→α))`).
-
-**Example**
-
-    stringOfTypingAssumptionsToTypingRepresantation "x:(a->(b->a)), y:s" => "x:(α→(β→α)),y:σ"
-
--}
-stringOfTypingAssumptionsToTypingRepresantation : String -> String
-stringOfTypingAssumptionsToTypingRepresantation str =
-    let
-        splitUp str1 =
-            String.split "," str1 |> List.concatMap (String.split ":")
-
-        joinUpAndConvert splittedParts beforeColon =
-            case splittedParts of
-                lastElem :: [] ->
-                    stringToTypingRepresantation lastElem
-
-                head :: tail ->
-                    if beforeColon then
-                        head ++ ":" ++ joinUpAndConvert tail False
-
-                    else
-                        stringToTypingRepresantation head ++ "," ++ joinUpAndConvert tail True
-
-                _ ->
-                    ""
-    in
-    joinUpAndConvert (String.replace " " "" str |> splitUp) True
-        |> String.replace "," ", "
-
-
 
 -- PARSING
 
@@ -789,21 +747,32 @@ boolParser =
 termParser : Parser Term
 termParser =
     Parser.oneOf
-        [ Parser.succeed Var
-            |= parseTermVar
-        , Parser.succeed Abs
+        [ Parser.succeed Abs
             |. (Parser.backtrackable <| Parser.symbol "(")
             |. (Parser.backtrackable <| Parser.symbol "λ")
             |= parseTermVar
             |. Parser.symbol "."
             |= Parser.lazy (\_ -> termParser)
             |. Parser.symbol ")"
+        , Parser.succeed Abs
+            |. Parser.symbol "λ"
+            |= parseTermVar
+            |. Parser.symbol "."
+            |= Parser.lazy (\_ -> termParser)
         , Parser.succeed App
             |. Parser.symbol "("
             |= Parser.lazy (\_ -> termParser)
             |. Parser.symbol " "
             |= Parser.lazy (\_ -> termParser)
             |. Parser.symbol ")"
+
+        {- , Parser.succeed App
+           |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser))
+           |. (Parser.backtrackable <| Parser.symbol " ")
+           |= Parser.lazy (\_ -> termParser)
+        -}
+        , Parser.succeed Var
+            |= parseTermVar
         ]
 
 

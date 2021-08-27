@@ -917,7 +917,8 @@ showTerm term =
             String.startsWith "(" termAsStringRaw && String.endsWith ")" termAsStringRaw
     in
     if hasOutmostParantheses then
-        termAsStringRaw |> String.dropLeft 1 |> String.dropRight 1
+        termAsStringRaw
+        -- |> String.dropLeft 1 |> String.dropRight 1
 
     else
         termAsStringRaw
@@ -944,7 +945,8 @@ showType typ =
             String.startsWith "(" typeAsStringRaw && String.endsWith ")" typeAsStringRaw
     in
     if hasOutmostParantheses then
-        typeAsStringRaw |> String.dropLeft 1 |> String.dropRight 1
+        typeAsStringRaw
+        -- |> String.dropLeft 1 |> String.dropRight 1
 
     else
         typeAsStringRaw

@@ -160,11 +160,11 @@ update msg model =
 
         TransformInput ->
             ( { model
-                | gammaInput = stringOfTypingAssumptionsToTypingRepresantation model.gammaInput
+                | gammaInput = String.replace "->" "→" model.gammaInput
                 , mInput = String.replace "\\" "λ" model.mInput
                 , nInput = String.replace "\\" "λ" model.nInput
-                , sigmaInput = stringToTypingRepresantation model.sigmaInput
-                , tauInput = stringToTypingRepresantation model.tauInput
+                , sigmaInput = String.replace "->" "→" model.sigmaInput
+                , tauInput = String.replace "->" "→" model.tauInput
               }
             , Cmd.none
             )
