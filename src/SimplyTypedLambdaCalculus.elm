@@ -854,9 +854,9 @@ viewRuleContent context term typ pointersToHighlightRaw =
         :: viewType typ pointersToHighlight
 
 
-stlcContextHandler : AContextHandler Var (Type Char)
+stlcContextHandler : AContextHandler Term SType
 stlcContextHandler =
-    AContextHandler showVar showType
+    AContextHandler showTerm showType
 
 
 addTypingAssumptionToContext : Var -> SType -> SContext -> SContext
@@ -893,33 +893,56 @@ encodeRuleTreeAsString ruleTree =
 
 showTerm : Term -> String
 showTerm term =
-    case term of
-        Var var ->
-            String.fromChar var
+    let
+        showTermWithOutmostParantheses term_ =
+            case term_ of
+                Var var ->
+                    String.fromChar var
 
-        Abs var subterm ->
-            "(λ" ++ showVar var ++ "." ++ showTerm subterm ++ ")"
+                Abs var subterm ->
+                    "(λ" ++ String.fromChar var ++ "." ++ showTerm subterm ++ ")"
 
-        App subterm1 subterm2 ->
-            "(" ++ showTerm subterm1 ++ " " ++ showTerm subterm2 ++ ")"
+                App left right ->
+                    "(" ++ showTerm left ++ " " ++ showTerm right ++ ")"
+
+        termAsStringRaw =
+            showTermWithOutmostParantheses term
+
+        hasOutmostParantheses =
+            String.startsWith "(" termAsStringRaw && String.endsWith ")" termAsStringRaw
+    in
+    if hasOutmostParantheses then
+        termAsStringRaw |> String.dropLeft 1 |> String.dropRight 1
+
+    else
+        termAsStringRaw
 
 
-showVar : Char -> String
-showVar var =
-    String.fromChar var
+showType : SType -> String
+showType typ =
+    let
+        showTypeWithOutmostParantheses typ_ =
+            case typ_ of
+                BasicType basicType ->
+                    basicType
 
+                Arrow basicType1 basicType2 ->
+                    "(" ++ showTypeWithOutmostParantheses basicType1 ++ "→" ++ showTypeWithOutmostParantheses basicType2 ++ ")"
 
-showType : Type Char -> String
-showType type1 =
-    case type1 of
-        BasicType basicType ->
-            showVar basicType
+                Untyped ->
+                    "?"
 
-        Arrow basicType1 basicType2 ->
-            "(" ++ showType basicType1 ++ "→" ++ showType basicType2 ++ ")"
+        typeAsStringRaw =
+            showTypeWithOutmostParantheses typ
 
-        Untyped ->
-            "?"
+        hasOutmostParantheses =
+            String.startsWith "(" typeAsStringRaw && String.endsWith ")" typeAsStringRaw
+    in
+    if hasOutmostParantheses then
+        typeAsStringRaw |> String.dropLeft 1 |> String.dropRight 1
+
+    else
+        typeAsStringRaw
 
 
 showContext : SContext -> String

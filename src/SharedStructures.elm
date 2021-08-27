@@ -56,7 +56,7 @@ type Type basicType
 
 
 type alias SType =
-    Type Char
+    Type String
 
 
 
@@ -70,7 +70,7 @@ type AContext var typ
 
 
 type alias SContext =
-    AContext Var (Type Char)
+    AContext Var SType
 
 
 type Term
@@ -186,8 +186,8 @@ type AContPointer var
 -}
 
 
-type alias AContextHandler var typ =
-    { showVar : var -> String
+type alias AContextHandler term typ =
+    { showTerm : term -> String
     , showType : typ -> String
     }
 
