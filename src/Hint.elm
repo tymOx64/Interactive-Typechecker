@@ -7,7 +7,7 @@ import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
 import Tuple exposing (first)
-import UserInput exposing (charToTypingRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, validVarAndTypeVarInputs)
+import UserInput exposing (charLatinToGreekRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, validVarAndTypeVarInputs)
 
 
 {-| Gives a hint based on some limited information from the `RuleTree`. Hints may be _incorrect_.
@@ -454,7 +454,7 @@ getTypeForVarFromFirstContextMatch var ruleTree =
 
 setOfAllTypeVariables : Set Var
 setOfAllTypeVariables =
-    List.map charToTypingRepresentation validVarAndTypeVarInputs |> Set.fromList
+    List.map charLatinToGreekRepresentation validVarAndTypeVarInputs |> Set.fromList
 
 
 getUsedTypeVariables : RuleTree -> Set Char

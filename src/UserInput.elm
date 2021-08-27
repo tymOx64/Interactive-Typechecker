@@ -608,22 +608,24 @@ charLatinToGreekRepresentation char =
         'b' ->
             'β'
 
-        --'c'
         'd' ->
             'δ'
 
         'e' ->
             'ε'
 
-        -- 'f'
+        'f' ->
+            'φ'
+
         'g' ->
             'γ'
 
-        -- 'h'
+        'h' ->
+            'η'
+
         'i' ->
             'ι'
 
-        -- 'j'
         'k' ->
             'κ'
 
@@ -642,7 +644,6 @@ charLatinToGreekRepresentation char =
         'p' ->
             'π'
 
-        -- 'q'
         'r' ->
             'ρ'
 
@@ -652,15 +653,15 @@ charLatinToGreekRepresentation char =
         't' ->
             'τ'
 
-        'u' ->
-            'υ'
-
-        -- 'v'
-        -- 'w'
+        -- TODO: kollision mit 'y' fixen
+        --'u' ->
+        --'υ'
         'x' ->
             'χ'
 
-        -- 'y'
+        'y' ->
+            'υ'
+
         'z' ->
             'ζ'
 
