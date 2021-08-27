@@ -868,7 +868,7 @@ encodeRuleTreeAsString : RuleTree -> String
 encodeRuleTreeAsString ruleTree =
     let
         encodeRuleContent context term typ =
-            ("{" ++ showContext context ++ "}" |> String.replace " " "") ++ showTerm term ++ showType typ
+            ("{" ++ showContext context ++ "}" |> String.replace " " "") ++ showTerm term ++ "$" ++ showType typ ++ "$"
 
         encodeBool bool =
             if bool then

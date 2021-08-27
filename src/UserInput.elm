@@ -737,7 +737,9 @@ ruleTreeParser =
             |. Parser.symbol "_"
             |= contextParser
             |= termParser
+            |. Parser.symbol "$"
             |= typeParser
+            |. Parser.symbol "$"
             |= boolParser
         , Parser.succeed RAbs
             |. (Parser.backtrackable <| Parser.symbol "_")
@@ -746,7 +748,9 @@ ruleTreeParser =
             |. Parser.symbol "_"
             |= contextParser
             |= termParser
+            |. Parser.symbol "$"
             |= typeParser
+            |. Parser.symbol "$"
             |= Parser.lazy (\_ -> ruleTreeParser)
         , Parser.succeed RApp
             |. (Parser.backtrackable <| Parser.symbol "_")
@@ -755,7 +759,9 @@ ruleTreeParser =
             |. Parser.symbol "_"
             |= contextParser
             |= termParser
+            |. Parser.symbol "$"
             |= typeParser
+            |. Parser.symbol "$"
             |= Parser.lazy (\_ -> ruleTreeParser)
             |= Parser.lazy (\_ -> ruleTreeParser)
         , Parser.succeed Hole
