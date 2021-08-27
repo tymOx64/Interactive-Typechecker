@@ -900,8 +900,8 @@ parseTypeEnd str =
     Parser.run typeParserEnd str |> Result.toMaybe
 
 
-validVarAndTypeVarInputs : List Char
-validVarAndTypeVarInputs =
+lowerCaseLatinAlphabet : List Char
+lowerCaseLatinAlphabet =
     List.range (Char.toCode 'a') (Char.toCode 'z') |> List.map Char.fromCode
 
 

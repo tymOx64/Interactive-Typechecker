@@ -7,7 +7,7 @@ import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
 import Tuple exposing (first)
-import UserInput exposing (charLatinToGreekRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, validVarAndTypeVarInputs)
+import UserInput exposing (charLatinToGreekRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet)
 
 
 {-| Gives a hint based on some limited information from the `RuleTree`. Hints may be _incorrect_.
@@ -60,7 +60,7 @@ getHint inputKind model =
                                                 showType thisType
 
                                             else
-                                                String.fromChar unusedTypeVar
+                                                unusedTypeVar
                                     }
 
                                 Nothing ->
@@ -130,7 +130,7 @@ getHint inputKind model =
                                                     showType left
 
                                                 _ ->
-                                                    String.fromChar unusedTypeVar
+                                                    unusedTypeVar
                                     }
 
                                 Nothing ->
@@ -175,7 +175,7 @@ getHint inputKind model =
                                                     showType right
 
                                                 _ ->
-                                                    String.fromChar unusedTypeVar
+                                                    unusedTypeVar
                                     }
 
                                 Nothing ->
@@ -256,7 +256,7 @@ getHint inputKind model =
                                         | sigmaInput =
                                             getTermTypeFromRuleTree nextRuleTree2
                                                 |> Maybe.map showType
-                                                |> Maybe.withDefault (String.fromChar unusedTypeVar)
+                                                |> Maybe.withDefault unusedTypeVar
                                     }
 
                                 Nothing ->
@@ -342,7 +342,7 @@ getHint inputKind model =
                                                 showType thisType
 
                                             else
-                                                String.fromChar unusedTypeVar
+                                                unusedTypeVar
                                     }
 
                                 Nothing ->
@@ -452,12 +452,20 @@ getTypeForVarFromFirstContextMatch var ruleTree =
             Nothing
 
 
-setOfAllTypeVariables : Set TermVar
-setOfAllTypeVariables =
-    List.map charLatinToGreekRepresentation validVarAndTypeVarInputs |> Set.fromList
+setOfUnusedTypeVariables : Set String
+setOfUnusedTypeVariables =
+    let
+        baseNames =
+            List.map String.fromChar lowerCaseLatinAlphabet
+    in
+    baseNames
+        ++ List.map ((++) "'") baseNames
+        ++ List.map ((++) "''") baseNames
+        ++ List.map ((++) "'''") baseNames
+        |> Set.fromList
 
 
-getUsedTypeVariables : RuleTree -> Set Char
+getUsedTypeVariables : RuleTree -> Set String
 getUsedTypeVariables ruleTree =
     let
         typeVariablesFromTypeToSet typ =
@@ -491,10 +499,10 @@ getUsedTypeVariables ruleTree =
             Set.empty
 
 
-getUnusedTypeVariableFromRuleTree : RuleTree -> Int -> Maybe Char
+getUnusedTypeVariableFromRuleTree : RuleTree -> Int -> Maybe String
 getUnusedTypeVariableFromRuleTree ruleTree index =
     getUsedTypeVariables ruleTree
-        |> Set.diff setOfAllTypeVariables
+        |> Set.diff setOfUnusedTypeVariables
         |> Set.toList
         |> Array.fromList
         |> Array.get index
