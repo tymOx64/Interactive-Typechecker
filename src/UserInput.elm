@@ -8,7 +8,7 @@ import Json.Decode as Decode
 import Parser exposing ((|.), (|=), Parser, end)
 import Set
 import SharedStructures as Shared exposing (..)
-import SimplyTypedLambdaCalculus as STLC exposing (createRuleTree, getContextFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showTermVar)
+import SimplyTypedLambdaCalculus as STLC exposing (addTypingAssumptionToContext, createRuleTree, getContextFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showTermVar)
 
 
 {-| Creates a new labeled text input field. When losing focus, triggers the Msg `TransformInput`.
@@ -292,22 +292,22 @@ applyUserInputsToSelectedRuleTreeNode model =
             parseContext model.gammaInput
 
         gammaErr =
-            "Unable to parse the Γ input. Did you forget to put explicit parantheses for arrow types? Example input: x:a, y:((b->c)->b)"
+            "Unable to parse the Γ input. Did you forget to put explicit parantheses for arrow types? Example input: x:a, y:(b->c)->b"
 
         xErr =
             "Unable to parse the x input. You should only use lower case latin alphabet characters (a-z). Example input: x"
 
         sigmaErr =
-            "Unable to parse the σ input. Did you forget to put explicit parantheses for arrow types? Example input: ((b->c)->b)"
+            "Unable to parse the σ input. Did you forget to put explicit parantheses for arrow types? Example input: (b->c)->b"
 
         tauErr =
-            "Unable to parse the τ input. Did you forget to put explicit parantheses for arrow types? Example input: ((b->c)->b)"
+            "Unable to parse the τ input. Did you forget to put explicit parantheses for arrow types? Example input: (b->c)->b"
 
         mErr =
-            "Unable to parse the M input. Did you forget to put explicit parantheses? Example input: (\\x.(x y))"
+            "Unable to parse the M input. Did you forget to put explicit parantheses? Example input: \\x.(x y)"
 
         nErr =
-            "Unable to parse the N input. Did you forget to put explicit parantheses? Example input: (\\x.(x y))"
+            "Unable to parse the N input. Did you forget to put explicit parantheses? Example input: \\x.(x y)"
     in
     case model.menuState of
         VarRule ->
@@ -336,7 +336,7 @@ applyUserInputsToSelectedRuleTreeNode model =
             let
                 -- not necessary to handle nextContext as a Maybe type because the other Maybe types cover all invalid input already
                 nextContext =
-                    STLC.addTypingAssumptionToContext
+                    addTypingAssumptionToContext
                         (getFirstCharFromString model.xInput)
                         (parseTypeEnd model.sigmaInput |> Maybe.withDefault (BasicType "#"))
                         (maybeContext |> Maybe.withDefault (Context Dict.empty))
@@ -345,7 +345,7 @@ applyUserInputsToSelectedRuleTreeNode model =
                     parseTerm <| "(λ" ++ model.xInput ++ "." ++ model.mInput ++ ")"
 
                 maybeType =
-                    parseType <| "(" ++ model.sigmaInput ++ "→" ++ model.tauInput ++ ")"
+                    Maybe.map2 Arrow (parseType model.sigmaInput) (parseType model.tauInput)
 
                 maybeNextMTerm =
                     parseTermEnd model.mInput
@@ -386,14 +386,14 @@ applyUserInputsToSelectedRuleTreeNode model =
                 maybeMTerm =
                     parseTermEnd model.mInput
 
+                maybeNTerm =
+                    parseTermEnd model.nInput
+
                 maybeSigmaType =
                     parseTypeEnd model.sigmaInput
 
                 maybeTauType =
                     parseTypeEnd model.tauInput
-
-                maybeNTerm =
-                    parseTermEnd model.nInput
             in
             -- tuples with more than 3 values are disallowed in elm, so we are using nested tuples here
             case ( maybeContext, maybeMTerm, ( maybeNTerm, maybeSigmaType, maybeTauType ) ) of
@@ -402,7 +402,7 @@ applyUserInputsToSelectedRuleTreeNode model =
                         model.ruleTree
                         model.selectedNodeId
                         (RApp context
-                            (parseTermEnd ("(" ++ model.mInput ++ " " ++ model.nInput ++ ")") |> Maybe.withDefault (Var '#'))
+                            (App mTerm nTerm)
                             tauType
                             (createRuleTree context mTerm (Arrow sigmaType tauType))
                             (createRuleTree context nTerm sigmaType)
@@ -693,11 +693,6 @@ parseTermVar =
     Parser.chompIf Char.isAlpha |> Parser.getChompedString |> Parser.map getFirstCharFromString
 
 
-parseTypeVar : Parser String
-parseTypeVar =
-    Parser.variable { start = Char.isAlpha, inner = \c -> Char.isAlphaNum c || c == '\'' || c == '_', reserved = Set.empty }
-
-
 {-| Used to parse the RuleTree in the proofterm query of the URL.
 -}
 ruleTreeParser : Parser RuleTree
@@ -935,16 +930,32 @@ contextParser =
     Parser.map (\list -> Context <| Dict.fromList list) contextAsListParser
 
 
+parseTypeVar : Parser String
+parseTypeVar =
+    Parser.variable { start = Char.isAlpha, inner = \c -> Char.isAlphaNum c || c == '\'' || c == '_', reserved = Set.empty }
+
+
 typeParser : Parser SType
 typeParser =
+    Parser.oneOf
+        [ Parser.succeed Arrow
+            |= (Parser.backtrackable <| Parser.lazy (\_ -> typeParserInner))
+            |. (Parser.backtrackable <| Parser.symbol "→")
+            |= Parser.lazy (\_ -> typeParserInner)
+        , typeParserInner
+        ]
+
+
+typeParserInner : Parser SType
+typeParserInner =
     Parser.oneOf
         [ Parser.succeed BasicType
             |= parseTypeVar
         , Parser.succeed Arrow
             |. Parser.symbol "("
-            |= Parser.lazy (\_ -> typeParser)
+            |= Parser.lazy (\_ -> typeParserInner)
             |. Parser.symbol "→"
-            |= Parser.lazy (\_ -> typeParser)
+            |= Parser.lazy (\_ -> typeParserInner)
             |. Parser.symbol ")"
         , Parser.succeed Untyped
             |. Parser.symbol "?"
