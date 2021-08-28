@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
-import Parser exposing ((|.), (|=), Parser)
+import Parser exposing ((|.), (|=), Parser, end)
 import Set
 import SharedStructures as Shared exposing (..)
 import SimplyTypedLambdaCalculus as STLC exposing (createRuleTree, getContextFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showTermVar)
@@ -432,6 +432,21 @@ applyUserInputsToSelectedRuleTreeNode model =
 applyUserInitInputs : Model -> Result String RuleTree
 applyUserInitInputs model =
     let
+        _ =
+            Debug.log "parse test 1: " <| Parser.run (Parser.backtrackable termParser) "x (λy.x)"
+
+        _ =
+            Debug.log "parse test 2: " <| Parser.run (Parser.backtrackable termParser) "(λy.x) x"
+
+        _ =
+            Debug.log "parse test 3: " <| Parser.run (Parser.backtrackable termParser) "(x y)"
+
+        _ =
+            Debug.log "parse test 4: " <| Parser.run (Parser.backtrackable termParser) "x"
+
+        _ =
+            Debug.log "parse tests 5" <| Parser.run (Parser.backtrackable termParser) "(λx.(λy.x))"
+
         maybeContext =
             parseContext model.gammaInput
 
@@ -743,36 +758,115 @@ boolParser =
         ]
 
 
+{-| Parses terms. Outmost parantheses may be omitted, e.g. it works both for
+`"(x y)"` and `"x y"` to be parsed to `App (Var "x") (Var "y")`.
+-}
 termParser : Parser Term
 termParser =
+    Parser.oneOf
+        [ Parser.succeed App
+            |= (Parser.backtrackable <| termParserInner)
+            |. (Parser.backtrackable <| Parser.symbol " ")
+            |= (Parser.backtrackable <| termParserInner)
+        , Parser.succeed Abs
+            |. Parser.symbol "λ"
+            |= parseTermVar
+            |. Parser.symbol "."
+            |= termParserInner
+        , termParserInner
+        ]
+
+
+{-| Parses inner terms, i.e. either plain Variables, or Abs and App that are put into parantheses.
+-}
+termParserInner : Parser Term
+termParserInner =
     Parser.oneOf
         [ Parser.succeed Abs
             |. (Parser.backtrackable <| Parser.symbol "(")
             |. (Parser.backtrackable <| Parser.symbol "λ")
             |= parseTermVar
             |. Parser.symbol "."
-            |= Parser.lazy (\_ -> termParser)
+            |= Parser.lazy (\_ -> termParserInner)
             |. Parser.symbol ")"
-        , Parser.succeed Abs
-            |. Parser.symbol "λ"
-            |= parseTermVar
-            |. Parser.symbol "."
-            |= Parser.lazy (\_ -> termParser)
         , Parser.succeed App
             |. Parser.symbol "("
-            |= Parser.lazy (\_ -> termParser)
+            |= Parser.lazy (\_ -> termParserInner)
             |. Parser.symbol " "
-            |= Parser.lazy (\_ -> termParser)
+            |= Parser.lazy (\_ -> termParserInner)
             |. Parser.symbol ")"
-
-        {- , Parser.succeed App
-           |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser))
-           |. (Parser.backtrackable <| Parser.symbol " ")
-           |= Parser.lazy (\_ -> termParser)
-        -}
         , Parser.succeed Var
-            |= parseTermVar
+            |= (Parser.backtrackable <| parseTermVar)
         ]
+
+
+
+{- termParser : Parser Term
+   termParser =
+       Parser.oneOf
+           [ Parser.succeed Abs
+               |. (Parser.backtrackable <| Parser.symbol "(")
+               |. (Parser.backtrackable <| Parser.symbol "λ")
+               |= parseTermVar
+               |. Parser.symbol "."
+               |= Parser.lazy (\_ -> termParser)
+               |. Parser.symbol ")"
+           , Parser.succeed App
+               |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser)) -- not working; "loops" forever
+               |. (Parser.backtrackable <| Parser.symbol " ")
+               |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser))
+               |. (Parser.backtrackable <| end)
+           , Parser.succeed App
+               |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser))
+               |. (Parser.backtrackable <| Parser.symbol " ")
+               |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser))
+               |. (Parser.backtrackable <| Parser.symbol "$")
+           , Parser.succeed Abs
+               |. Parser.symbol "λ"
+               |= parseTermVar
+               |. Parser.symbol "."
+               |= Parser.lazy (\_ -> termParser)
+           , Parser.succeed App
+               |. Parser.symbol "("
+               |= Parser.lazy (\_ -> termParser)
+               |. Parser.symbol " "
+               |= Parser.lazy (\_ -> termParser)
+               |. Parser.symbol ")"
+           , Parser.succeed Var
+               |= (Parser.backtrackable <| parseTermVar)
+           ]
+-}
+{- termParser : Parser Term
+   termParser =
+       Parser.oneOf
+           [ Parser.succeed Abs
+               |. (Parser.backtrackable <| Parser.symbol "(")
+               |. (Parser.backtrackable <| Parser.symbol "λ")
+               |= parseTermVar
+               |. Parser.symbol "."
+               |= Parser.lazy (\_ -> termParser)
+               |. Parser.symbol ")"
+           , Parser.succeed Abs
+               |. Parser.symbol "λ"
+               |= parseTermVar
+               |. Parser.symbol "."
+               |= Parser.lazy (\_ -> termParser)
+           , Parser.succeed App
+               |. Parser.symbol "("
+               |= Parser.lazy (\_ -> termParser)
+               |. Parser.symbol " "
+               |= Parser.lazy (\_ -> termParser)
+               |. Parser.symbol ")"
+
+           {- , Parser.succeed App
+              |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser))
+              |. (Parser.backtrackable <| Parser.symbol " ")
+              |= Parser.lazy (\_ -> termParser)
+           -}
+           , Parser.succeed Var
+               |= parseTermVar
+           ]
+-}
 
 
 termParserEnd : Parser Term
