@@ -4,7 +4,7 @@ import Browser
 import Browser.Events
 import Browser.Navigation exposing (pushUrl)
 import Dict
-import Hint exposing (getHint)
+import Hint exposing (getHint, updateLatestTypings)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -262,6 +262,7 @@ update msg model =
                 Just parsedRuleTree ->
                     ( { model
                         | ruleTree = parsedRuleTree
+                        , latestTypings = updateLatestTypings model.latestTypings (getRuleTreeNode parsedRuleTree model.selectedNodeId) True
                         , ruleTreeSuccessful = ruleTreeIsSuccessful parsedRuleTree (getFirstConflictFromRuleTree parsedRuleTree)
                         , displayMessage =
                             if ruleTreeIsSuccessful parsedRuleTree (getFirstConflictFromRuleTree parsedRuleTree) then
@@ -274,7 +275,7 @@ update msg model =
                     )
 
                 Nothing ->
-                    ( { model | ruleTree = Hole, displayMessage = "Unexpected parsing error on the prooftree query." }, Cmd.none )
+                    ( { model | ruleTree = model.ruleTree, displayMessage = "Unexpected parsing error on the prooftree query." }, Cmd.none )
 
         Start ->
             case applyUserInitInputs model of

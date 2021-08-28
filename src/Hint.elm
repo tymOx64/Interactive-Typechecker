@@ -1,7 +1,7 @@
 module Hint exposing (..)
 
 import Array
-import Dict
+import Dict exposing (Dict)
 import Json.Decode exposing (dict)
 import Set exposing (Set)
 import SharedStructures exposing (..)
@@ -419,50 +419,105 @@ getHint inputKind model =
             }
 
 
-{-| To be called immediately after updating the `ruleTree` that is given as an argument
-in order to update the models `latestTypings` for all new **TermVar : SType** typings.
-Tracks all new **TermVar : SType** typings from both the context and the nodes typing itself.
+{-| To be called immediately after updating a `ruleTree`
+in order to update the `latestTypings` for all new **TermVar : SType** typings.
+Tracks all new **TermVar:SType** typings from both the context and the nodes
+(TermVar:SType)-typing itself (if available).
 -}
-updateLatestTypings : Model -> RuleTree -> Bool -> Model
-updateLatestTypings modelParam ruleTree alsoCallOnChildren =
+updateLatestTypings : Dict TermVar SType -> RuleTree -> Bool -> Dict TermVar SType
+updateLatestTypings latestTypingsParam ruleTree alsoCallOnChildren =
     let
         latestContextDict =
             case getContextFromRuleTree ruleTree of
                 Context dict ->
                     dict
 
-        -- model with updated typings from context
-        newModel =
-            Dict.foldl (\var typ model -> { model | latestTypings = Dict.insert var typ model.latestTypings }) modelParam latestContextDict
+        -- updated typings from context
+        newLatestTypings =
+            Dict.foldl (\var typ latestTypings -> Dict.insert var typ latestTypings) latestTypingsParam latestContextDict
 
-        updateModelFor var typ model =
-            { model | latestTypings = Dict.insert var typ model.latestTypings }
+        updateLatestTypingsWith var typ latestTypings =
+            Dict.insert var typ latestTypings
     in
     case ruleTree of
         RVar _ (Var var) typ _ ->
-            updateModelFor var typ newModel
+            updateLatestTypingsWith var typ newLatestTypings
 
         RAbs _ (Abs var _) (Arrow left _) nextRuleTree ->
             if alsoCallOnChildren then
                 -- recursive call on the children to also update the model that we are going to return here
-                updateLatestTypings (updateModelFor var left newModel) nextRuleTree False
+                updateLatestTypings (updateLatestTypingsWith var left newLatestTypings) nextRuleTree False
 
             else
-                updateModelFor var left newModel
+                updateLatestTypingsWith var left newLatestTypings
 
         RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
             if alsoCallOnChildren then
                 -- recursive call on both children to both also update the model that we are going to return here
                 updateLatestTypings
-                    (updateLatestTypings newModel nextRuleTree2 False)
+                    (updateLatestTypings newLatestTypings nextRuleTree2 False)
                     nextRuleTree1
                     False
 
             else
-                newModel
+                newLatestTypings
 
         _ ->
-            newModel
+            newLatestTypings
+
+
+{-| Updates all **contexts** and all the nodes **(Term:Type)-typings** based on
+the most recent changes tracked by `latestChanges`.
+
+Also works on Abstractions, i.e.:
+
+`(Abs var term) : (Arrow oldLeft oldRight)` becomes `(Abs var term) : (Arrow newLeft oldRight)`
+
+if `var:newLeft` is in `latestChanges`
+
+-}
+applyLatestChangesToFullRuleTree : Dict TermVar SType -> RuleTree -> RuleTree
+applyLatestChangesToFullRuleTree latestChanges ruleTree =
+    let
+        currentContextDict =
+            case getContextFromRuleTree ruleTree of
+                Context dict ->
+                    dict
+
+        newContext =
+            Dict.union latestChanges currentContextDict |> Context
+    in
+    case ruleTree of
+        RVar _ (Var var) typ hasBeenApplied ->
+            RVar
+                newContext
+                (Var var)
+                (Dict.get var latestChanges |> Maybe.withDefault typ)
+                hasBeenApplied
+
+        RVar _ a b c ->
+            RVar newContext a b c
+
+        RAbs _ ((Abs var _) as term) ((Arrow _ right) as typ) nextRuleTree ->
+            RAbs
+                newContext
+                term
+                (Dict.get var latestChanges |> Maybe.map (\updatedLeft -> Arrow updatedLeft right) |> Maybe.withDefault typ)
+                (applyLatestChangesToFullRuleTree latestChanges nextRuleTree)
+
+        RAbs _ a b c ->
+            RAbs newContext a b c
+
+        RApp _ term typ nextRuleTree1 nextRuleTree2 ->
+            RApp
+                newContext
+                term
+                typ
+                (applyLatestChangesToFullRuleTree latestChanges nextRuleTree1)
+                (applyLatestChangesToFullRuleTree latestChanges nextRuleTree2)
+
+        Hole ->
+            Hole
 
 
 {-| Traverses `ruleTree` and returns the type for `var` from the first context if available, otherwise from the parents context.
