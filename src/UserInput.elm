@@ -5,7 +5,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
-import List exposing (tail)
 import Parser exposing ((|.), (|=), Parser)
 import Set
 import SharedStructures as Shared exposing (..)

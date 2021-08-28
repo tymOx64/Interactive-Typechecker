@@ -7,6 +7,7 @@ type alias Model =
     { menuState : MenuState
     , ruleTree : RuleTree
     , selectedNodeId : List Int
+    , latestTypings : Dict TermVar SType
     , gammaInput : String
     , xInput : String
     , mInput : String

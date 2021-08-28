@@ -7,7 +7,7 @@ import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
 import Tuple exposing (first)
-import UserInput exposing (charLatinToGreekRepresentation, fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet)
+import UserInput exposing (fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet)
 
 
 {-| Gives a hint based on some limited information from the `RuleTree`. Hints may be _incorrect_.
@@ -417,6 +417,52 @@ getHint inputKind model =
                     "The currently selected inference rule does not correspond to the currently selected node. Change (at least) one of these!"
                         ++ " (Changing the inference rule requires to click on 'Apply')"
             }
+
+
+{-| To be called immediately after updating the `ruleTree` that is given as an argument
+in order to update the models `latestTypings` for all new **TermVar : SType** typings.
+Tracks all new **TermVar : SType** typings from both the context and the nodes typing itself.
+-}
+updateLatestTypings : Model -> RuleTree -> Bool -> Model
+updateLatestTypings modelParam ruleTree alsoCallOnChildren =
+    let
+        latestContextDict =
+            case getContextFromRuleTree ruleTree of
+                Context dict ->
+                    dict
+
+        -- model with updated typings from context
+        newModel =
+            Dict.foldl (\var typ model -> { model | latestTypings = Dict.insert var typ model.latestTypings }) modelParam latestContextDict
+
+        updateModelFor var typ model =
+            { model | latestTypings = Dict.insert var typ model.latestTypings }
+    in
+    case ruleTree of
+        RVar _ (Var var) typ _ ->
+            updateModelFor var typ newModel
+
+        RAbs _ (Abs var _) (Arrow left _) nextRuleTree ->
+            if alsoCallOnChildren then
+                -- recursive call on the children to also update the model that we are going to return here
+                updateLatestTypings (updateModelFor var left newModel) nextRuleTree False
+
+            else
+                updateModelFor var left newModel
+
+        RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
+            if alsoCallOnChildren then
+                -- recursive call on both children to both also update the model that we are going to return here
+                updateLatestTypings
+                    (updateLatestTypings newModel nextRuleTree2 False)
+                    nextRuleTree1
+                    False
+
+            else
+                newModel
+
+        _ ->
+            newModel
 
 
 {-| Traverses `ruleTree` and returns the type for `var` from the first context if available, otherwise from the parents context.

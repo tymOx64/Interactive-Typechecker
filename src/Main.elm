@@ -3,6 +3,7 @@ port module Main exposing (..)
 import Browser
 import Browser.Events
 import Browser.Navigation exposing (pushUrl)
+import Dict
 import Hint exposing (getHint)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -50,6 +51,7 @@ init locationHref =
                 SelectRule
       , ruleTree = initialRuleTree
       , selectedNodeId = []
+      , latestTypings = Dict.empty
       , gammaInput = ""
       , xInput = ""
       , mInput = ""
