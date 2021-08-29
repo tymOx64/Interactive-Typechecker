@@ -1,3 +1,5 @@
+/* ------------------------------------ Global ------------------------------------ */
+
 * {
 	font-family: Monaco, monospace;
 }
@@ -11,29 +13,7 @@ body {
 	height: 100%;
 }
 
-/* ------------------------------------ Layout ------------------------------------ */
-
-.main-page-container {
-	display: flex;
-	background-color: #ffebcc;
-	height: 100%;
-}
-
-.ruletree-container {
-	margin: auto;
-    white-space: pre;
-	text-align: center;
-}
-
-.menu-container {
-	display: flex;
-	flex-direction: column;
-	background-color: #dae1da;
-	width: 250px;
-	padding: 19px;
-	border-left-style: ridge;
-	border-width: 3px;
-}
+/* ------------------------------------ Start/Init Page ------------------------------------ */
 
 .init-starting-node {
 	display: flex;
@@ -66,18 +46,41 @@ body {
 	padding: 2px 10px;
 }
 
+/* ------------------------------------ Diverse ------------------------------------ */
+
 .display-message-container {
 	margin-top: 29px;
 	margin-bottom: 39px;
 	text-align: center;
 }
 
+label {
+	font-family: Georgia, Serif;
+	width: 20%;
+	font-size: 110%;
+	display: block;
+	text-align: center;
+	margin: 1px 0px 1px 5px;
+}
+
+.capital-letter-label {
+	font-size: 98%;
+	height: 17px;
+	padding-top: 1.5px;
+	padding-bottom: 1.5px;
+}
+
 /* ------------------------------------ RuleTree ------------------------------------ */
+
+.ruletree-container {
+	margin: auto;
+    white-space: pre;
+	text-align: center;
+}
 
 .ruletree__split-up-node {
 	display: inline-block;
 }
-
 
 .ruletree__line {
 	height: 1.3px;
@@ -112,7 +115,23 @@ div.ruletree__conclusion:hover {
 	color: red;
 }
 
-/* ------------------------------------ User Controls ------------------------------------ */
+/* ------------------------------------ Main Application Menu ------------------------------------ */
+
+.main-application-container {
+	display: flex;
+	background-color: #ffebcc;
+	height: 100%;
+}
+
+.menu-container {
+	display: flex;
+	flex-direction: column;
+	background-color: #dae1da;
+	width: 250px;
+	padding: 19px;
+	border-left-style: ridge;
+	border-width: 3px;
+}
 
 .menu__meta-variable-input-block {
 	display: flex;
@@ -147,58 +166,32 @@ div.ruletree__conclusion:hover {
 	margin-bottom: 13px;
 }
 
-label {
-	font-family: Georgia, Serif;
-	width: 20%;
-	font-size: 110%;
-	display: block;
-	text-align: center;
-	margin: 1px 0px 1px 5px;
-}
-
-.capitalLetterLabel {
-	font-size: 98%;
-	height: 17px;
-	padding-top: 1.5px;
-	padding-bottom: 1.5px;
-}
-
-input {
-	display: block;
-}
-
-form > div {
-	padding: 3px;
-}
-
-.menuRule {
+.menu__inference-rule {
 	margin-top: 10px;
 	margin-bottom: 10px;
 	padding: 15px;
 }
 
-.menuRule--selected {
+.menu__inference-rule--selected {
 	background-color: rgb(199, 194, 216);
 	border-radius: 10px;	
 }
 
-.menuRule:hover {
+.menu__inference-rule:hover {
 	border-style: solid;
 	border-width: 2px; /* border-width vergrößert das div um 2px -> */
 	padding: 13px;     /* -> padding um 2px reduzieren */
 	border-radius: 10px;
 }
 
-.menuLine {
+.inference-rule__seperation-line {
 	text-align: center;
 	white-space: pre;
 	line-height: 80%;
 }
 
-.menuText {
+.inference-rule__text-style {
 	font-family: Georgia, Serif;
 	text-align: center;
 	white-space: pre;
 }
-
-/* ------------------------------------ ... ------------------------------------ */

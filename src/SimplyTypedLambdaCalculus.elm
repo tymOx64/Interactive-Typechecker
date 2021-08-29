@@ -983,33 +983,33 @@ isEmptyContext (Context dict) =
 
 viewVarRule : Model -> Html Msg
 viewVarRule model =
-    div [ classList [ ( "menuRule", True ), ( "menuRule--selected", model.menuState == VarRule ) ], onClick <| ChangeState VarRule, style "margin-left" "47px", style "margin-right" "37px" ]
+    div [ classList [ ( "menu__inference-rule", True ), ( "menu__inference-rule--selected", model.menuState == VarRule ) ], onClick <| ChangeState VarRule, style "margin-left" "47px", style "margin-right" "37px" ]
         [ div [ classList [], style "margin-right" "39px" ]
-            [ div [ class "menuText" ] [ text "x : σ ∈ Γ" ]
-            , div [ class "menuLine" ] [ text " ———————— (Var)" ]
-            , div [ class "menuText" ] [ text "Γ ⊢ x : σ" ]
+            [ div [ class "inference-rule__text-style" ] [ text "x : σ ∈ Γ" ]
+            , div [ class "inference-rule__seperation-line" ] [ text " ———————— (Var)" ]
+            , div [ class "inference-rule__text-style" ] [ text "Γ ⊢ x : σ" ]
             ]
         ]
 
 
 viewApplicationRule : Model -> Html Msg
 viewApplicationRule model =
-    div [ classList [ ( "menuRule", True ), ( "menuRule--selected", model.menuState == AppRule ) ], onClick <| ChangeState AppRule, style "margin-right" "1px" ]
+    div [ classList [ ( "menu__inference-rule", True ), ( "menu__inference-rule--selected", model.menuState == AppRule ) ], onClick <| ChangeState AppRule, style "margin-right" "1px" ]
         [ div [ style "margin-right" "2px" ]
-            [ div [ class "menuText" ] [ text "Γ ⊢ M : (σ → τ)   Γ ⊢ N : σ" ]
-            , div [ class "menuLine" ] [ text "  ————————————————— (App)" ]
-            , div [ class "menuText" ] [ text "Γ ⊢ (M N) : τ" ]
+            [ div [ class "inference-rule__text-style" ] [ text "Γ ⊢ M : (σ → τ)   Γ ⊢ N : σ" ]
+            , div [ class "inference-rule__seperation-line" ] [ text "  ————————————————— (App)" ]
+            , div [ class "inference-rule__text-style" ] [ text "Γ ⊢ (M N) : τ" ]
             ]
         ]
 
 
 viewAbstractionRule : Model -> Html Msg
 viewAbstractionRule model =
-    div [ classList [ ( "menuRule", True ), ( "menuRule--selected", model.menuState == AbsRule ) ], onClick <| ChangeState AbsRule, style "margin-left" "4px" ]
+    div [ classList [ ( "menu__inference-rule", True ), ( "menu__inference-rule--selected", model.menuState == AbsRule ) ], onClick <| ChangeState AbsRule, style "margin-left" "4px" ]
         [ div [ style "margin-right" "22px" ]
-            [ div [ class "menuText" ] [ text "Γ, x : σ ⊢ M : τ" ]
-            , div [ class "menuLine" ] [ text "  ———————————————— (Abs)" ]
-            , div [ class "menuText" ] [ text "Γ ⊢ (λx.M) : (σ → τ)" ]
+            [ div [ class "inference-rule__text-style" ] [ text "Γ, x : σ ⊢ M : τ" ]
+            , div [ class "inference-rule__seperation-line" ] [ text "  ———————————————— (Abs)" ]
+            , div [ class "inference-rule__text-style" ] [ text "Γ ⊢ (λx.M) : (σ → τ)" ]
             ]
         ]
 

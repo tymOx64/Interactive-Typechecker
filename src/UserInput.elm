@@ -68,7 +68,7 @@ inputBlock textInput model msg =
 viewContextInitBlock : Model -> Html Msg
 viewContextInitBlock model =
     div [ class "init-starting-node__input-block" ]
-        [ label [ for "gammaInput", class "capitalLetterLabel" ] [ text "Γ" ]
+        [ label [ for "gammaInput", class "capital-letter-label" ] [ text "Γ" ]
         , newInput model.gammaInput "gammaInput" Gamma
         ]
 
@@ -78,7 +78,7 @@ viewContextInitBlock model =
 viewTermInitBlock : Model -> Html Msg
 viewTermInitBlock model =
     div [ class "init-starting-node__input-block" ]
-        [ label [ for "mInput", class "capitalLetterLabel" ] [ text "M" ]
+        [ label [ for "mInput", class "capital-letter-label" ] [ text "M" ]
         , newInput model.mInput "mInput" M
         ]
 
@@ -88,7 +88,7 @@ viewTermInitBlock model =
 viewTypeInitBlock : Model -> Html Msg
 viewTypeInitBlock model =
     div [ class "init-starting-node__input-block" ]
-        [ label [ for "tauInput", class "capitalLetterLabel" ] [ text "τ" ]
+        [ label [ for "tauInput", class "capital-letter-label" ] [ text "τ" ]
         , newInput model.tauInput "tauInput" Tau
         ]
 
@@ -546,7 +546,7 @@ xInput model =
 -}
 mLabel : Html msg
 mLabel =
-    label [ for "mInput", class "capitalLetterLabel" ] [ text "M" ]
+    label [ for "mInput", class "capital-letter-label" ] [ text "M" ]
 
 
 {-| Creates the text input field for M.
@@ -560,7 +560,7 @@ mInput model =
 -}
 nLabel : Html msg
 nLabel =
-    label [ for "nInput", class "capitalLetterLabel" ] [ text "N" ]
+    label [ for "nInput", class "capital-letter-label" ] [ text "N" ]
 
 
 {-| Creates the text input field for N.

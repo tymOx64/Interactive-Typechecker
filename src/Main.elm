@@ -332,7 +332,7 @@ view model =
             viewInitStartingNode model
 
         _ ->
-            div [ class "main-page-container" ]
+            div [ class "main-application-container" ]
                 [ viewLeft model
                 , viewRight model
                 ]
