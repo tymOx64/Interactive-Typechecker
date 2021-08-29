@@ -290,6 +290,9 @@ update msg model =
                 Err err ->
                     ( { model | displayMessage = err }, Cmd.none )
 
+        ToggleLatinView ->
+            ( { model | viewLatinChar = not model.viewLatinChar }, Cmd.none )
+
         NoOperation ->
             ( model, Cmd.none )
 
@@ -340,7 +343,8 @@ viewRight model =
     in
     div
         [ class "menu" ]
-        [ viewVarRule model
+        [ viewTopMenu model
+        , viewVarRule model
         , viewApplicationRule model
         , viewAbstractionRule model
         , viewDisplayMessage
@@ -366,3 +370,16 @@ viewInitStartingNode model =
         , viewNodeInitiationButtons
         , strong [ style "margin" "30px" ] [ text model.displayMessage ]
         ]
+
+
+viewTopMenu : Model -> Html Msg
+viewTopMenu model =
+    let
+        toggleLatinButtonLabel =
+            if model.viewLatinChar then
+                "τ"
+
+            else
+                "t"
+    in
+    div [] [ button [ onClick ToggleLatinView, class "menu__top-buttons" ] [ text toggleLatinButtonLabel ] ]

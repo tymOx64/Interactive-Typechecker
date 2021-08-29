@@ -41,6 +41,7 @@ type Msg
     | UrlChanged String
     | Start
     | GetUrl
+    | ToggleLatinView
     | NoOperation
 
 

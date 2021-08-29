@@ -954,7 +954,7 @@ showTypeForView typ showLatinChars =
     in
     case typ of
         BasicType basicType ->
-            if isSingletonLetter basicType then
+            if isSingletonLetter basicType && not showLatinChars then
                 String.map charLatinToGreekRepresentation basicType
 
             else
