@@ -7,29 +7,25 @@ html {
 }
 
 body {
-	margin: 0;
+	margin: 0; /* required because the default margin is not set to 0 */
 	height: 100%;
-}
-
-.dark-mode {
-	/* filter: invert(100%) !important; /**/
 }
 
 /* ------------------------------------ Layout ------------------------------------ */
 
-.flex-container {
+.main-page-container {
 	display: flex;
 	background-color: #ffebcc;
 	height: 100%;
 }
 
-.tree {
+.ruletree-container {
 	margin: auto;
     white-space: pre;
 	text-align: center;
 }
 
-.menu {
+.menu-container {
 	display: flex;
 	flex-direction: column;
 	background-color: #dae1da;
@@ -78,55 +74,41 @@ body {
 
 /* ------------------------------------ RuleTree ------------------------------------ */
 
-.leftSide {
+.ruletree__split-up-node {
 	display: inline-block;
 }
 
-.rightSide {
-	display: inline-block;
-	/* float: right;
-	margin: auto; */
-}
 
-.line {
+.ruletree__line {
 	height: 1.3px;
 	width: inherit;
 	margin-bottom: 4px;
 	background-color: black;
 }
 
-.rule {
-	/* border-bottom: 1px solid black; */
+.ruletree__rule-container {
 	padding: 5px;
 }
-    
-.overline {
-  /* border-top: 1px solid red; */
-}
 
-.conclusion {
+.ruletree__conclusion {
 	padding: 2px;
 }
 
-div.conclusion:hover {
-	/*border-width: 2px;
-	padding: 0px;
-	border-style: solid;
-	border-radius: 7px;*/
+div.ruletree__conclusion:hover {
 	background-color:rgb(216, 226, 209);
 	border-radius: 7px;
 }
 
-.conclusion--selected {
+.ruletree__conclusion--selected {
 	background-color:rgb(226, 209, 226);
 	border-radius: 7px;
 }
 
-.hole {
+.ruletree__hole {
 	padding: 2px;
 }
 
-.ruletree-text-highlight {
+.ruletree__conflict-highlight {
 	color: red;
 }
 
@@ -147,8 +129,8 @@ div.conclusion:hover {
 	justify-content: space-between;
 }
 
-.menu__top-buttons {
-	font-family: Consolas, Courier, monospace;
+.menu__top-button {
+	font-family: 'Times New Roman', Times, serif;
 	font-size: 113%;
 	margin-bottom: 25px;
 	padding-left: 8px;

@@ -18,7 +18,7 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
             onClick <| SelectTreeNode <| nodeId
 
         nodeAttributes =
-            [ classList [ ( "conclusion", True ), ( "conclusion--selected", nodeId == model.selectedNodeId ) ]
+            [ classList [ ( "ruletree__conclusion", True ), ( "ruletree__conclusion--selected", nodeId == model.selectedNodeId ) ]
             , onClickSelect
             , onDoubleClick <| ResetTreeNode <| nodeId
             ]
@@ -40,17 +40,17 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
             let
                 premise =
                     if model.ruleTreeSuccessful then
-                        div [ class "premise", class "hole", onClickSelect ] [ text (getSuccessEmoji <| String.length (showContext context)) ]
+                        div [ class "ruletree__hole", onClickSelect ] [ text (getSuccessEmoji <| String.length (showContext context)) ]
 
                     else if hasBeenApplied then
                         text ""
 
                     else
-                        div [ class "premise", class "hole", onClickSelect ] [ text "?" ]
+                        div [ class "ruletree__hole", onClickSelect ] [ text "?" ]
             in
-            div [ class "rule" ]
+            div [ class "ruletree__rule-container" ]
                 [ premise
-                , div [ class "line" ] []
+                , div [ class "ruletree__line" ] []
                 , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree model.viewLatinChar)
                 ]
 
@@ -58,14 +58,14 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
             let
                 premise =
                     if nextRuleTree == Hole then
-                        div [ class "premise", class "hole", onClickSelect ] [ text "?" ]
+                        div [ class "ruletree__hole", onClickSelect ] [ text "?" ]
 
                     else
-                        div [ class "premise" ] [ viewRuleTree nextRuleTree (nodeId ++ [ 0 ]) model pointersToHighlight ]
+                        div [] [ viewRuleTree nextRuleTree (nodeId ++ [ 0 ]) model pointersToHighlight ]
             in
-            div [ class "rule" ]
+            div [ class "ruletree__rule-container" ]
                 [ premise
-                , div [ class "line" ] []
+                , div [ class "ruletree__line" ] []
                 , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree model.viewLatinChar)
                 ]
 
@@ -73,24 +73,24 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
             let
                 premise =
                     if nextRuleTree1 == Hole && nextRuleTree2 == Hole then
-                        div [ class "premise", class "hole", onClickSelect ] [ text "?" ]
+                        div [ class "ruletree__hole", onClickSelect ] [ text "?" ]
 
                     else
-                        div [ class "premise" ]
-                            [ div [ class "leftSide" ]
+                        div []
+                            [ div [ class "ruletree__split-up-node" ]
                                 [ viewRuleTree nextRuleTree1 (nodeId ++ [ 0 ]) model pointersToHighlight ]
-                            , div [ class "leftSide" ]
+                            , div [ class "ruletree__split-up-node" ]
                                 [ viewRuleTree nextRuleTree2 (nodeId ++ [ 1 ]) model pointersToHighlight ]
                             ]
             in
-            div [ class "rule" ]
+            div [ class "ruletree__rule-container" ]
                 [ premise
-                , div [ class "line" ] []
+                , div [ class "ruletree__line" ] []
                 , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree model.viewLatinChar)
                 ]
 
         Hole ->
-            div [ class "rule" ]
+            div [ class "ruletree__rule-container" ]
                 [ text "?" ]
 
 
@@ -724,9 +724,9 @@ viewContext contextHandler (Context dict) conflictPointers viewLatinChar =
 
         typingAssumptionToHtmlList var typ =
             [ span []
-                [ span [ classList [ ( "ruletree-text-highlight", highlightVar var ) ] ] [ text (contextHandler.showTermVar var) ]
-                , span [ classList [ ( "ruletree-text-highlight", highlightColon var ) ] ] [ text ":" ]
-                , span [ classList [ ( "ruletree-text-highlight", highlightType var ) ] ] [ text (contextHandler.showTypeForView typ viewLatinChar) ]
+                [ span [ classList [ ( "ruletree__conflict-highlight", highlightVar var ) ] ] [ text (contextHandler.showTermVar var) ]
+                , span [ classList [ ( "ruletree__conflict-highlight", highlightColon var ) ] ] [ text ":" ]
+                , span [ classList [ ( "ruletree__conflict-highlight", highlightType var ) ] ] [ text (contextHandler.showTypeForView typ viewLatinChar) ]
                 ]
             ]
     in
@@ -736,18 +736,18 @@ viewContext contextHandler (Context dict) conflictPointers viewLatinChar =
         )
         []
         dict
-        |> List.intersperse (span [ classList [ ( "ruletree-text-highlight", highlightFullContext ) ] ] [ text ", " ])
+        |> List.intersperse (span [ classList [ ( "ruletree__conflict-highlight", highlightFullContext ) ] ] [ text ", " ])
         |> (\list ->
                 if List.length list == 0 && not highlightFullContext then
-                    [ span [ classList [ ( "ruletree-text-highlight", highlightFullNode ) ] ] [ text "⊢ " ] ]
+                    [ span [ classList [ ( "ruletree__conflict-highlight", highlightFullNode ) ] ] [ text "⊢ " ] ]
 
                 else if List.length list == 0 then
-                    [ span [ classList [ ( "ruletree-text-highlight", True ) ] ] [ text "<?>" ]
+                    [ span [ classList [ ( "ruletree__conflict-highlight", True ) ] ] [ text "<?>" ]
                     , span [] [ text " ⊢ " ]
                     ]
 
                 else
-                    list ++ [ span [ classList [ ( "ruletree-text-highlight", highlightFullNode ) ] ] [ text " ⊢ " ] ]
+                    list ++ [ span [ classList [ ( "ruletree__conflict-highlight", highlightFullNode ) ] ] [ text " ⊢ " ] ]
            )
 
 
@@ -763,7 +763,7 @@ viewTerm term conflictElementsRaw =
                 || List.member (TermAndType ()) conflictElements
     in
     if highlightFullTerm then
-        [ span [ class "ruletree-text-highlight" ] [ text <| showTerm term ] ]
+        [ span [ class "ruletree__conflict-highlight" ] [ text <| showTerm term ] ]
 
     else
         case term of
@@ -779,9 +779,9 @@ viewTerm term conflictElementsRaw =
                         List.member (TermPointer () AbsBody) conflictElements
                 in
                 [ text "(λ"
-                , span [ classList [ ( "ruletree-text-highlight", highlightAbsVar ) ] ] [ text <| showTermVar var ]
+                , span [ classList [ ( "ruletree__conflict-highlight", highlightAbsVar ) ] ] [ text <| showTermVar var ]
                 , text "."
-                , span [ classList [ ( "ruletree-text-highlight", highlightAbsBody ) ] ] [ text <| showTerm mTerm ]
+                , span [ classList [ ( "ruletree__conflict-highlight", highlightAbsBody ) ] ] [ text <| showTerm mTerm ]
                 , text ")"
                 ]
 
@@ -794,9 +794,9 @@ viewTerm term conflictElementsRaw =
                         List.member (TermPointer () AppRight) conflictElements
                 in
                 [ text "("
-                , span [ classList [ ( "ruletree-text-highlight", highlightAppLeft ) ] ] [ text <| showTerm mTerm ]
+                , span [ classList [ ( "ruletree__conflict-highlight", highlightAppLeft ) ] ] [ text <| showTerm mTerm ]
                 , text " "
-                , span [ classList [ ( "ruletree-text-highlight", highlightAppRight ) ] ] [ text <| showTerm nTerm ]
+                , span [ classList [ ( "ruletree__conflict-highlight", highlightAppRight ) ] ] [ text <| showTerm nTerm ]
                 , text ")"
                 ]
 
@@ -816,15 +816,15 @@ viewType typ conflictElements viewLatinChars =
             List.member (TypePointer () ArrRight) conflictElements
     in
     if highlightFullTypeOrFullRule then
-        [ span [ class "ruletree-text-highlight" ] [ text <| showTypeForView typ viewLatinChars ] ]
+        [ span [ class "ruletree__conflict-highlight" ] [ text <| showTypeForView typ viewLatinChars ] ]
 
     else
         case typ of
             Arrow left right ->
                 [ text "("
-                , span [ classList [ ( "ruletree-text-highlight", highlightLeft ) ] ] [ text <| showTypeForView left viewLatinChars ]
+                , span [ classList [ ( "ruletree__conflict-highlight", highlightLeft ) ] ] [ text <| showTypeForView left viewLatinChars ]
                 , text "→"
-                , span [ classList [ ( "ruletree-text-highlight", highlightRight ) ] ] [ text <| showTypeForView right viewLatinChars ]
+                , span [ classList [ ( "ruletree__conflict-highlight", highlightRight ) ] ] [ text <| showTypeForView right viewLatinChars ]
                 , text ")"
                 ]
 
@@ -851,7 +851,7 @@ viewRuleContent context term typ pointersToHighlightRaw viewLatinChar =
     in
     viewContext stlcContextHandler context pointersToHighlight viewLatinChar
         ++ viewTerm term pointersToHighlight
-        ++ span [ classList [ ( "ruletree-text-highlight", highlightColon ) ] ] [ text colon ]
+        ++ span [ classList [ ( "ruletree__conflict-highlight", highlightColon ) ] ] [ text colon ]
         :: viewType typ pointersToHighlight viewLatinChar
 
 

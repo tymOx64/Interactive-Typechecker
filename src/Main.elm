@@ -294,7 +294,7 @@ update msg model =
             ( { model | viewLatinChar = not model.viewLatinChar }, Cmd.none )
 
         StartPage ->
-            ( { model | menuState = CreateStartingNode, displayMessage = "TODO displayMessage" }, pushUrl <| model.baseUrl )
+            ( { model | menuState = CreateStartingNode, displayMessage = "TODO displayMessage" }, Cmd.none )
 
         NoOperation ->
             ( model, Cmd.none )
@@ -332,7 +332,7 @@ view model =
             viewInitStartingNode model
 
         _ ->
-            div [ class "flex-container" ]
+            div [ class "main-page-container" ]
                 [ viewLeft model
                 , viewRight model
                 ]
@@ -345,7 +345,7 @@ viewRight model =
             div [ class "display-message-container" ] [ strong [] [ text model.displayMessage ] ]
     in
     div
-        [ class "menu" ]
+        [ class "menu-container" ]
         [ viewTopMenu model
         , viewVarRule model
         , viewApplicationRule model
@@ -357,7 +357,7 @@ viewRight model =
 
 viewLeft : Model -> Html Msg
 viewLeft model =
-    div [ class "tree" ] [ viewRuleTree model.ruleTree [] model (getFirstConflictFromRuleTree model.ruleTree) ]
+    div [ class "ruletree-container" ] [ viewRuleTree model.ruleTree [] model (getFirstConflictFromRuleTree model.ruleTree) ]
 
 
 viewInitStartingNode : Model -> Html Msg
@@ -387,9 +387,9 @@ viewTopMenu model =
     in
     div [ class "menu__top-button-container" ]
         [ button
-            [ onClick ToggleLatinView, class "menu__top-buttons" ]
+            [ onClick ToggleLatinView, class "menu__top-button" ]
             [ text toggleLatinButtonLabel ]
         , button
-            [ onClick StartPage, class "menu__top-buttons", style "font-size" "85%", style "padding-left" "5px", style "padding-right" "5px" ]
+            [ onClick StartPage, class "menu__top-button", style "font-size" "85%", style "padding-left" "5px", style "padding-right" "5px" ]
             [ text "🏠" ]
         ]
