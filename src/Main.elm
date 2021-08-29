@@ -263,7 +263,7 @@ update msg model =
                     ( { model
                         | ruleTree = parsedRuleTree
                         , latestTypings = updateLatestTypings model.latestTypings (getRuleTreeNode parsedRuleTree model.selectedNodeId) True
-                        , ruleTreeSuccessful = ruleTreeIsSuccessful parsedRuleTree (getFirstConflictFromRuleTree parsedRuleTree)
+                        , ruleTreeSuccessful = ruleTreeIsSuccessful parsedRuleTree (Debug.log "1st conflict: " <| getFirstConflictFromRuleTree parsedRuleTree)
                         , displayMessage =
                             if ruleTreeIsSuccessful parsedRuleTree (getFirstConflictFromRuleTree parsedRuleTree) then
                                 "Your Proof Tree is complete and correct - Great Job!"

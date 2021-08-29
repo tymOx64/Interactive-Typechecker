@@ -295,7 +295,7 @@ applyUserInputsToSelectedRuleTreeNode model =
             "Unable to parse the Γ input. Did you forget to put explicit parantheses for arrow types? Example input: x:a, y:(b->c)->b"
 
         xErr =
-            "Unable to parse the x input. You should only use lower case latin alphabet characters (a-z). Example input: x"
+            "Unable to parse the x input. You should only use latin alphabet characters (a-z, A-Z). Example input: x"
 
         sigmaErr =
             "Unable to parse the σ input. Did you forget to put explicit parantheses for arrow types? Example input: (b->c)->b"
@@ -341,27 +341,27 @@ applyUserInputsToSelectedRuleTreeNode model =
                         (parseTypeEnd model.sigmaInput |> Maybe.withDefault (BasicType "#"))
                         (maybeContext |> Maybe.withDefault (Context Dict.empty))
 
-                maybeTerm =
-                    parseTerm <| "(λ" ++ model.xInput ++ "." ++ model.mInput ++ ")"
+                maybeXVar =
+                    parseTermEnd model.xInput
 
-                maybeType =
-                    Maybe.map2 Arrow (parseType model.sigmaInput) (parseType model.tauInput)
-
-                maybeNextMTerm =
+                maybeMTerm =
                     parseTermEnd model.mInput
 
-                maybeNextType =
+                maybeSigmaType =
+                    parseTypeEnd model.sigmaInput
+
+                maybeTauType =
                     parseTypeEnd model.tauInput
             in
             -- tuples with more than 3 values are disallowed in elm, so we are using nested tuples here
-            case ( maybeContext, maybeTerm, ( maybeType, maybeNextMTerm, maybeNextType ) ) of
-                ( Just context, Just term, ( Just typ, Just nextMTerm, Just nextType ) ) ->
+            case ( maybeContext, maybeXVar, ( maybeMTerm, maybeSigmaType, maybeTauType ) ) of
+                ( Just context, Just (Var xVar), ( Just mTerm, Just sigmaType, Just tauType ) ) ->
                     STLC.changeRuleTreeNode model.ruleTree
                         model.selectedNodeId
                         (RAbs context
-                            term
-                            typ
-                            (createRuleTree nextContext nextMTerm nextType)
+                            (Abs xVar mTerm)
+                            (Arrow sigmaType tauType)
+                            (createRuleTree nextContext mTerm tauType)
                         )
                         True
                         |> Ok
@@ -369,17 +369,21 @@ applyUserInputsToSelectedRuleTreeNode model =
                 ( Nothing, _, ( _, _, _ ) ) ->
                     Err gammaErr
 
-                ( _, Nothing, ( _, Just _, _ ) ) ->
+                ( _, Nothing, ( _, _, _ ) ) ->
                     Err xErr
 
-                ( _, _, ( Nothing, _, Just _ ) ) ->
-                    Err sigmaErr
+                ( _, _, ( Nothing, _, _ ) ) ->
+                    Err mErr
 
                 ( _, _, ( _, Nothing, _ ) ) ->
-                    Err mErr
+                    Err sigmaErr
 
                 ( _, _, ( _, _, Nothing ) ) ->
                     Err tauErr
+
+                -- xInput is a valid term, but not a Variable term
+                ( _, Just _, ( _, _, _ ) ) ->
+                    Err xErr
 
         AppRule ->
             let
@@ -688,11 +692,6 @@ charLatinToGreekRepresentation char =
 -- PARSING
 
 
-parseTermVar : Parser Char
-parseTermVar =
-    Parser.chompIf Char.isAlpha |> Parser.getChompedString |> Parser.map getFirstCharFromString
-
-
 {-| Used to parse the RuleTree in the proofterm query of the URL.
 -}
 ruleTreeParser : Parser RuleTree
@@ -751,6 +750,11 @@ boolParser =
         , Parser.succeed False
             |. Parser.chompIf (\c -> c == 'F')
         ]
+
+
+parseTermVar : Parser Char
+parseTermVar =
+    Parser.chompIf Char.isAlpha |> Parser.getChompedString |> Parser.map getFirstCharFromString
 
 
 {-| Parses terms. Outmost parantheses may be omitted, e.g. it works both for
