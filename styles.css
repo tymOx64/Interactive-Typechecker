@@ -142,9 +142,14 @@ div.conclusion:hover {
 	flex-grow: 1;
 }
 
+.menu__top-button-container {
+	display: flex;
+	justify-content: space-between;
+}
+
 .menu__top-buttons {
 	font-family: Consolas, Courier, monospace;
-	font-size: 108%;
+	font-size: 113%;
 	margin-bottom: 25px;
 	padding-left: 8px;
 	padding-right: 8px;

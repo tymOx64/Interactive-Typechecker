@@ -42,6 +42,7 @@ type Msg
     | Start
     | GetUrl
     | ToggleLatinView
+    | StartPage
     | NoOperation
 
 

@@ -293,6 +293,9 @@ update msg model =
         ToggleLatinView ->
             ( { model | viewLatinChar = not model.viewLatinChar }, Cmd.none )
 
+        StartPage ->
+            ( { model | menuState = CreateStartingNode, displayMessage = "TODO displayMessage" }, pushUrl <| model.baseUrl )
+
         NoOperation ->
             ( model, Cmd.none )
 
@@ -382,4 +385,11 @@ viewTopMenu model =
             else
                 "t"
     in
-    div [] [ button [ onClick ToggleLatinView, class "menu__top-buttons" ] [ text toggleLatinButtonLabel ] ]
+    div [ class "menu__top-button-container" ]
+        [ button
+            [ onClick ToggleLatinView, class "menu__top-buttons" ]
+            [ text toggleLatinButtonLabel ]
+        , button
+            [ onClick StartPage, class "menu__top-buttons", style "font-size" "85%", style "padding-left" "5px", style "padding-right" "5px" ]
+            [ text "🏠" ]
+        ]

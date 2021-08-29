@@ -7,7 +7,7 @@ import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
 import Tuple exposing (first)
-import UserInput exposing (fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet, sigmaInput)
+import UserInput exposing (fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet)
 
 
 {-| Gives a hint based on some limited information from the `RuleTree`. Hints may be _incorrect_.
@@ -106,7 +106,7 @@ getHint inputKind model =
                 _ ->
                     model
 
-        ( RAbs _ thisTerm thisType nextRuleTree, AbsRule ) ->
+        ( RAbs _ thisTerm _ _, AbsRule ) ->
             case inputKind of
                 GammaInput ->
                     gammaHint
