@@ -280,7 +280,7 @@ getFirstConflictFromRuleTree ruleTree =
 -}
 contextsAreEqual : SContext -> SContext -> Bool
 contextsAreEqual (Context dict1) (Context dict2) =
-    Dict.union dict1 dict2 |> (==) dict2
+    Dict.toList dict1 == Dict.toList dict2
 
 
 termAndTypeMissesTypingAssumption : TermVar -> SContext -> Bool

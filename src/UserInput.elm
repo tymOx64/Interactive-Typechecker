@@ -289,7 +289,7 @@ applyUserInputsToSelectedRuleTreeNode : Model -> Result String RuleTree
 applyUserInputsToSelectedRuleTreeNode model =
     let
         maybeContext =
-            parseContext model.gammaInput
+            parseContext (String.replace " " "" model.gammaInput)
 
         gammaErr =
             "Unable to parse the Γ input. Did you forget to put explicit parantheses for arrow types? Example input: x:a, y:(b->c)->b"
@@ -436,23 +436,8 @@ applyUserInputsToSelectedRuleTreeNode model =
 applyUserInitInputs : Model -> Result String RuleTree
 applyUserInitInputs model =
     let
-        _ =
-            Debug.log "parse test 1: " <| Parser.run (Parser.backtrackable termParser) "x (λy.x)"
-
-        _ =
-            Debug.log "parse test 2: " <| Parser.run (Parser.backtrackable termParser) "(λy.x) x"
-
-        _ =
-            Debug.log "parse test 3: " <| Parser.run (Parser.backtrackable termParser) "(x y)"
-
-        _ =
-            Debug.log "parse test 4: " <| Parser.run (Parser.backtrackable termParser) "x"
-
-        _ =
-            Debug.log "parse tests 5" <| Parser.run (Parser.backtrackable termParser) "(λx.(λy.x))"
-
         maybeContext =
-            parseContext model.gammaInput
+            parseContext (String.replace " " "" model.gammaInput)
 
         maybeMTerm =
             parseTermEnd model.mInput
@@ -799,75 +784,6 @@ termParserInner =
         ]
 
 
-
-{- termParser : Parser Term
-   termParser =
-       Parser.oneOf
-           [ Parser.succeed Abs
-               |. (Parser.backtrackable <| Parser.symbol "(")
-               |. (Parser.backtrackable <| Parser.symbol "λ")
-               |= parseTermVar
-               |. Parser.symbol "."
-               |= Parser.lazy (\_ -> termParser)
-               |. Parser.symbol ")"
-           , Parser.succeed App
-               |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser)) -- not working; "loops" forever
-               |. (Parser.backtrackable <| Parser.symbol " ")
-               |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser))
-               |. (Parser.backtrackable <| end)
-           , Parser.succeed App
-               |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser))
-               |. (Parser.backtrackable <| Parser.symbol " ")
-               |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser))
-               |. (Parser.backtrackable <| Parser.symbol "$")
-           , Parser.succeed Abs
-               |. Parser.symbol "λ"
-               |= parseTermVar
-               |. Parser.symbol "."
-               |= Parser.lazy (\_ -> termParser)
-           , Parser.succeed App
-               |. Parser.symbol "("
-               |= Parser.lazy (\_ -> termParser)
-               |. Parser.symbol " "
-               |= Parser.lazy (\_ -> termParser)
-               |. Parser.symbol ")"
-           , Parser.succeed Var
-               |= (Parser.backtrackable <| parseTermVar)
-           ]
--}
-{- termParser : Parser Term
-   termParser =
-       Parser.oneOf
-           [ Parser.succeed Abs
-               |. (Parser.backtrackable <| Parser.symbol "(")
-               |. (Parser.backtrackable <| Parser.symbol "λ")
-               |= parseTermVar
-               |. Parser.symbol "."
-               |= Parser.lazy (\_ -> termParser)
-               |. Parser.symbol ")"
-           , Parser.succeed Abs
-               |. Parser.symbol "λ"
-               |= parseTermVar
-               |. Parser.symbol "."
-               |= Parser.lazy (\_ -> termParser)
-           , Parser.succeed App
-               |. Parser.symbol "("
-               |= Parser.lazy (\_ -> termParser)
-               |. Parser.symbol " "
-               |= Parser.lazy (\_ -> termParser)
-               |. Parser.symbol ")"
-
-           {- , Parser.succeed App
-              |= (Parser.backtrackable <| Parser.lazy (\_ -> termParser))
-              |. (Parser.backtrackable <| Parser.symbol " ")
-              |= Parser.lazy (\_ -> termParser)
-           -}
-           , Parser.succeed Var
-               |= parseTermVar
-           ]
--}
-
-
 termParserEnd : Parser Term
 termParserEnd =
     Parser.succeed identity
@@ -908,7 +824,7 @@ typingAssumptionParser =
 {-| Auxiliary parser; required for parsing an arbitrary amount of typing assumptions from the Context into List format.
 Use parseContext or contextParser to get the Context format.
 -}
-contextAsListParser : Parser (List ( Shared.TermVar, Shared.SType ))
+contextAsListParser : Parser (List ( TermVar, SType ))
 contextAsListParser =
     Parser.sequence
         { start = "{"
@@ -944,7 +860,9 @@ typeParser =
     Parser.oneOf
         [ Parser.succeed Arrow
             |= (Parser.backtrackable <| Parser.lazy (\_ -> typeParserInner))
+            |. Parser.spaces
             |. (Parser.backtrackable <| Parser.symbol "→")
+            |. Parser.spaces
             |= Parser.lazy (\_ -> typeParserInner)
         , typeParserInner
         ]
@@ -957,9 +875,13 @@ typeParserInner =
             |= parseTypeVar
         , Parser.succeed Arrow
             |. Parser.symbol "("
+            |. Parser.spaces
             |= Parser.lazy (\_ -> typeParserInner)
+            |. Parser.spaces
             |. Parser.symbol "→"
+            |. Parser.spaces
             |= Parser.lazy (\_ -> typeParserInner)
+            |. Parser.spaces
             |. Parser.symbol ")"
         , Parser.succeed Untyped
             |. Parser.symbol "?"
