@@ -192,10 +192,10 @@ getConflictsInRuleTree ruleTree nodeId =
         RApp _ _ _ Hole Hole ->
             [ [ TermPointer nodeId FullTerm ] ]
 
-        RApp context (App ((Abs _ _) as mTerm) nTerm) tau nextRuleTree1 nextRuleTree2 ->
+        RApp context (App mTerm nTerm) tau nextRuleTree1 nextRuleTree2 ->
             let
                 tauIsConflicting =
-                    tau /= getTauTypeFromAbsRuleTree nextRuleTree1
+                    Just tau /= getRightTypeFromRuleTree nextRuleTree1
 
                 mTermIsConflicting =
                     getTermFromRuleTree nextRuleTree1 |> Maybe.andThen (\nextMTerm -> Just <| nextMTerm /= mTerm) |> Maybe.withDefault False
@@ -210,7 +210,7 @@ getConflictsInRuleTree ruleTree nodeId =
                     not <| contextsAreEqual context <| getContextFromRuleTree nextRuleTree2
 
                 upperSigmaIsConflicting =
-                    Maybe.map2 (/=) (getSigmaTypeFromAbsRuleTree nextRuleTree1) (getTermTypeFromRuleTree nextRuleTree2)
+                    Maybe.map2 (/=) (getLeftTypeFromRuleTree nextRuleTree1) (getTermTypeFromRuleTree nextRuleTree2)
                         |> Maybe.withDefault True
             in
             appendIfConditionHolds
@@ -235,7 +235,7 @@ getConflictsInRuleTree ruleTree nodeId =
                 ++ getConflictsInRuleTree nextRuleTree2 (nodeId ++ [ 1 ])
 
         RApp _ _ _ _ _ ->
-            [ [ TermPointer nodeId AppLeft ] ]
+            [ [ TermPointer nodeId FullTerm ] ]
 
         Hole ->
             []
@@ -371,24 +371,24 @@ getTermTypeFromRuleTree ruleTree =
             Nothing
 
 
-getSigmaTypeFromAbsRuleTree : RuleTree -> Maybe SType
-getSigmaTypeFromAbsRuleTree ruleTree =
-    case ruleTree of
-        RAbs _ _ (Arrow sigma _) _ ->
-            Just sigma
+getLeftTypeFromRuleTree : RuleTree -> Maybe SType
+getLeftTypeFromRuleTree ruleTree =
+    case getTermTypeFromRuleTree ruleTree of
+        Just (Arrow left _) ->
+            Just left
 
         _ ->
             Nothing
 
 
-getTauTypeFromAbsRuleTree : RuleTree -> SType
-getTauTypeFromAbsRuleTree ruleTree =
-    case ruleTree of
-        RAbs _ _ (Shared.Arrow _ tau) _ ->
-            tau
+getRightTypeFromRuleTree : RuleTree -> Maybe SType
+getRightTypeFromRuleTree ruleTree =
+    case getTermTypeFromRuleTree ruleTree of
+        Just (Arrow _ right) ->
+            Just right
 
         _ ->
-            Untyped
+            Nothing
 
 
 getTypeFromContext : TermVar -> SContext -> Maybe SType

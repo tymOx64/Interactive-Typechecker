@@ -181,7 +181,7 @@ fillSigmaInputFromRuleTree ruleTree model =
         RApp _ _ _ nextRuleTree1 _ ->
             { model
                 | sigmaInput =
-                    STLC.getSigmaTypeFromAbsRuleTree nextRuleTree1
+                    STLC.getLeftTypeFromRuleTree nextRuleTree1
                         |> Maybe.map STLC.showType
                         |> Maybe.withDefault ""
             }
