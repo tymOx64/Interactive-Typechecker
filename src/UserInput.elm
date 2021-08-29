@@ -273,6 +273,7 @@ viewRuleUserInterface model =
             [ button [ onClick Apply ] [ text "Apply" ]
             , div [ style "justify-content" "flex-end" ]
                 [ button [ onClick FlushAllInputs ] [ text "🧹" ]
+                , button [ onClick ApplyLatestChangesToFullRuleTree ] [ text "♻️" ]
                 , button [ onClick FillAllInputs ] [ text "💊" ]
                 ]
             ]

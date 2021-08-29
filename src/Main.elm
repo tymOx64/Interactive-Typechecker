@@ -4,7 +4,7 @@ import Browser
 import Browser.Events
 import Browser.Navigation exposing (pushUrl)
 import Dict
-import Hint exposing (getHint, updateLatestTypings)
+import Hint exposing (applyLatestTypingsToFullRuleTree, getHint, getUnusedTypeVariableFromRuleTree, updateLatestTypings)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -125,19 +125,12 @@ getUrlQuery query urlAsString =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    {- let
-           _ =
-               Debug.log "crossOrigin" <| getUrlWithProoftree model.ruleTree
+    let
+        _ =
+            5
 
-           _ =
-               Debug.log "Currently selected RuleTree" <| getRuleTreeNode model.ruleTree model.selectedNodeId
-       in
-    -}
-    {- let
-           model =
-               { modelCurrent | displayMessage = "" }
-       in
-    -}
+        --Debug.log "unusedTypeVar:" <| List.map (\x -> getUnusedTypeVariableFromRuleTree model.ruleTree x) (List.range 1 96)
+    in
     case msg of
         Gamma str ->
             ( { model | gammaInput = str }, Cmd.none )
@@ -176,6 +169,9 @@ update msg model =
 
         FlushAllInputs ->
             ( UserInput.flushAllInputs model, Cmd.none )
+
+        ApplyLatestChangesToFullRuleTree ->
+            ( model, pushUrl <| getUrlWithProoftree model <| applyLatestTypingsToFullRuleTree model.latestTypings model.ruleTree )
 
         Apply ->
             case UserInput.applyUserInputsToSelectedRuleTreeNode model of

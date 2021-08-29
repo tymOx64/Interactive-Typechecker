@@ -7,7 +7,7 @@ import Set exposing (Set)
 import SharedStructures exposing (..)
 import SimplyTypedLambdaCalculus exposing (..)
 import Tuple exposing (first)
-import UserInput exposing (fillGammaInputFromRuleTree, fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet)
+import UserInput exposing (fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet, sigmaInput)
 
 
 {-| Gives a hint based on some limited information from the `RuleTree`. Hints may be _incorrect_.
@@ -33,12 +33,27 @@ getHint inputKind model =
 
         getUnusedTypeVar index =
             getUnusedTypeVariableFromRuleTree model.ruleTree index
+
+        currentContextDict =
+            case getContextFromRuleTree selectedRuleTree of
+                Context dict ->
+                    dict
+
+        -- brings the current context up-to-date by model.latestTypings
+        gammaHint =
+            Dict.foldl
+                (\var typ newDict -> Dict.insert var (Dict.get var model.latestTypings |> Maybe.withDefault typ) newDict)
+                Dict.empty
+                currentContextDict
+                |> Context
+                |> showContext
+                |> (\hintedContext -> { model | gammaInput = hintedContext })
     in
     case ( selectedRuleTree, model.menuState ) of
         ( RVar _ thisTerm thisType _, VarRule ) ->
             case inputKind of
                 GammaInput ->
-                    fillGammaInputFromRuleTree selectedRuleTree model
+                    gammaHint
 
                 XInput ->
                     case thisTerm of
@@ -50,45 +65,40 @@ getHint inputKind model =
 
                 SigmaInput ->
                     let
-                        -- if thisTerm is already typed, we hint that type for sigma
-                        typeFromThisRuleTreeOrUnusedTypeVar =
-                            case getUnusedTypeVar 0 of
-                                Just unusedTypeVar ->
-                                    { model
-                                        | sigmaInput =
-                                            if thisType /= Untyped then
-                                                showType thisType
-
-                                            else
-                                                unusedTypeVar
-                                    }
-
-                                Nothing ->
-                                    tooManyTypeVarInUse
-
-                        -- for variable x, traverse the full ruleTree to the first context that contains the type for x
-                        typingAssumptionForX =
+                        latestTypingForX =
                             case thisTerm of
                                 Var var ->
-                                    getTypeForVarFromFirstContextMatch var model.ruleTree
-                                        |> (\typ ->
-                                                case typ of
-                                                    Just sigmaType ->
-                                                        Just { model | sigmaInput = showType sigmaType }
-
-                                                    _ ->
-                                                        Nothing
-                                           )
+                                    Dict.get var model.latestTypings
+                                        |> Maybe.andThen (\latestXType -> Just { model | sigmaInput = showType latestXType })
 
                                 _ ->
                                     Nothing
+
+                        typeFromThisNode =
+                            case thisType of
+                                Untyped ->
+                                    Nothing
+
+                                _ ->
+                                    Just { model | sigmaInput = showType thisType }
+
+                        unusedTypeVar =
+                            case getUnusedTypeVar 0 of
+                                Just newTypeVar ->
+                                    { model | sigmaInput = newTypeVar }
+
+                                Nothing ->
+                                    tooManyTypeVarInUse
                     in
-                    case ( typingAssumptionForX, thisTerm ) of
-                        ( Just newModel, _ ) ->
+                    case ( thisTerm, latestTypingForX, typeFromThisNode ) of
+                        ( Var _, Just newModel, _ ) ->
                             newModel
 
-                        ( _, Var _ ) ->
-                            typeFromThisRuleTreeOrUnusedTypeVar
+                        ( Var _, _, Just newModel ) ->
+                            newModel
+
+                        ( Var _, _, _ ) ->
+                            unusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
@@ -99,7 +109,7 @@ getHint inputKind model =
         ( RAbs _ thisTerm thisType nextRuleTree, AbsRule ) ->
             case inputKind of
                 GammaInput ->
-                    fillGammaInputFromRuleTree selectedRuleTree model
+                    gammaHint
 
                 XInput ->
                     case thisTerm of
@@ -119,105 +129,86 @@ getHint inputKind model =
 
                 SigmaInput ->
                     let
-                        -- if thisTerms type is of form Arrow sigma' _, we hint for that sigma' rather than an unused typeVar
-                        typeFromThisRuleTreeOrUnusedTypeVar =
-                            case getUnusedTypeVar 0 of
-                                Just unusedTypeVar ->
-                                    { model
-                                        | sigmaInput =
-                                            case thisType of
-                                                Arrow left _ ->
-                                                    showType left
-
-                                                _ ->
-                                                    unusedTypeVar
-                                    }
-
-                                Nothing ->
-                                    tooManyTypeVarInUse
-
-                        -- for the abstractions variable x, traverse the full ruleTree to the first context that contains the type for x
-                        typingAssumptionForX =
+                        latestTypingForX =
                             case thisTerm of
                                 Abs var _ ->
-                                    getTypeForVarFromFirstContextMatch var model.ruleTree
-                                        |> (\typ ->
-                                                case typ of
-                                                    Just sigmaType ->
-                                                        Just { model | sigmaInput = showType sigmaType }
-
-                                                    _ ->
-                                                        Nothing
-                                           )
+                                    Dict.get var model.latestTypings
+                                        |> Maybe.andThen (\latestXType -> Just { model | sigmaInput = showType latestXType })
 
                                 _ ->
                                     Nothing
+
+                        leftTypeFromThisNode =
+                            case getLeftTypeFromRuleTree selectedRuleTree of
+                                Just Untyped ->
+                                    Nothing
+
+                                Just leftType ->
+                                    Just { model | sigmaInput = showType leftType }
+
+                                _ ->
+                                    Nothing
+
+                        unusedTypeVar =
+                            case getUnusedTypeVar 0 of
+                                Just newTypeVar ->
+                                    { model | sigmaInput = newTypeVar }
+
+                                Nothing ->
+                                    tooManyTypeVarInUse
                     in
-                    case ( typingAssumptionForX, thisTerm ) of
-                        ( Just newModel, _ ) ->
+                    case ( thisTerm, latestTypingForX, leftTypeFromThisNode ) of
+                        ( Abs _ _, Just newModel, _ ) ->
                             newModel
 
-                        ( _, Abs _ _ ) ->
-                            typeFromThisRuleTreeOrUnusedTypeVar
+                        ( Abs _ _, _, Just newModel ) ->
+                            newModel
+
+                        ( Abs _ _, _, _ ) ->
+                            unusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
 
                 TauInput ->
                     let
-                        typeFromThisRuleTreeOrUnusedTypeVar =
-                            case getUnusedTypeVar 1 of
-                                Just unusedTypeVar ->
-                                    { model
-                                        | tauInput =
-                                            case thisType of
-                                                Arrow _ right ->
-                                                    showType right
-
-                                                _ ->
-                                                    unusedTypeVar
-                                    }
-
-                                Nothing ->
-                                    tooManyTypeVarInUse
-
-                        -- if term M is a certain variable x, traverse the full ruleTree to the first context that contains the type for x
-                        termMOfFormVar =
+                        latestTypingForMIfVar =
                             case thisTerm of
                                 Abs _ (Var var) ->
-                                    getTypeForVarFromFirstContextMatch var model.ruleTree
-                                        |> (\typ ->
-                                                case typ of
-                                                    Just typ1 ->
-                                                        Just { model | tauInput = showType typ1 }
-
-                                                    _ ->
-                                                        Nothing
-                                           )
+                                    Dict.get var model.latestTypings
+                                        |> Maybe.andThen (\latestMType -> Just { model | tauInput = showType latestMType })
 
                                 _ ->
                                     Nothing
 
-                        typeFromNextRuleTree =
-                            getTermTypeFromRuleTree nextRuleTree
-                                |> (\typ ->
-                                        case typ of
-                                            Just typ1 ->
-                                                Just { model | tauInput = showType typ1 }
+                        rightTypeFromThisNode =
+                            case getRightTypeFromRuleTree selectedRuleTree of
+                                Just Untyped ->
+                                    Nothing
 
-                                            _ ->
-                                                Nothing
-                                   )
+                                Just rightType ->
+                                    Just { model | tauInput = showType rightType }
+
+                                _ ->
+                                    Nothing
+
+                        unusedTypeVar =
+                            case getUnusedTypeVar 1 of
+                                Just newTypeVar ->
+                                    { model | tauInput = newTypeVar }
+
+                                Nothing ->
+                                    tooManyTypeVarInUse
                     in
-                    case ( termMOfFormVar, typeFromNextRuleTree, thisTerm ) of
-                        ( Just newModel, _, _ ) ->
+                    case ( thisTerm, latestTypingForMIfVar, rightTypeFromThisNode ) of
+                        ( Abs _ _, Just newModel, _ ) ->
                             newModel
 
-                        ( _, Just newModel, _ ) ->
+                        ( Abs _ _, _, Just newModel ) ->
                             newModel
 
-                        ( _, _, Abs _ _ ) ->
-                            typeFromThisRuleTreeOrUnusedTypeVar
+                        ( Abs _ _, _, _ ) ->
+                            unusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
@@ -228,7 +219,7 @@ getHint inputKind model =
         ( RApp _ thisTerm thisType nextRuleTree1 nextRuleTree2, AppRule ) ->
             case inputKind of
                 GammaInput ->
-                    fillGammaInputFromRuleTree selectedRuleTree model
+                    gammaHint
 
                 MInput ->
                     case thisTerm of
@@ -248,145 +239,122 @@ getHint inputKind model =
 
                 SigmaInput ->
                     let
-                        -- nextRuleTree2 has a typing of form N : sigma' and we hint for that sigma' rather than an unused typeVar
-                        typeFromNextRuleTree2_OrUnusedTypeVar =
+                        latestLeftTypeFromM =
+                            case thisTerm of
+                                App (Abs var _) _ ->
+                                    Dict.get var model.latestTypings
+                                        |> Maybe.andThen (\latestMLeftType -> Just { model | sigmaInput = showType latestMLeftType })
+
+                                App (Var var) _ ->
+                                    case Dict.get var model.latestTypings of
+                                        Just (Arrow left _) ->
+                                            Just { model | sigmaInput = showType left }
+
+                                        _ ->
+                                            Nothing
+
+                                _ ->
+                                    Nothing
+
+                        latestTypeFromN =
+                            case thisTerm of
+                                App _ (Var var) ->
+                                    Dict.get var model.latestTypings
+                                        |> Maybe.andThen (\latestNType -> Just { model | sigmaInput = showType latestNType })
+
+                                _ ->
+                                    Nothing
+
+                        sigmaTypeFromArbitraryUpperTerms =
+                            -- try the left RuleTree first
+                            case getLeftTypeFromRuleTree nextRuleTree1 of
+                                Just Untyped ->
+                                    Nothing
+
+                                Just leftType ->
+                                    Just { model | sigmaInput = showType leftType }
+
+                                _ ->
+                                    -- try the right RuleTree
+                                    case getTermTypeFromRuleTree nextRuleTree2 of
+                                        Just Untyped ->
+                                            Nothing
+
+                                        Just typ ->
+                                            Just { model | sigmaInput = showType typ }
+
+                                        _ ->
+                                            Nothing
+
+                        unusedTypeVar =
                             case getUnusedTypeVar 0 of
-                                Just unusedTypeVar ->
-                                    { model
-                                        | sigmaInput =
-                                            getTermTypeFromRuleTree nextRuleTree2
-                                                |> Maybe.map showType
-                                                |> Maybe.withDefault unusedTypeVar
-                                    }
+                                Just newTypeVar ->
+                                    { model | sigmaInput = newTypeVar }
 
                                 Nothing ->
                                     tooManyTypeVarInUse
-
-                        -- if term N is a certain variable x, traverse the full ruleTree to the first context that contains the type for x
-                        termNOfFormVar =
-                            case thisTerm of
-                                App _ (Var var) ->
-                                    getTypeForVarFromFirstContextMatch var model.ruleTree
-                                        |> (\typ ->
-                                                case typ of
-                                                    Just sigmaType ->
-                                                        Just { model | sigmaInput = showType sigmaType }
-
-                                                    _ ->
-                                                        Nothing
-                                           )
-
-                                _ ->
-                                    Nothing
-
-                        -- if term M is a certain variable x, traverse the full ruleTree to the first context that contains the type for x
-                        termMOfFormVar =
-                            case thisTerm of
-                                App (Var var) _ ->
-                                    getTypeForVarFromFirstContextMatch var model.ruleTree
-                                        |> (\typ ->
-                                                case typ of
-                                                    Just (Arrow sigmaType _) ->
-                                                        Just { model | sigmaInput = showType sigmaType }
-
-                                                    _ ->
-                                                        Nothing
-                                           )
-
-                                _ ->
-                                    Nothing
-
-                        -- if term M is a certain abstraction (\x.T), traverse the full ruleTree to the first context that contains the type for x
-                        termMOfFormAbs =
-                            case thisTerm of
-                                App (Abs var _) _ ->
-                                    getTypeForVarFromFirstContextMatch var model.ruleTree
-                                        |> (\typ ->
-                                                case typ of
-                                                    Just sigmaType ->
-                                                        Just { model | sigmaInput = showType sigmaType }
-
-                                                    _ ->
-                                                        Nothing
-                                           )
-
-                                _ ->
-                                    Nothing
                     in
-                    -- trying to find a type for sigma all other contexts, otherwise we use an unused typeVar or term and rule doesnt match up
                     -- using nested tuples here just because Elm v0.19.1 does not allow tuples with more than 3 values
-                    case ( termNOfFormVar, termMOfFormAbs, ( termMOfFormVar, thisTerm ) ) of
-                        ( Just newModel, _, ( _, _ ) ) ->
+                    case ( thisTerm, latestLeftTypeFromM, ( latestTypeFromN, sigmaTypeFromArbitraryUpperTerms ) ) of
+                        ( App _ _, Just newModel, ( _, _ ) ) ->
                             newModel
 
-                        ( _, Just newModel, ( _, _ ) ) ->
+                        ( App _ _, _, ( Just newModel, _ ) ) ->
                             newModel
 
-                        ( _, _, ( Just newModel, _ ) ) ->
+                        ( App _ _, _, ( _, Just newModel ) ) ->
                             newModel
 
-                        ( _, _, ( _, App _ _ ) ) ->
-                            typeFromNextRuleTree2_OrUnusedTypeVar
+                        ( App _ _, _, ( _, _ ) ) ->
+                            unusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
 
                 TauInput ->
                     let
-                        typeFromThisRuleTreeOrUnusedTypeVar =
-                            case getUnusedTypeVar 1 of
-                                Just unusedTypeVar ->
-                                    { model
-                                        | tauInput =
-                                            if thisType /= Untyped then
-                                                showType thisType
-
-                                            else
-                                                unusedTypeVar
-                                    }
-
-                                Nothing ->
-                                    tooManyTypeVarInUse
-
-                        -- if term M is a certain variable x, traverse the full ruleTree to the first context that contains the type for x
-                        -- and if x is an Arrow type then we hint sigma to be the right type of that Arrow type
-                        termMOfFormVar =
+                        latestTypeFromM =
                             case thisTerm of
                                 App (Var var) _ ->
-                                    getTypeForVarFromFirstContextMatch var model.ruleTree
-                                        |> (\typ ->
-                                                case typ of
-                                                    Just (Arrow _ tauType) ->
-                                                        Just { model | sigmaInput = showType tauType }
+                                    case Dict.get var model.latestTypings of
+                                        Just (Arrow _ right) ->
+                                            Just { model | tauInput = showType right }
 
-                                                    _ ->
-                                                        Nothing
-                                           )
+                                        _ ->
+                                            Nothing
+
+                                App (Abs _ (Var var)) _ ->
+                                    Dict.get var model.latestTypings
+                                        |> Maybe.andThen (\latestMType -> Just { model | tauInput = showType latestMType })
 
                                 _ ->
                                     Nothing
 
-                        -- if we find the terms type in ruleTree1 to be an Arrow type, we take the right type (tauType) of that
-                        tauTypeFromRuleTree1 =
-                            getTermTypeFromRuleTree nextRuleTree1
-                                |> (\typ ->
-                                        case typ of
-                                            Just (Arrow _ tauType) ->
-                                                Just { model | sigmaInput = showType tauType }
+                        tauTypeFromArbitraryMTerm =
+                            case thisType of
+                                Untyped ->
+                                    Nothing
 
-                                            _ ->
-                                                Nothing
-                                   )
+                                typ ->
+                                    Just { model | tauInput = showType typ }
+
+                        unusedTypeVar =
+                            case getUnusedTypeVar 1 of
+                                Just newTypeVar ->
+                                    { model | tauInput = newTypeVar }
+
+                                Nothing ->
+                                    tooManyTypeVarInUse
                     in
-                    case ( termMOfFormVar, tauTypeFromRuleTree1, thisTerm ) of
-                        ( Just newModel, _, _ ) ->
+                    case ( thisTerm, latestTypeFromM, tauTypeFromArbitraryMTerm ) of
+                        ( App _ _, Just newModel, _ ) ->
                             newModel
 
-                        ( _, Just newModel, _ ) ->
+                        ( App _ _, _, Just newModel ) ->
                             newModel
 
-                        ( _, _, App _ _ ) ->
-                            typeFromThisRuleTreeOrUnusedTypeVar
+                        ( App _ _, _, _ ) ->
+                            unusedTypeVar
 
                         _ ->
                             termAndRuleDoNotMatchUp
@@ -476,8 +444,8 @@ Also works on Abstractions, i.e.:
 if `var:newLeft` is in `latestChanges`
 
 -}
-applyLatestChangesToFullRuleTree : Dict TermVar SType -> RuleTree -> RuleTree
-applyLatestChangesToFullRuleTree latestChanges ruleTree =
+applyLatestTypingsToFullRuleTree : Dict TermVar SType -> RuleTree -> RuleTree
+applyLatestTypingsToFullRuleTree latestTypings ruleTree =
     let
         currentContextDict =
             case getContextFromRuleTree ruleTree of
@@ -485,14 +453,18 @@ applyLatestChangesToFullRuleTree latestChanges ruleTree =
                     dict
 
         newContext =
-            Dict.union latestChanges currentContextDict |> Context
+            Dict.foldl
+                (\var typ newDict -> Dict.insert var (Dict.get var latestTypings |> Maybe.withDefault typ) newDict)
+                Dict.empty
+                currentContextDict
+                |> Context
     in
     case ruleTree of
         RVar _ (Var var) typ hasBeenApplied ->
             RVar
                 newContext
                 (Var var)
-                (Dict.get var latestChanges |> Maybe.withDefault typ)
+                (Dict.get var latestTypings |> Maybe.withDefault typ)
                 hasBeenApplied
 
         RVar _ a b c ->
@@ -502,19 +474,19 @@ applyLatestChangesToFullRuleTree latestChanges ruleTree =
             RAbs
                 newContext
                 term
-                (Dict.get var latestChanges |> Maybe.map (\updatedLeft -> Arrow updatedLeft right) |> Maybe.withDefault typ)
-                (applyLatestChangesToFullRuleTree latestChanges nextRuleTree)
+                (Dict.get var latestTypings |> Maybe.map (\updatedLeft -> Arrow updatedLeft right) |> Maybe.withDefault typ)
+                (applyLatestTypingsToFullRuleTree latestTypings nextRuleTree)
 
-        RAbs _ a b c ->
-            RAbs newContext a b c
+        RAbs _ a b nextRuleTree ->
+            RAbs newContext a b (applyLatestTypingsToFullRuleTree latestTypings nextRuleTree)
 
         RApp _ term typ nextRuleTree1 nextRuleTree2 ->
             RApp
                 newContext
                 term
                 typ
-                (applyLatestChangesToFullRuleTree latestChanges nextRuleTree1)
-                (applyLatestChangesToFullRuleTree latestChanges nextRuleTree2)
+                (applyLatestTypingsToFullRuleTree latestTypings nextRuleTree1)
+                (applyLatestTypingsToFullRuleTree latestTypings nextRuleTree2)
 
         Hole ->
             Hole
@@ -553,19 +525,8 @@ getTypeForVarFromFirstContextMatch var ruleTree =
             Nothing
 
 
-setOfUnusedTypeVariables : Set String
-setOfUnusedTypeVariables =
-    let
-        baseNames =
-            List.map String.fromChar lowerCaseLatinAlphabet
-    in
-    baseNames
-        ++ List.map ((++) "'") baseNames
-        ++ List.map ((++) "''") baseNames
-        ++ List.map ((++) "'''") baseNames
-        |> Set.fromList
-
-
+{-| Returns a set of all type variable names being used in the given `ruleTree`.
+-}
 getUsedTypeVariables : RuleTree -> Set String
 getUsedTypeVariables ruleTree =
     let
@@ -600,10 +561,36 @@ getUsedTypeVariables ruleTree =
             Set.empty
 
 
+{-| Contains latin alphabet with none, one, two, and three primes, e.g. `a`, `a'`, `x''`, `e'''`.
+The Cardinality is **96** = 4 \* 24.
+-}
+setOfUnusedTypeVariables : Set String
+setOfUnusedTypeVariables =
+    let
+        baseNames =
+            List.map String.fromChar lowerCaseLatinAlphabet
+    in
+    baseNames
+        ++ List.map (\baseName -> baseName ++ "'") baseNames
+        ++ List.map (\baseName -> baseName ++ "''") baseNames
+        ++ List.map (\baseName -> baseName ++ "'''") baseNames
+        |> Set.fromList
+
+
+{-| Returns an unused type variable name from the set of
+the latin alphabet with none, one, two, and three primes
+(e.g. `a`, `a'`, `x''`, `e'''`).
+
+Sorted from no primes to three primes, alphabetically, i.e.
+if no type variable name are in use in given `ruleTree`, `index = 0` would return `a`
+and `index = 95` would return `z'''`.
+
+-}
 getUnusedTypeVariableFromRuleTree : RuleTree -> Int -> Maybe String
 getUnusedTypeVariableFromRuleTree ruleTree index =
     getUsedTypeVariables ruleTree
         |> Set.diff setOfUnusedTypeVariables
         |> Set.toList
+        |> List.sortBy (\name -> String.toList name |> List.map Char.toCode |> List.sum)
         |> Array.fromList
         |> Array.get index

@@ -31,6 +31,7 @@ type Msg
     | TransformInput
     | FillAllInputs
     | FlushAllInputs
+    | ApplyLatestChangesToFullRuleTree
     | Apply
     | SelectTreeNode (List Int)
     | ResetTreeNode (List Int)
