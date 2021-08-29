@@ -17,6 +17,7 @@ type alias Model =
     , displayMessage : String
     , ruleTreeSuccessful : Bool
     , baseUrl : String
+    , viewLatinChar : Bool
     }
 
 
@@ -184,7 +185,7 @@ type AContPointer var
 
 type alias AContextHandler termVar typ =
     { showTermVar : termVar -> String
-    , showType : typ -> String
+    , showTypeForView : typ -> Bool -> String
     }
 
 
@@ -255,3 +256,75 @@ changeState menuState model =
             else
                 ""
     }
+
+
+{-| If there is a greek counterpart for the given `char` we transform it to its greek representation we use for typing, otherwise `char` remains unchanged.
+-}
+charLatinToGreekRepresentation : Char -> Char
+charLatinToGreekRepresentation char =
+    case char of
+        'a' ->
+            'α'
+
+        'b' ->
+            'β'
+
+        'd' ->
+            'δ'
+
+        'e' ->
+            'ε'
+
+        'f' ->
+            'φ'
+
+        'g' ->
+            'γ'
+
+        'h' ->
+            'η'
+
+        'i' ->
+            'ι'
+
+        'k' ->
+            'κ'
+
+        'l' ->
+            'λ'
+
+        'm' ->
+            'μ'
+
+        'n' ->
+            'ν'
+
+        'o' ->
+            'ο'
+
+        'p' ->
+            'π'
+
+        'r' ->
+            'ρ'
+
+        's' ->
+            'σ'
+
+        't' ->
+            'τ'
+
+        -- TODO: kollision mit 'y' fixen
+        --'u' ->
+        --'υ'
+        'x' ->
+            'χ'
+
+        'y' ->
+            'υ'
+
+        'z' ->
+            'ζ'
+
+        _ ->
+            char

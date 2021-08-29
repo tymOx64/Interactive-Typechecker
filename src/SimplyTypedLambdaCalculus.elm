@@ -51,7 +51,7 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
             div [ class "rule" ]
                 [ premise
                 , div [ class "line" ] []
-                , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree)
+                , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree model.viewLatinChar)
                 ]
 
         RAbs context term typ nextRuleTree ->
@@ -66,7 +66,7 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
             div [ class "rule" ]
                 [ premise
                 , div [ class "line" ] []
-                , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree)
+                , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree model.viewLatinChar)
                 ]
 
         RApp context term typ nextRuleTree1 nextRuleTree2 ->
@@ -86,7 +86,7 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
             div [ class "rule" ]
                 [ premise
                 , div [ class "line" ] []
-                , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree)
+                , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree model.viewLatinChar)
                 ]
 
         Hole ->
@@ -697,8 +697,9 @@ viewContext :
     AContextHandler comparable typ
     -> AContext comparable typ
     -> List (APointer () (AContPointer comparable) termPointer typePointer)
+    -> Bool
     -> List (Html Msg)
-viewContext contextHandler (Context dict) conflictPointers =
+viewContext contextHandler (Context dict) conflictPointers viewLatinChar =
     let
         highlightFullNode =
             List.member (FullNode ()) conflictPointers
@@ -725,7 +726,7 @@ viewContext contextHandler (Context dict) conflictPointers =
             [ span []
                 [ span [ classList [ ( "ruletree-text-highlight", highlightVar var ) ] ] [ text (contextHandler.showTermVar var) ]
                 , span [ classList [ ( "ruletree-text-highlight", highlightColon var ) ] ] [ text ":" ]
-                , span [ classList [ ( "ruletree-text-highlight", highlightType var ) ] ] [ text (contextHandler.showType typ) ]
+                , span [ classList [ ( "ruletree-text-highlight", highlightType var ) ] ] [ text (contextHandler.showTypeForView typ viewLatinChar) ]
                 ]
             ]
     in
@@ -800,8 +801,8 @@ viewTerm term conflictElementsRaw =
                 ]
 
 
-viewType : SType -> List (APointer () contPointer termPointer TypePointer) -> List (Html Msg)
-viewType typ conflictElements =
+viewType : SType -> List (APointer () contPointer termPointer TypePointer) -> Bool -> List (Html Msg)
+viewType typ conflictElements viewLatinChars =
     let
         highlightFullTypeOrFullRule =
             List.member (TypePointer () FullType) conflictElements
@@ -815,24 +816,24 @@ viewType typ conflictElements =
             List.member (TypePointer () ArrRight) conflictElements
     in
     if highlightFullTypeOrFullRule then
-        [ span [ class "ruletree-text-highlight" ] [ text <| showType typ ] ]
+        [ span [ class "ruletree-text-highlight" ] [ text <| showTypeForView typ viewLatinChars ] ]
 
     else
         case typ of
             Arrow left right ->
                 [ text "("
-                , span [ classList [ ( "ruletree-text-highlight", highlightLeft ) ] ] [ text <| showType left ]
+                , span [ classList [ ( "ruletree-text-highlight", highlightLeft ) ] ] [ text <| showTypeForView left viewLatinChars ]
                 , text "→"
-                , span [ classList [ ( "ruletree-text-highlight", highlightRight ) ] ] [ text <| showType right ]
+                , span [ classList [ ( "ruletree-text-highlight", highlightRight ) ] ] [ text <| showTypeForView right viewLatinChars ]
                 , text ")"
                 ]
 
             _ ->
-                [ text <| showType typ ]
+                [ text <| showTypeForView typ viewLatinChars ]
 
 
-viewRuleContent : SContext -> Term -> SType -> List Pointer -> List (Html Msg)
-viewRuleContent context term typ pointersToHighlightRaw =
+viewRuleContent : SContext -> Term -> SType -> List Pointer -> Bool -> List (Html Msg)
+viewRuleContent context term typ pointersToHighlightRaw viewLatinChar =
     let
         colon =
             case term of
@@ -848,15 +849,15 @@ viewRuleContent context term typ pointersToHighlightRaw =
         highlightColon =
             List.member (FullNode ()) pointersToHighlight || List.member (TermAndType ()) pointersToHighlight
     in
-    viewContext stlcContextHandler context pointersToHighlight
+    viewContext stlcContextHandler context pointersToHighlight viewLatinChar
         ++ viewTerm term pointersToHighlight
         ++ span [ classList [ ( "ruletree-text-highlight", highlightColon ) ] ] [ text colon ]
-        :: viewType typ pointersToHighlight
+        :: viewType typ pointersToHighlight viewLatinChar
 
 
 stlcContextHandler : SContextHandler
 stlcContextHandler =
-    AContextHandler showTermVar showType
+    AContextHandler showTermVar showTypeForView
 
 
 addTypingAssumptionToContext : TermVar -> SType -> SContext -> SContext
@@ -926,30 +927,44 @@ showTerm term =
 
 showType : SType -> String
 showType typ =
+    case typ of
+        BasicType basicType ->
+            basicType
+
+        Arrow left right ->
+            "(" ++ showType left ++ "→" ++ showType right ++ ")"
+
+        Untyped ->
+            "?"
+
+
+showTypeForView : SType -> Bool -> String
+showTypeForView typ showLatinChars =
     let
-        showTypeWithOutmostParantheses typ_ =
-            case typ_ of
-                BasicType basicType ->
-                    basicType
+        isSingletonLetter typVar =
+            case String.toList typVar of
+                [ singleton ] ->
+                    Char.isAlpha singleton
 
-                Arrow basicType1 basicType2 ->
-                    "(" ++ showTypeWithOutmostParantheses basicType1 ++ "→" ++ showTypeWithOutmostParantheses basicType2 ++ ")"
+                head :: tail ->
+                    Char.isAlpha head && List.all (Char.isAlpha >> not) tail
 
-                Untyped ->
-                    "?"
-
-        typeAsStringRaw =
-            showTypeWithOutmostParantheses typ
-
-        hasOutmostParantheses =
-            String.startsWith "(" typeAsStringRaw && String.endsWith ")" typeAsStringRaw
+                _ ->
+                    False
     in
-    if hasOutmostParantheses then
-        typeAsStringRaw
-        -- |> String.dropLeft 1 |> String.dropRight 1
+    case typ of
+        BasicType basicType ->
+            if isSingletonLetter basicType then
+                String.map charLatinToGreekRepresentation basicType
 
-    else
-        typeAsStringRaw
+            else
+                basicType
+
+        Arrow left right ->
+            "(" ++ showTypeForView left showLatinChars ++ "→" ++ showTypeForView right showLatinChars ++ ")"
+
+        Untyped ->
+            "?"
 
 
 showContext : SContext -> String

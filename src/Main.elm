@@ -74,6 +74,7 @@ init locationHref =
                     ""
       , ruleTreeSuccessful = ruleTreeIsSuccessful initialRuleTree (getFirstConflictFromRuleTree initialRuleTree)
       , baseUrl = getBaseUrl locationHref |> Maybe.withDefault "https://www.typeCheckerDummyUrl.com/"
+      , viewLatinChar = True
       }
     , Cmd.none
     )
