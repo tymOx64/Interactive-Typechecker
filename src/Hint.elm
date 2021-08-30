@@ -391,6 +391,7 @@ getHint inputKind model =
 in order to update the `latestTypings` for all new **TermVar : SType** typings.
 Tracks all new **TermVar:SType** typings from both the context and the nodes
 (TermVar:SType)-typing itself (if available).
+Typings for terms other than _TermVar_ are not being tracked.
 -}
 updateLatestTypings : Dict TermVar SType -> RuleTree -> Bool -> Dict TermVar SType
 updateLatestTypings latestTypingsParam ruleTree alsoCallOnChildren =
@@ -400,12 +401,17 @@ updateLatestTypings latestTypingsParam ruleTree alsoCallOnChildren =
                 Context dict ->
                     dict
 
+        updateLatestTypingsWith var typ latestTypings =
+            -- do not update with the most unknown types
+            if typ /= Untyped && typ /= Arrow Untyped Untyped then
+                Dict.insert var typ latestTypings
+
+            else
+                latestTypings
+
         -- updated typings from context
         newLatestTypings =
-            Dict.foldl (\var typ latestTypings -> Dict.insert var typ latestTypings) latestTypingsParam latestContextDict
-
-        updateLatestTypingsWith var typ latestTypings =
-            Dict.insert var typ latestTypings
+            Dict.foldl (\var typ latestTypings -> updateLatestTypingsWith var typ latestTypings) latestTypingsParam latestContextDict
     in
     case ruleTree of
         RVar _ (Var var) typ _ ->
@@ -490,39 +496,6 @@ applyLatestTypingsToFullRuleTree latestTypings ruleTree =
 
         Hole ->
             Hole
-
-
-{-| Traverses `ruleTree` and returns the type for `var` from the first context if available, otherwise from the parents context.
--}
-getTypeForVarFromFirstContextMatch : TermVar -> RuleTree -> Maybe SType
-getTypeForVarFromFirstContextMatch var ruleTree =
-    let
-        getTypeFromRuleTreeContext ruleTree_ =
-            getContextFromRuleTree ruleTree_ |> getTypeFromContext var
-
-        returnSecondIfItsAJust first second =
-            case second of
-                Just _ ->
-                    second
-
-                _ ->
-                    first
-    in
-    case ruleTree of
-        RVar _ _ _ _ ->
-            getTypeFromRuleTreeContext ruleTree
-
-        RAbs _ _ _ nextRuleTree ->
-            getTypeFromRuleTreeContext ruleTree
-                |> returnSecondIfItsAJust (getTypeForVarFromFirstContextMatch var nextRuleTree)
-
-        RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
-            getTypeFromRuleTreeContext ruleTree
-                |> returnSecondIfItsAJust (getTypeForVarFromFirstContextMatch var nextRuleTree1)
-                |> returnSecondIfItsAJust (getTypeForVarFromFirstContextMatch var nextRuleTree2)
-
-        Hole ->
-            Nothing
 
 
 {-| Returns a set of all type variable names being used in the given `ruleTree`.

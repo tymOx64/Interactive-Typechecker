@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
-import Parser exposing ((|.), (|=), Parser, end)
+import Parser exposing ((|.), (|=), Parser)
 import Set
 import SharedStructures as Shared exposing (..)
 import SimplyTypedLambdaCalculus as STLC exposing (addTypingAssumptionToContext, createRuleTree, getContextFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showTermVar)

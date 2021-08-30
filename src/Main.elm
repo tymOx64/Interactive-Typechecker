@@ -4,7 +4,7 @@ import Browser
 import Browser.Events
 import Browser.Navigation exposing (pushUrl)
 import Dict
-import Hint exposing (applyLatestTypingsToFullRuleTree, getHint, getUnusedTypeVariableFromRuleTree, updateLatestTypings)
+import Hint exposing (applyLatestTypingsToFullRuleTree, getHint, updateLatestTypings)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -74,7 +74,7 @@ init locationHref =
                     ""
       , ruleTreeSuccessful = ruleTreeIsSuccessful initialRuleTree (getFirstConflictFromRuleTree initialRuleTree)
       , baseUrl = getBaseUrl locationHref |> Maybe.withDefault "https://www.typeCheckerDummyUrl.com/"
-      , viewLatinChar = True
+      , viewLatinChar = False
       }
     , Cmd.none
     )
@@ -365,7 +365,7 @@ viewInitStartingNode model =
     div [ class "init-starting-node" ]
         [ text "/* a more detailed description will follow in one of the upcoming versions */"
         , div [ style "font-size" "115%" ]
-            [ text "Set up the Typing Relation"
+            [ text "Set up the Typing Judgement"
             , span [ style "font-family" "Georgia, Serif", style "white-space" "pre" ] [ text "    Γ  ⊢  M  :  τ    " ]
             , text "you would like your Proof Tree to start with!"
             ]
