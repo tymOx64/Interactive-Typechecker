@@ -551,28 +551,34 @@ passChangesUpwards ruleTree =
 
     else
         case ruleTree of
-            RAbs context ((Abs var _) as term) ((Arrow sigma tau) as typ) oldNextRuleTree ->
+            RAbs context ((Abs var _) as term) ((Arrow sigma tau) as typ) oldChildRuleTree ->
                 let
-                    newNextContext =
-                        addTypingAssumptionToContext var sigma context
+                    newChildContext =
+                        updateContext (addTypingAssumptionToContext var sigma context) (getContextFromRuleTree oldChildRuleTree)
 
-                    newNextRuleTree =
-                        reconstructOnPassedChanges oldNextRuleTree newNextContext (Just ( tau, FullType )) Nothing Nothing
+                    newChildRuleTree =
+                        reconstructOnPassedChanges oldChildRuleTree newChildContext (Just ( tau, FullType )) Nothing Nothing
                             |> passChangesUpwards
                 in
-                RAbs context term typ newNextRuleTree
+                RAbs context term typ newChildRuleTree
 
-            RApp context term typ oldNextRuleTree1 oldNextRuleTree2 ->
+            RApp context term typ oldChildRuleTree1 oldChildRuleTree2 ->
                 let
-                    newNextRuleTree1 =
-                        reconstructOnPassedChanges oldNextRuleTree1 context (Just ( typ, ArrRight )) Nothing Nothing
+                    newChildContext1 =
+                        updateContext context (getContextFromRuleTree oldChildRuleTree1)
+
+                    newChildRuleTree1 =
+                        reconstructOnPassedChanges oldChildRuleTree1 newChildContext1 (Just ( typ, ArrRight )) Nothing Nothing
                             |> passChangesUpwards
 
-                    newNextRuleTree2 =
-                        reconstructOnPassedChanges oldNextRuleTree2 context Nothing Nothing Nothing
+                    newChildContext2 =
+                        updateContext context (getContextFromRuleTree oldChildRuleTree2)
+
+                    newChildRuleTree2 =
+                        reconstructOnPassedChanges oldChildRuleTree2 newChildContext2 Nothing Nothing Nothing
                             |> passChangesUpwards
                 in
-                RApp context term typ newNextRuleTree1 newNextRuleTree2
+                RApp context term typ newChildRuleTree1 newChildRuleTree2
 
             _ ->
                 ruleTree
@@ -648,19 +654,27 @@ passChangesDownwards ruleTree nodeId root =
                 Nothing
                 |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
 
-        ( RApp _ _ _ _ parentsNext2, 0, _ ) ->
+        ( RApp parentContext _ _ _ parentsNext2, 0, _ ) ->
+            let
+                newContextForParentsNext2 =
+                    updateContext context <| getContextFromRuleTree parentsNext2
+            in
             reconstructOnPassedChanges parentRuleTree
-                context
+                (updateContext context parentContext)
                 (typeChangeInfo rightType FullType)
                 (Just ruleTree)
-                (reconstructOnPassedChanges parentsNext2 context (typeChangeInfo leftType FullType) Nothing Nothing |> passChangesUpwards |> Just)
+                (reconstructOnPassedChanges parentsNext2 newContextForParentsNext2 (typeChangeInfo leftType FullType) Nothing Nothing |> passChangesUpwards |> Just)
                 |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
 
-        ( RApp _ _ _ parentsNext1 _, 1, _ ) ->
+        ( RApp parentContext _ _ parentsNext1 _, 1, _ ) ->
+            let
+                newContextForParentsNext1 =
+                    updateContext context <| getContextFromRuleTree parentsNext1
+            in
             reconstructOnPassedChanges parentRuleTree
-                context
+                (updateContext context parentContext)
                 Nothing
-                (reconstructOnPassedChanges parentsNext1 context (typeChangeInfo fullType ArrLeft) Nothing Nothing |> passChangesUpwards |> Just)
+                (reconstructOnPassedChanges parentsNext1 newContextForParentsNext1 (typeChangeInfo fullType ArrLeft) Nothing Nothing |> passChangesUpwards |> Just)
                 (ruleTree |> Just)
                 |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
 
