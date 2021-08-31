@@ -4,7 +4,7 @@ import Browser
 import Browser.Events
 import Browser.Navigation exposing (pushUrl)
 import Dict
-import Hint exposing (applyLatestTypingsToFullRuleTree, getHint, updateLatestTypings)
+import Hint exposing (applyLatestTermVarTypingsToFullRuleTree, getHint, passChangesThroughRuleTree, updateLatestTermVarTypings)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -51,7 +51,7 @@ init locationHref =
                 SelectRule
       , ruleTree = initialRuleTree
       , selectedNodeId = []
-      , latestTypings = Dict.empty
+      , latestTermVarTypings = Dict.empty
       , gammaInput = ""
       , xInput = ""
       , mInput = ""
@@ -172,7 +172,14 @@ update msg model =
             ( UserInput.flushAllInputs model, Cmd.none )
 
         ApplyLatestChangesToFullRuleTree ->
-            ( model, pushUrl <| getUrlWithProoftree model <| applyLatestTypingsToFullRuleTree model.latestTypings model.ruleTree )
+            let
+                ruleTreeWithLatestTermVarTypings =
+                    applyLatestTermVarTypingsToFullRuleTree model.latestTermVarTypings model.ruleTree
+
+                currentlySelectedRuleTree =
+                    getRuleTreeNode ruleTreeWithLatestTermVarTypings model.selectedNodeId
+            in
+            ( model, pushUrl <| getUrlWithProoftree model <| passChangesThroughRuleTree currentlySelectedRuleTree model.selectedNodeId ruleTreeWithLatestTermVarTypings )
 
         Apply ->
             case UserInput.applyUserInputsToSelectedRuleTreeNode model of
@@ -259,7 +266,7 @@ update msg model =
                 Just parsedRuleTree ->
                     ( { model
                         | ruleTree = parsedRuleTree
-                        , latestTypings = updateLatestTypings model.latestTypings (getRuleTreeNode parsedRuleTree model.selectedNodeId) True
+                        , latestTermVarTypings = updateLatestTermVarTypings model.latestTermVarTypings (getRuleTreeNode parsedRuleTree model.selectedNodeId) True
                         , ruleTreeSuccessful = ruleTreeIsSuccessful parsedRuleTree (getFirstConflictFromRuleTree parsedRuleTree)
                         , displayMessage =
                             if ruleTreeIsSuccessful parsedRuleTree (getFirstConflictFromRuleTree parsedRuleTree) then

@@ -42,7 +42,7 @@ getHint inputKind model =
         -- brings the current context up-to-date by model.latestTypings
         gammaHint =
             Dict.foldl
-                (\var typ newDict -> Dict.insert var (Dict.get var model.latestTypings |> Maybe.withDefault typ) newDict)
+                (\var typ newDict -> Dict.insert var (Dict.get var model.latestTermVarTypings |> Maybe.withDefault typ) newDict)
                 Dict.empty
                 currentContextDict
                 |> Context
@@ -68,7 +68,7 @@ getHint inputKind model =
                         latestTypingForX =
                             case thisTerm of
                                 Var var ->
-                                    Dict.get var model.latestTypings
+                                    Dict.get var model.latestTermVarTypings
                                         |> Maybe.andThen (\latestXType -> Just { model | sigmaInput = showType latestXType })
 
                                 _ ->
@@ -132,7 +132,7 @@ getHint inputKind model =
                         latestTypingForX =
                             case thisTerm of
                                 Abs var _ ->
-                                    Dict.get var model.latestTypings
+                                    Dict.get var model.latestTermVarTypings
                                         |> Maybe.andThen (\latestXType -> Just { model | sigmaInput = showType latestXType })
 
                                 _ ->
@@ -175,7 +175,7 @@ getHint inputKind model =
                         latestTypingForMIfVar =
                             case thisTerm of
                                 Abs _ (Var var) ->
-                                    Dict.get var model.latestTypings
+                                    Dict.get var model.latestTermVarTypings
                                         |> Maybe.andThen (\latestMType -> Just { model | tauInput = showType latestMType })
 
                                 _ ->
@@ -242,11 +242,11 @@ getHint inputKind model =
                         latestLeftTypeFromM =
                             case thisTerm of
                                 App (Abs var _) _ ->
-                                    Dict.get var model.latestTypings
+                                    Dict.get var model.latestTermVarTypings
                                         |> Maybe.andThen (\latestMLeftType -> Just { model | sigmaInput = showType latestMLeftType })
 
                                 App (Var var) _ ->
-                                    case Dict.get var model.latestTypings of
+                                    case Dict.get var model.latestTermVarTypings of
                                         Just (Arrow left _) ->
                                             Just { model | sigmaInput = showType left }
 
@@ -259,7 +259,7 @@ getHint inputKind model =
                         latestTypeFromN =
                             case thisTerm of
                                 App _ (Var var) ->
-                                    Dict.get var model.latestTypings
+                                    Dict.get var model.latestTermVarTypings
                                         |> Maybe.andThen (\latestNType -> Just { model | sigmaInput = showType latestNType })
 
                                 _ ->
@@ -316,7 +316,7 @@ getHint inputKind model =
                         latestTypeFromM =
                             case thisTerm of
                                 App (Var var) _ ->
-                                    case Dict.get var model.latestTypings of
+                                    case Dict.get var model.latestTermVarTypings of
                                         Just (Arrow _ right) ->
                                             Just { model | tauInput = showType right }
 
@@ -324,7 +324,7 @@ getHint inputKind model =
                                             Nothing
 
                                 App (Abs _ (Var var)) _ ->
-                                    Dict.get var model.latestTypings
+                                    Dict.get var model.latestTermVarTypings
                                         |> Maybe.andThen (\latestMType -> Just { model | tauInput = showType latestMType })
 
                                 _ ->
@@ -388,13 +388,13 @@ getHint inputKind model =
 
 
 {-| To be called immediately after updating a `ruleTree`
-in order to update the `latestTypings` for all new **TermVar : SType** typings.
+in order to update the `latestTermVarTypings` for all new **TermVar : SType** typings.
 Tracks all new **TermVar:SType** typings from both the context and the nodes
 (TermVar:SType)-typing itself (if available).
 Typings for terms other than _TermVar_ are not being tracked.
 -}
-updateLatestTypings : Dict TermVar SType -> RuleTree -> Bool -> Dict TermVar SType
-updateLatestTypings latestTypingsParam ruleTree alsoCallOnChildren =
+updateLatestTermVarTypings : Dict TermVar SType -> RuleTree -> Bool -> Dict TermVar SType
+updateLatestTermVarTypings latestTermVarTypingsParam ruleTree alsoCallOnChildren =
     let
         latestContextDict =
             case getContextFromRuleTree ruleTree of
@@ -411,7 +411,7 @@ updateLatestTypings latestTypingsParam ruleTree alsoCallOnChildren =
 
         -- updated typings from context
         newLatestTypings =
-            Dict.foldl (\var typ latestTypings -> updateLatestTypingsWith var typ latestTypings) latestTypingsParam latestContextDict
+            Dict.foldl (\var typ latestTypings -> updateLatestTypingsWith var typ latestTypings) latestTermVarTypingsParam latestContextDict
     in
     case ruleTree of
         RVar _ (Var var) typ _ ->
@@ -420,7 +420,7 @@ updateLatestTypings latestTypingsParam ruleTree alsoCallOnChildren =
         RAbs _ (Abs var _) (Arrow left _) nextRuleTree ->
             if alsoCallOnChildren then
                 -- recursive call on the children to also update the model that we are going to return here
-                updateLatestTypings (updateLatestTypingsWith var left newLatestTypings) nextRuleTree False
+                updateLatestTermVarTypings (updateLatestTypingsWith var left newLatestTypings) nextRuleTree False
 
             else
                 updateLatestTypingsWith var left newLatestTypings
@@ -428,8 +428,8 @@ updateLatestTypings latestTypingsParam ruleTree alsoCallOnChildren =
         RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
             if alsoCallOnChildren then
                 -- recursive call on both children to both also update the model that we are going to return here
-                updateLatestTypings
-                    (updateLatestTypings newLatestTypings nextRuleTree2 False)
+                updateLatestTermVarTypings
+                    (updateLatestTermVarTypings newLatestTypings nextRuleTree2 False)
                     nextRuleTree1
                     False
 
@@ -441,17 +441,17 @@ updateLatestTypings latestTypingsParam ruleTree alsoCallOnChildren =
 
 
 {-| Updates all **contexts** and all the nodes **(Term:Type)-typings** based on
-the most recent changes tracked by `latestChanges`.
+the most recent changes tracked by `latestTermVarTypings`.
 
 Also works on Abstractions, i.e.:
 
 `(Abs var term) : (Arrow oldLeft oldRight)` becomes `(Abs var term) : (Arrow newLeft oldRight)`
 
-if `var:newLeft` is in `latestChanges`
+if `var:newLeft` is in `latestTermVarTypings`
 
 -}
-applyLatestTypingsToFullRuleTree : Dict TermVar SType -> RuleTree -> RuleTree
-applyLatestTypingsToFullRuleTree latestTypings ruleTree =
+applyLatestTermVarTypingsToFullRuleTree : Dict TermVar SType -> RuleTree -> RuleTree
+applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings ruleTree =
     let
         currentContextDict =
             case getContextFromRuleTree ruleTree of
@@ -460,7 +460,7 @@ applyLatestTypingsToFullRuleTree latestTypings ruleTree =
 
         newContext =
             Dict.foldl
-                (\var typ newDict -> Dict.insert var (Dict.get var latestTypings |> Maybe.withDefault typ) newDict)
+                (\var typ newDict -> Dict.insert var (Dict.get var latestTermVarTypings |> Maybe.withDefault typ) newDict)
                 Dict.empty
                 currentContextDict
                 |> Context
@@ -470,7 +470,7 @@ applyLatestTypingsToFullRuleTree latestTypings ruleTree =
             RVar
                 newContext
                 (Var var)
-                (Dict.get var latestTypings |> Maybe.withDefault typ)
+                (Dict.get var latestTermVarTypings |> Maybe.withDefault typ)
                 hasBeenApplied
 
         RVar _ a b c ->
@@ -480,19 +480,19 @@ applyLatestTypingsToFullRuleTree latestTypings ruleTree =
             RAbs
                 newContext
                 term
-                (Dict.get var latestTypings |> Maybe.map (\updatedLeft -> Arrow updatedLeft right) |> Maybe.withDefault typ)
-                (applyLatestTypingsToFullRuleTree latestTypings nextRuleTree)
+                (Dict.get var latestTermVarTypings |> Maybe.map (\updatedLeft -> Arrow updatedLeft right) |> Maybe.withDefault typ)
+                (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings nextRuleTree)
 
         RAbs _ a b nextRuleTree ->
-            RAbs newContext a b (applyLatestTypingsToFullRuleTree latestTypings nextRuleTree)
+            RAbs newContext a b (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings nextRuleTree)
 
         RApp _ term typ nextRuleTree1 nextRuleTree2 ->
             RApp
                 newContext
                 term
                 typ
-                (applyLatestTypingsToFullRuleTree latestTypings nextRuleTree1)
-                (applyLatestTypingsToFullRuleTree latestTypings nextRuleTree2)
+                (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings nextRuleTree1)
+                (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings nextRuleTree2)
 
         Hole ->
             Hole
@@ -532,6 +532,217 @@ getUsedTypeVariables ruleTree =
 
         Hole ->
             Set.empty
+
+
+{-| Propagates typing changes through the whole RuleTree given by `root`.
+See `passChangesDownwards` and `passChangesUpwards`.
+-}
+passChangesThroughRuleTree : RuleTree -> List Int -> RuleTree -> RuleTree
+passChangesThroughRuleTree ruleTree nodeId root =
+    passChangesDownwards (passChangesUpwards ruleTree) nodeId root
+
+
+{-| Propagates typing changes downwards according to the type inference rules.
+-}
+passChangesUpwards : RuleTree -> RuleTree
+passChangesUpwards ruleTree =
+    if isLeaf ruleTree then
+        ruleTree
+
+    else
+        case ruleTree of
+            RAbs context ((Abs var _) as term) ((Arrow sigma tau) as typ) oldNextRuleTree ->
+                let
+                    newNextContext =
+                        addTypingAssumptionToContext var sigma context
+
+                    newNextRuleTree =
+                        reconstructOnPassedChanges oldNextRuleTree newNextContext (Just ( tau, FullType )) Nothing Nothing
+                            |> passChangesUpwards
+                in
+                RAbs context term typ newNextRuleTree
+
+            RApp context term typ oldNextRuleTree1 oldNextRuleTree2 ->
+                let
+                    newNextRuleTree1 =
+                        reconstructOnPassedChanges oldNextRuleTree1 context (Just ( typ, ArrRight )) Nothing Nothing
+                            |> passChangesUpwards
+
+                    newNextRuleTree2 =
+                        reconstructOnPassedChanges oldNextRuleTree2 context Nothing Nothing Nothing
+                            |> passChangesUpwards
+                in
+                RApp context term typ newNextRuleTree1 newNextRuleTree2
+
+            _ ->
+                ruleTree
+
+
+{-| Propagates typing changes downwards according to the type inference rules.
+For neighbour nodes on the application rule it also initiates the propagation of changes upwards, e.g.:
+
+`child1 child2`
+
+`--------------`
+
+`parent`
+
+If `passChangesDownwards` is called on `child2` then it proceeds to call `passChangesUpwards` on `child1`
+and `passChangesDownwards` on `parent`.
+
+-}
+passChangesDownwards : RuleTree -> List Int -> RuleTree -> RuleTree
+passChangesDownwards ruleTree nodeId root =
+    let
+        _ =
+            Debug.log "currentNodeId" nodeId
+
+        parentNodeId =
+            List.take (List.length nodeId - 1) nodeId |> Debug.log "parentNodeId"
+
+        -- to decide wether the ruleTree is the left child (0) or right child (1) of an RApp parent
+        lastNodePointer =
+            List.reverse nodeId |> List.head |> Maybe.withDefault -1
+
+        parentRuleTree =
+            getRuleTreeNode root parentNodeId
+
+        context =
+            getContextFromRuleTree ruleTree
+
+        leftType =
+            getLeftTypeFromRuleTree ruleTree
+
+        rightType =
+            getRightTypeFromRuleTree ruleTree
+
+        fullType =
+            getTermTypeFromRuleTree ruleTree
+
+        typeChangeInfo typ typePointer =
+            case typ of
+                Just typ_ ->
+                    Just ( typ_, typePointer )
+
+                _ ->
+                    Nothing
+    in
+    case ( parentRuleTree, lastNodePointer, nodeId ) of
+        -- reached the root node
+        ( _, _, [] ) ->
+            ruleTree
+
+        ( RAbs parentContext (Abs var _) _ _, _, _ ) ->
+            let
+                newLeftType =
+                    getTypeFromContext var context
+
+                -- takes the variables type as left type (sigma in inference rule), and terms type as right type (tau in inference rule)
+                newArrowType =
+                    Maybe.map2 (\left right -> Arrow left right) newLeftType fullType
+            in
+            reconstructOnPassedChanges parentRuleTree
+                (updateContext context parentContext)
+                (typeChangeInfo newArrowType FullType)
+                (Just ruleTree)
+                Nothing
+                |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
+
+        ( RApp _ _ _ _ parentsNext2, 0, _ ) ->
+            reconstructOnPassedChanges parentRuleTree
+                context
+                (typeChangeInfo rightType FullType)
+                (Just ruleTree)
+                (reconstructOnPassedChanges parentsNext2 context (typeChangeInfo leftType FullType) Nothing Nothing |> passChangesUpwards |> Just)
+                |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
+
+        ( RApp _ _ _ parentsNext1 _, 1, _ ) ->
+            reconstructOnPassedChanges parentRuleTree
+                context
+                Nothing
+                (reconstructOnPassedChanges parentsNext1 context (typeChangeInfo fullType ArrLeft) Nothing Nothing |> passChangesUpwards |> Just)
+                (ruleTree |> Just)
+                |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
+
+        -- dont change anything, except that the parent now has the newly changed child 'ruleTree'
+        ( RAbs a b c _, _, _ ) ->
+            RAbs a b c ruleTree |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
+
+        _ ->
+            Hole
+
+
+{-| Reconstructs `ruleTree` with `newContext`, a new term typing defined by `typeChangeInfo`
+and new child nodes `newChild1` and `newChild1`.
+
+`typeChangeInfo` only gets applied if it can fit into the type of `ruleTree`,
+i.e. if `TypePointer` is `ArrLeft` or `ArrRight`, then type of `ruleTree` must have form `Arrow`,
+otherwise no type changes are made.
+
+**Example for typeChangeInfo**
+
+`typeChangeInfo == { Bool, ArrLeft }; termType == Int -> String => newTermType == Bool -> String`
+
+-}
+reconstructOnPassedChanges : RuleTree -> SContext -> Maybe ( SType, TypePointer ) -> Maybe RuleTree -> Maybe RuleTree -> RuleTree
+reconstructOnPassedChanges ruleTree newContext typeChangeInfo newChild1 newChild2 =
+    let
+        oldType =
+            -- the ruleTree given to this function should never be 'Hole' so getTermTypeFromRuleTree should never return 'Nothing'
+            getTermTypeFromRuleTree ruleTree |> Maybe.withDefault Untyped
+
+        newType =
+            case ( typeChangeInfo, oldType ) of
+                ( Nothing, _ ) ->
+                    oldType
+
+                ( Just ( newFull, FullType ), _ ) ->
+                    newFull
+
+                ( Just ( newLeft, ArrLeft ), Arrow _ oldRight ) ->
+                    Arrow newLeft oldRight
+
+                ( Just ( newRight, ArrRight ), Arrow oldLeft _ ) ->
+                    Arrow oldLeft newRight
+
+                _ ->
+                    oldType
+    in
+    case ruleTree of
+        RVar _ term _ hasBeenApplied ->
+            RVar newContext term newType hasBeenApplied
+
+        RAbs _ term _ nextRuleTree ->
+            RAbs newContext term newType (Maybe.withDefault nextRuleTree newChild1)
+
+        RApp _ term _ nextRuleTree1 nextRuleTree2 ->
+            RApp newContext term newType (Maybe.withDefault nextRuleTree1 newChild1) (Maybe.withDefault nextRuleTree2 newChild2)
+
+        _ ->
+            ruleTree
+
+
+{-| Updates `(Context dictTo)` from `(Context dictFrom)` only on typings assumptions that are
+in both contexts. Other typing assumptions in `(Context dictTo)` remain unchanged.
+
+**Example**
+
+    updateContext (x:a, y:b) (x:b, y:b, z:c) => (x:a, y:b, z:c)
+
+-}
+updateContext : SContext -> SContext -> SContext
+updateContext (Context dictFrom) (Context dictTo) =
+    Dict.foldl
+        (\var typ resultDict ->
+            if Dict.member var resultDict then
+                Dict.insert var typ resultDict
+
+            else
+                resultDict
+        )
+        dictTo
+        dictFrom
+        |> Context
 
 
 {-| Contains latin alphabet with none, one, two, and three primes, e.g. `a`, `a'`, `x''`, `e'''`.
