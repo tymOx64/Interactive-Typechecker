@@ -451,13 +451,13 @@ applyUserInitInputs model =
                 parseTypeEnd model.tauInput
 
         gammaErr =
-            "Unable to parse the Γ input. Did you forget to put explicit parantheses for arrow types? Example input: x:a, y:((b->c)->b)"
+            "Unable to parse the Γ input. Did you forget to put explicit parantheses for arrow types? Example input: x:a, y:(b->c)->b"
 
         tauErr =
-            "Unable to parse the τ input. Did you forget to put explicit parantheses for arrow types? Example input: ((b->c)->b)"
+            "Unable to parse the τ input. Did you forget to put explicit parantheses for arrow types? Example input: (b->c)->b"
 
         mErr =
-            "Unable to parse the M input. Did you forget to put explicit parantheses? Example input: (\\x.(x y))"
+            "Unable to parse the M input. Did you forget to put explicit parantheses? Example input: \\x.(x y)"
     in
     case ( maybeContext, maybeMTerm, maybeTauType ) of
         ( Just context, Just mTerm, Just tauType ) ->

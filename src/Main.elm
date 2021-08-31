@@ -370,11 +370,59 @@ viewLeft model =
 viewInitStartingNode : Model -> Html Msg
 viewInitStartingNode model =
     div [ class "init-starting-node" ]
-        [ text "/* a more detailed description will follow in one of the upcoming versions */"
-        , div [ style "font-size" "115%" ]
+        [ h1 [ class "init-starting-node__headline" ]
+            [ text "STLC λ"
+            , span [ style "vertical-align" "super" ] [ text "→" ]
+            , text " Typechecker"
+            ]
+        , div [ class "description-text", style "margin-bottom" "13px" ]
             [ text "Set up the Typing Judgement"
-            , span [ style "font-family" "Georgia, Serif", style "white-space" "pre" ] [ text "    Γ  ⊢  M  :  τ    " ]
+            , span [ class "meta-variable" ] [ text "    Γ  ⊢  M  :  τ    " ]
             , text "you would like your Proof Tree to start with!"
+            ]
+        , div [ class "description-text-block" ]
+            [ div [ class "description-text" ]
+                [ text "The Set of valid Typevariable Names is defined through the following Regex:"
+                , span [ class "code-text" ] [ text " [a-zA-Z][a-zA-Z0-9'_]*" ]
+                ]
+            ]
+        , div [ class "description-text-block" ]
+            [ div [ class "description-text" ]
+                [ span [ class "meta-variable" ] [ text "Γ " ]
+                , text ":  Enter the Context as a Set of Typing Assumptions, e.g. "
+                , span [ class "code-text" ] [ text " x:a, y:b->(c->a), z:Int->Bool, x:?" ]
+                ]
+            , div [ class "description-text" ]
+                [ text "It is highly recommended to put the Terms Free Variables (FV) with Type '?' in the Context, and no bound Variables!" ]
+            , div [ class "description-text" ]
+                [ text "For given Term "
+                , span [ class "code-text" ] [ text " (\\z.(\\w.(x w))) u " ]
+                , text " with "
+                , span [ class "code-text" ] [ text " x " ]
+                , text " and "
+                , span [ class "code-text" ] [ text " u " ]
+                , text " being the FV, it is recommended to enter the Context as follows: "
+                , span [ class "code-text" ] [ text " x:?, u:?" ]
+                ]
+            ]
+        , div [ class "description-text-block" ]
+            [ div [ class "description-text" ]
+                [ span [ class "meta-variable" ] [ text "M " ]
+                , text ":  Enter the Lambda Term with all inner Terms (except Variables) put in parantheses. Examples:"
+                ]
+            , div [ class "description-text" ]
+                [ span [ class "code-text" ] [ text " x, x y, \\x.y, \\p.(k p), (\\z.(\\w.(x w))) u" ]
+                ]
+            ]
+        , div [ class "description-text-block" ]
+            [ div [ class "description-text" ]
+                [ span [ class "meta-variable" ] [ text "τ " ]
+                , text ":  Enter the Type for Term "
+                , span [ class "meta-variable" ] [ text " M." ]
+                ]
+            , div [ class "description-text" ]
+                [ text "It is recommended to leave this field empty and start the Typing Process in the Application itself!"
+                ]
             ]
         , viewNodeInitiationInputs model
         , viewNodeInitiationButtons
