@@ -395,6 +395,10 @@ viewInitStartingNode model =
             , div [ class "description-text" ]
                 [ text "It is highly recommended to put the Terms Free Variables (FV) with Type '?' in the Context, and no bound Variables!" ]
             , div [ class "description-text" ]
+                [ text "The Type '?' is a Wildcard Type and can be understood as \"I don't know the Type yet but I want to make sure to come back to it later!\"" ]
+            , div [ class "description-text" ]
+                [ text "So it's especially useful for putting Typevariables into a Context for which you know it has to be in there. Example:" ]
+            , div [ class "description-text" ]
                 [ text "For given Term "
                 , span [ class "code-text" ] [ text " (\\z.(\\w.(x w))) u " ]
                 , text " with "
