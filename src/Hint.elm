@@ -6,7 +6,6 @@ import Json.Decode exposing (dict)
 import RuleTree exposing (..)
 import Set exposing (Set)
 import SharedStructures exposing (..)
-import Tuple exposing (first)
 import UserInput exposing (fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet)
 
 
@@ -39,21 +38,29 @@ getHint inputKind model =
                 Context dict ->
                     dict
 
-        -- brings the current context up-to-date by model.latestTypings
-        gammaHint =
+        contextDictUpdatedToLatestTypings =
             Dict.foldl
                 (\var typ newDict -> Dict.insert var (Dict.get var model.latestTermVarTypings |> Maybe.withDefault typ) newDict)
                 Dict.empty
                 currentContextDict
-                |> Context
-                |> showContext
-                |> (\hintedContext -> { model | gammaInput = hintedContext })
     in
     case ( selectedRuleTree, model.menuState ) of
         ( RVar _ thisTerm thisType _, VarRule ) ->
             case inputKind of
                 GammaInput ->
-                    gammaHint
+                    case thisTerm of
+                        -- adds the typing assumption <var:thisType> in case it is missing
+                        Var var ->
+                            Dict.insert var thisType contextDictUpdatedToLatestTypings
+                                |> Context
+                                |> showContext
+                                |> (\hintedContext -> { model | gammaInput = hintedContext })
+
+                        _ ->
+                            contextDictUpdatedToLatestTypings
+                                |> Context
+                                |> showContext
+                                |> (\hintedContext -> { model | gammaInput = hintedContext })
 
                 XInput ->
                     case thisTerm of
@@ -106,10 +113,13 @@ getHint inputKind model =
                 _ ->
                     model
 
-        ( RAbs _ thisTerm _ _, AbsRule ) ->
+        ( RAbs _ thisTerm _ childRuleTree, AbsRule ) ->
             case inputKind of
                 GammaInput ->
-                    gammaHint
+                    addNewTypingAssumps (getContextFromRuleTree childRuleTree) contextDictUpdatedToLatestTypings
+                        |> Context
+                        |> showContext
+                        |> (\hintedContext -> { model | gammaInput = hintedContext })
 
                 XInput ->
                     case thisTerm of
@@ -219,7 +229,11 @@ getHint inputKind model =
         ( RApp _ thisTerm thisType childRuleTree1 childRuleTree2, AppRule ) ->
             case inputKind of
                 GammaInput ->
-                    gammaHint
+                    addNewTypingAssumps (getContextFromRuleTree childRuleTree1) contextDictUpdatedToLatestTypings
+                        |> addNewTypingAssumps (getContextFromRuleTree childRuleTree2)
+                        |> Context
+                        |> showContext
+                        |> (\hintedContext -> { model | gammaInput = hintedContext })
 
                 MInput ->
                     case thisTerm of
@@ -385,6 +399,22 @@ getHint inputKind model =
                     "The currently selected inference rule does not correspond to the currently selected node. Change (at least) one of these!"
                         ++ " (Changing the inference rule requires to click on 'Apply')"
             }
+
+
+{-| Typings Assumptions that are in `fromDict` but not in `toDict` get added to `toDict`.
+-}
+addNewTypingAssumps : SContext -> Dict TermVar SType -> Dict TermVar SType
+addNewTypingAssumps (Context fromDict) toDict =
+    Dict.foldl
+        (\var typ resultDict ->
+            if not (Dict.member var resultDict) then
+                Dict.insert var typ resultDict
+
+            else
+                resultDict
+        )
+        toDict
+        fromDict
 
 
 {-| To be called immediately after updating a `ruleTree`
