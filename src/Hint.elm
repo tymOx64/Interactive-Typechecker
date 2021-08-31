@@ -216,7 +216,7 @@ getHint inputKind model =
                 _ ->
                     model
 
-        ( RApp _ thisTerm thisType nextRuleTree1 nextRuleTree2, AppRule ) ->
+        ( RApp _ thisTerm thisType childRuleTree1 childRuleTree2, AppRule ) ->
             case inputKind of
                 GammaInput ->
                     gammaHint
@@ -267,7 +267,7 @@ getHint inputKind model =
 
                         sigmaTypeFromArbitraryUpperTerms =
                             -- try the left RuleTree first
-                            case getLeftTypeFromRuleTree nextRuleTree1 of
+                            case getLeftTypeFromRuleTree childRuleTree1 of
                                 Just Untyped ->
                                     Nothing
 
@@ -276,7 +276,7 @@ getHint inputKind model =
 
                                 _ ->
                                     -- try the right RuleTree
-                                    case getTermTypeFromRuleTree nextRuleTree2 of
+                                    case getTermTypeFromRuleTree childRuleTree2 of
                                         Just Untyped ->
                                             Nothing
 
@@ -417,20 +417,20 @@ updateLatestTermVarTypings latestTermVarTypingsParam ruleTree alsoCallOnChildren
         RVar _ (Var var) typ _ ->
             updateLatestTypingsWith var typ newLatestTypings
 
-        RAbs _ (Abs var _) (Arrow left _) nextRuleTree ->
+        RAbs _ (Abs var _) (Arrow left _) childRuleTree ->
             if alsoCallOnChildren then
                 -- recursive call on the children to also update the model that we are going to return here
-                updateLatestTermVarTypings (updateLatestTypingsWith var left newLatestTypings) nextRuleTree False
+                updateLatestTermVarTypings (updateLatestTypingsWith var left newLatestTypings) childRuleTree False
 
             else
                 updateLatestTypingsWith var left newLatestTypings
 
-        RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
+        RApp _ _ _ childRuleTree1 childRuleTree2 ->
             if alsoCallOnChildren then
                 -- recursive call on both children to both also update the model that we are going to return here
                 updateLatestTermVarTypings
-                    (updateLatestTermVarTypings newLatestTypings nextRuleTree2 False)
-                    nextRuleTree1
+                    (updateLatestTermVarTypings newLatestTypings childRuleTree2 False)
+                    childRuleTree1
                     False
 
             else
@@ -476,23 +476,23 @@ applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings ruleTree =
         RVar _ a b c ->
             RVar newContext a b c
 
-        RAbs _ ((Abs var _) as term) ((Arrow _ right) as typ) nextRuleTree ->
+        RAbs _ ((Abs var _) as term) ((Arrow _ right) as typ) childRuleTree ->
             RAbs
                 newContext
                 term
                 (Dict.get var latestTermVarTypings |> Maybe.map (\updatedLeft -> Arrow updatedLeft right) |> Maybe.withDefault typ)
-                (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings nextRuleTree)
+                (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings childRuleTree)
 
-        RAbs _ a b nextRuleTree ->
-            RAbs newContext a b (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings nextRuleTree)
+        RAbs _ a b childRuleTree ->
+            RAbs newContext a b (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings childRuleTree)
 
-        RApp _ term typ nextRuleTree1 nextRuleTree2 ->
+        RApp _ term typ childRuleTree1 childRuleTree2 ->
             RApp
                 newContext
                 term
                 typ
-                (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings nextRuleTree1)
-                (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings nextRuleTree2)
+                (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings childRuleTree1)
+                (applyLatestTermVarTypingsToFullRuleTree latestTermVarTypings childRuleTree2)
 
         Hole ->
             Hole
@@ -726,11 +726,11 @@ reconstructOnPassedChanges ruleTree newContext typeChangeInfo newChild1 newChild
         RVar _ term _ hasBeenApplied ->
             RVar newContext term newType hasBeenApplied
 
-        RAbs _ term _ nextRuleTree ->
-            RAbs newContext term newType (Maybe.withDefault nextRuleTree newChild1)
+        RAbs _ term _ childRuleTree ->
+            RAbs newContext term newType (Maybe.withDefault childRuleTree newChild1)
 
-        RApp _ term _ nextRuleTree1 nextRuleTree2 ->
-            RApp newContext term newType (Maybe.withDefault nextRuleTree1 newChild1) (Maybe.withDefault nextRuleTree2 newChild2)
+        RApp _ term _ childRuleTree1 childRuleTree2 ->
+            RApp newContext term newType (Maybe.withDefault childRuleTree1 newChild1) (Maybe.withDefault childRuleTree2 newChild2)
 
         _ ->
             ruleTree

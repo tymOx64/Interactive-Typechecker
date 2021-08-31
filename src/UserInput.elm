@@ -178,10 +178,10 @@ fillSigmaInputFromRuleTree ruleTree model =
         RAbs _ _ (Arrow sigma _) _ ->
             { model | sigmaInput = STLC.showType sigma }
 
-        RApp _ _ _ nextRuleTree1 _ ->
+        RApp _ _ _ childRuleTree1 _ ->
             { model
                 | sigmaInput =
-                    STLC.getLeftTypeFromRuleTree nextRuleTree1
+                    STLC.getLeftTypeFromRuleTree childRuleTree1
                         |> Maybe.map STLC.showType
                         |> Maybe.withDefault ""
             }
@@ -335,8 +335,8 @@ applyUserInputsToSelectedRuleTreeNode model =
 
         AbsRule ->
             let
-                -- not necessary to handle nextContext as a Maybe type because the other Maybe types cover all invalid input already
-                nextContext =
+                -- not necessary to handle childContext as a Maybe type because the other Maybe types cover all invalid input already
+                childContext =
                     addTypingAssumptionToContext
                         (getFirstCharFromString model.xInput)
                         (parseTypeEnd model.sigmaInput |> Maybe.withDefault (BasicType "#"))
@@ -362,7 +362,7 @@ applyUserInputsToSelectedRuleTreeNode model =
                         (RAbs context
                             (Abs xVar mTerm)
                             (Arrow sigmaType tauType)
-                            (createRuleTree nextContext mTerm tauType)
+                            (createRuleTree childContext mTerm tauType)
                         )
                         True
                         |> Ok
@@ -496,15 +496,15 @@ adjustMenuStateToSelectedRuleTree model =
         RVar _ _ _ False ->
             changeState SelectRule model
 
-        RAbs _ _ _ nextRuleTree ->
-            if nextRuleTree == Hole then
+        RAbs _ _ _ childRuleTree ->
+            if childRuleTree == Hole then
                 changeState SelectRule model
 
             else
                 changeState AbsRule model
 
-        RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
-            if nextRuleTree1 == Hole && nextRuleTree2 == Hole then
+        RApp _ _ _ childRuleTree1 childRuleTree2 ->
+            if childRuleTree1 == Hole && childRuleTree2 == Hole then
                 changeState SelectRule model
 
             else

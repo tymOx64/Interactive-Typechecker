@@ -54,14 +54,14 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
                 , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree model.viewLatinChar)
                 ]
 
-        RAbs context term typ nextRuleTree ->
+        RAbs context term typ childRuleTree ->
             let
                 premise =
-                    if nextRuleTree == Hole then
+                    if childRuleTree == Hole then
                         div [ class "ruletree__hole", onClickSelect ] [ text "?" ]
 
                     else
-                        div [] [ viewRuleTree nextRuleTree (nodeId ++ [ 0 ]) model pointersToHighlight ]
+                        div [] [ viewRuleTree childRuleTree (nodeId ++ [ 0 ]) model pointersToHighlight ]
             in
             div [ class "ruletree__rule-container" ]
                 [ premise
@@ -69,18 +69,18 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
                 , div nodeAttributes (viewRuleContent context term typ pointersForCurrentRuleTree model.viewLatinChar)
                 ]
 
-        RApp context term typ nextRuleTree1 nextRuleTree2 ->
+        RApp context term typ childRuleTree1 childRuleTree2 ->
             let
                 premise =
-                    if nextRuleTree1 == Hole && nextRuleTree2 == Hole then
+                    if childRuleTree1 == Hole && childRuleTree2 == Hole then
                         div [ class "ruletree__hole", onClickSelect ] [ text "?" ]
 
                     else
                         div []
                             [ div [ class "ruletree__split-up-node" ]
-                                [ viewRuleTree nextRuleTree1 (nodeId ++ [ 0 ]) model pointersToHighlight ]
+                                [ viewRuleTree childRuleTree1 (nodeId ++ [ 0 ]) model pointersToHighlight ]
                             , div [ class "ruletree__split-up-node" ]
-                                [ viewRuleTree nextRuleTree2 (nodeId ++ [ 1 ]) model pointersToHighlight ]
+                                [ viewRuleTree childRuleTree2 (nodeId ++ [ 1 ]) model pointersToHighlight ]
                             ]
             in
             div [ class "ruletree__rule-container" ]
@@ -97,11 +97,11 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
 isLeaf : RuleTree -> Bool
 isLeaf ruleTree =
     case ruleTree of
-        RAbs _ _ _ nextRuleTree ->
-            nextRuleTree == Hole
+        RAbs _ _ _ childRuleTree ->
+            childRuleTree == Hole
 
-        RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
-            nextRuleTree1 == Hole && nextRuleTree2 == Hole
+        RApp _ _ _ childRuleTree1 childRuleTree2 ->
+            childRuleTree1 == Hole && childRuleTree2 == Hole
 
         _ ->
             True
@@ -141,27 +141,27 @@ getConflictsInRuleTree ruleTree nodeId =
         RAbs _ _ _ Hole ->
             [ [ TermPointer nodeId FullTerm ], [ TypePointer nodeId FullType ] ]
 
-        RAbs context (Abs var mTerm) (Shared.Arrow sigma tau) nextRuleTree ->
+        RAbs context (Abs var mTerm) (Shared.Arrow sigma tau) childRuleTree ->
             let
                 removeVarFromContext (Context dict) =
                     Context <| Dict.remove var dict
 
                 nextContextWithOutAbstractionVar =
-                    removeVarFromContext (getContextFromRuleTree nextRuleTree)
+                    removeVarFromContext (getContextFromRuleTree childRuleTree)
 
                 sigmaIsConflicting =
-                    Maybe.map2 (/=) (Just sigma) (getTypeFromContext var (getContextFromRuleTree nextRuleTree))
+                    Maybe.map2 (/=) (Just sigma) (getTypeFromContext var (getContextFromRuleTree childRuleTree))
                         |> Maybe.withDefault True
 
                 tauIsConflicting =
-                    Maybe.map2 (/=) (Just tau) (getTermTypeFromRuleTree nextRuleTree)
+                    Maybe.map2 (/=) (Just tau) (getTermTypeFromRuleTree childRuleTree)
                         |> Maybe.withDefault True
 
                 contextIsConflicting =
                     not <| contextsAreEqual context nextContextWithOutAbstractionVar
 
                 mTermIsConflicting =
-                    getTermFromRuleTree nextRuleTree |> Maybe.andThen (\term -> Just <| term /= mTerm) |> Maybe.withDefault False
+                    getTermFromRuleTree childRuleTree |> Maybe.andThen (\term -> Just <| term /= mTerm) |> Maybe.withDefault False
             in
             appendIfConditionHolds
                 sigmaIsConflicting
@@ -175,16 +175,16 @@ getConflictsInRuleTree ruleTree nodeId =
                 ++ appendIfConditionHolds
                     mTermIsConflicting
                     [ [ TermPointer nodeId AbsBody, TermPointer (nodeId ++ [ 0 ]) FullTerm ] ]
-                ++ getConflictsInRuleTree nextRuleTree (nodeId ++ [ 0 ])
+                ++ getConflictsInRuleTree childRuleTree (nodeId ++ [ 0 ])
 
-        RAbs _ _ (Arrow _ _) nextRuleTree ->
-            [ TermPointer nodeId FullTerm ] :: getConflictsInRuleTree nextRuleTree (nodeId ++ [ 0 ])
+        RAbs _ _ (Arrow _ _) childRuleTree ->
+            [ TermPointer nodeId FullTerm ] :: getConflictsInRuleTree childRuleTree (nodeId ++ [ 0 ])
 
-        RAbs _ (Abs _ _) _ nextRuleTree ->
-            [ TypePointer nodeId FullType ] :: getConflictsInRuleTree nextRuleTree (nodeId ++ [ 0 ])
+        RAbs _ (Abs _ _) _ childRuleTree ->
+            [ TypePointer nodeId FullType ] :: getConflictsInRuleTree childRuleTree (nodeId ++ [ 0 ])
 
-        RAbs _ _ _ nextRuleTree ->
-            [ [ TermPointer nodeId FullTerm ], [ TypePointer nodeId FullType ] ] ++ getConflictsInRuleTree nextRuleTree (nodeId ++ [ 0 ])
+        RAbs _ _ _ childRuleTree ->
+            [ [ TermPointer nodeId FullTerm ], [ TypePointer nodeId FullType ] ] ++ getConflictsInRuleTree childRuleTree (nodeId ++ [ 0 ])
 
         RApp _ (App _ _) _ Hole Hole ->
             []
@@ -192,25 +192,25 @@ getConflictsInRuleTree ruleTree nodeId =
         RApp _ _ _ Hole Hole ->
             [ [ TermPointer nodeId FullTerm ] ]
 
-        RApp context (App mTerm nTerm) tau nextRuleTree1 nextRuleTree2 ->
+        RApp context (App mTerm nTerm) tau childRuleTree1 childRuleTree2 ->
             let
                 tauIsConflicting =
-                    Just tau /= getRightTypeFromRuleTree nextRuleTree1
+                    Just tau /= getRightTypeFromRuleTree childRuleTree1
 
                 mTermIsConflicting =
-                    getTermFromRuleTree nextRuleTree1 |> Maybe.andThen (\nextMTerm -> Just <| nextMTerm /= mTerm) |> Maybe.withDefault False
+                    getTermFromRuleTree childRuleTree1 |> Maybe.andThen (\nextMTerm -> Just <| nextMTerm /= mTerm) |> Maybe.withDefault False
 
                 nTermIsConflicting =
-                    getTermFromRuleTree nextRuleTree2 |> Maybe.andThen (\nextNTerm -> Just <| nextNTerm /= nTerm) |> Maybe.withDefault False
+                    getTermFromRuleTree childRuleTree2 |> Maybe.andThen (\nextNTerm -> Just <| nextNTerm /= nTerm) |> Maybe.withDefault False
 
                 leftContextIsConflicting =
-                    not <| contextsAreEqual context <| getContextFromRuleTree nextRuleTree1
+                    not <| contextsAreEqual context <| getContextFromRuleTree childRuleTree1
 
                 rightContextIsConflicting =
-                    not <| contextsAreEqual context <| getContextFromRuleTree nextRuleTree2
+                    not <| contextsAreEqual context <| getContextFromRuleTree childRuleTree2
 
                 upperSigmaIsConflicting =
-                    Maybe.map2 (/=) (getLeftTypeFromRuleTree nextRuleTree1) (getTermTypeFromRuleTree nextRuleTree2)
+                    Maybe.map2 (/=) (getLeftTypeFromRuleTree childRuleTree1) (getTermTypeFromRuleTree childRuleTree2)
                         |> Maybe.withDefault True
             in
             appendIfConditionHolds
@@ -231,8 +231,8 @@ getConflictsInRuleTree ruleTree nodeId =
                 ++ appendIfConditionHolds
                     upperSigmaIsConflicting
                     [ [ TypePointer (nodeId ++ [ 0 ]) ArrLeft, TypePointer (nodeId ++ [ 1 ]) FullType ] ]
-                ++ getConflictsInRuleTree nextRuleTree1 (nodeId ++ [ 0 ])
-                ++ getConflictsInRuleTree nextRuleTree2 (nodeId ++ [ 1 ])
+                ++ getConflictsInRuleTree childRuleTree1 (nodeId ++ [ 0 ])
+                ++ getConflictsInRuleTree childRuleTree2 (nodeId ++ [ 1 ])
 
         RApp _ _ _ _ _ ->
             [ [ TermPointer nodeId FullTerm ] ]
@@ -410,14 +410,14 @@ changeRuleTreeNode ruleTree nodeId singletonNewRuleTree keepOldChildren =
                 singletonNewRuleTree
     in
     case ( ruleTree, nodeId ) of
-        ( RAbs a b c nextRuleTree, 0 :: nextNodeId ) ->
-            RAbs a b c <| changeRuleTreeNode nextRuleTree nextNodeId newRuleTree keepOldChildren
+        ( RAbs a b c childRuleTree, 0 :: childNodeId ) ->
+            RAbs a b c <| changeRuleTreeNode childRuleTree childNodeId newRuleTree keepOldChildren
 
-        ( RApp a b c nextRuleTree d, 0 :: nextNodeId ) ->
-            (RApp a b c <| changeRuleTreeNode nextRuleTree nextNodeId newRuleTree keepOldChildren) d
+        ( RApp a b c childRuleTree d, 0 :: childNodeId ) ->
+            (RApp a b c <| changeRuleTreeNode childRuleTree childNodeId newRuleTree keepOldChildren) d
 
-        ( RApp a b c d nextRuleTree, 1 :: nextNodeId ) ->
-            RApp a b c d <| changeRuleTreeNode nextRuleTree nextNodeId newRuleTree keepOldChildren
+        ( RApp a b c d childRuleTree, 1 :: childNodeId ) ->
+            RApp a b c d <| changeRuleTreeNode childRuleTree childNodeId newRuleTree keepOldChildren
 
         ( _, [] ) ->
             newRuleTree
@@ -450,14 +450,14 @@ resetRuleTreeNode ruleTree nodeId =
 getRuleTreeNode : RuleTree -> List Int -> RuleTree
 getRuleTreeNode ruleTree nodeId =
     case ( ruleTree, nodeId ) of
-        ( RAbs _ _ _ nextRuleTree, 0 :: nextNodeId ) ->
-            getRuleTreeNode nextRuleTree nextNodeId
+        ( RAbs _ _ _ childRuleTree, 0 :: childNodeId ) ->
+            getRuleTreeNode childRuleTree childNodeId
 
-        ( RApp _ _ _ nextRuleTree _, 0 :: nextNodeId ) ->
-            getRuleTreeNode nextRuleTree nextNodeId
+        ( RApp _ _ _ childRuleTree _, 0 :: childNodeId ) ->
+            getRuleTreeNode childRuleTree childNodeId
 
-        ( RApp _ _ _ _ nextRuleTree, 1 :: nextNodeId ) ->
-            getRuleTreeNode nextRuleTree nextNodeId
+        ( RApp _ _ _ _ childRuleTree, 1 :: childNodeId ) ->
+            getRuleTreeNode childRuleTree childNodeId
 
         ( _, [] ) ->
             ruleTree
@@ -630,13 +630,13 @@ ruleTreeAsInOrderList ruleTree nodeId level currentUserSelectedNodeId =
             else
                 [ ( [ -1 ], level + 1 ), ( nodeId, level ) ]
 
-        RAbs _ _ _ nextRuleTree ->
-            ruleTreeAsInOrderList nextRuleTree (nodeId ++ [ 0 ]) (level + 1) currentUserSelectedNodeId |> (++) [ ( nodeId, level ) ]
+        RAbs _ _ _ childRuleTree ->
+            ruleTreeAsInOrderList childRuleTree (nodeId ++ [ 0 ]) (level + 1) currentUserSelectedNodeId |> (++) [ ( nodeId, level ) ]
 
-        RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
-            ruleTreeAsInOrderList nextRuleTree1 (nodeId ++ [ 0 ]) (level + 1) currentUserSelectedNodeId
+        RApp _ _ _ childRuleTree1 childRuleTree2 ->
+            ruleTreeAsInOrderList childRuleTree1 (nodeId ++ [ 0 ]) (level + 1) currentUserSelectedNodeId
                 |> (++) [ ( nodeId, level ) ]
-                |> (++) (ruleTreeAsInOrderList nextRuleTree2 (nodeId ++ [ 1 ]) (level + 1) currentUserSelectedNodeId)
+                |> (++) (ruleTreeAsInOrderList childRuleTree2 (nodeId ++ [ 1 ]) (level + 1) currentUserSelectedNodeId)
 
         Hole ->
             []
@@ -1046,11 +1046,11 @@ ruleTreeIsComplete ruleTree =
         RVar _ _ _ hasBeenApplied ->
             hasBeenApplied
 
-        RAbs _ _ _ nextRuleTree ->
-            ruleTreeIsComplete nextRuleTree
+        RAbs _ _ _ childRuleTree ->
+            ruleTreeIsComplete childRuleTree
 
-        RApp _ _ _ nextRuleTree1 nextRuleTree2 ->
-            ruleTreeIsComplete nextRuleTree1 && ruleTreeIsComplete nextRuleTree2
+        RApp _ _ _ childRuleTree1 childRuleTree2 ->
+            ruleTreeIsComplete childRuleTree1 && ruleTreeIsComplete childRuleTree2
 
         Hole ->
             False
