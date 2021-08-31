@@ -157,8 +157,13 @@ getConflictsInRuleTree ruleTree nodeId =
                     Maybe.map2 (/=) (Just tau) (getTermTypeFromRuleTree childRuleTree)
                         |> Maybe.withDefault True
 
+                -- checks for equality for both cases (1) x:sigma is not in the parents context (2) x:sigma is already in the parents context
+                -- if either of both cases is true, no conflict will be tracked
                 contextIsConflicting =
-                    not <| contextsAreEqual context childContextWithOutAbstractionVar
+                    not <|
+                        (contextsAreEqual context childContextWithOutAbstractionVar
+                            || contextsAreEqual context (getContextFromRuleTree childRuleTree)
+                        )
 
                 mTermIsConflicting =
                     getTermFromRuleTree childRuleTree |> Maybe.andThen (\term -> Just <| term /= mTerm) |> Maybe.withDefault False
