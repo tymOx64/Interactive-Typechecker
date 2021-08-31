@@ -10,8 +10,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode
 import Regex
+import RuleTree exposing (encodeRuleTreeAsString, getFirstConflictFromRuleTree, getNodeIdForArrowDownKeyEvent, getNodeIdForArrowLeftOrRightKeyEvent, getNodeIdForArrowUpKeyEvent, getRuleTreeNode, getSelectedRuleTreeNode, resetRuleTreeNode, ruleTreeIsSuccessful, viewAbstractionRule, viewApplicationRule, viewRuleTree, viewVarRule)
 import SharedStructures exposing (..)
-import SimplyTypedLambdaCalculus as STLC exposing (..)
 import Url
 import Url.Parser
 import Url.Parser.Query as Query
@@ -218,19 +218,19 @@ update msg model =
                         Cmd.none
             in
             ( if key == "ArrowUp" then
-                { model | selectedNodeId = STLC.getNodeIdForArrowUpKeyEvent model.ruleTree model.selectedNodeId }
+                { model | selectedNodeId = getNodeIdForArrowUpKeyEvent model.ruleTree model.selectedNodeId }
                     |> adjustMenuStateToSelectedRuleTree
 
               else if key == "ArrowDown" then
-                { model | selectedNodeId = STLC.getNodeIdForArrowDownKeyEvent model.ruleTree model.selectedNodeId }
+                { model | selectedNodeId = getNodeIdForArrowDownKeyEvent model.ruleTree model.selectedNodeId }
                     |> adjustMenuStateToSelectedRuleTree
 
               else if key == "ArrowLeft" then
-                { model | selectedNodeId = STLC.getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId True }
+                { model | selectedNodeId = getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId True }
                     |> adjustMenuStateToSelectedRuleTree
 
               else if key == "ArrowRight" then
-                { model | selectedNodeId = STLC.getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId False }
+                { model | selectedNodeId = getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId False }
                     |> adjustMenuStateToSelectedRuleTree
 
               else if key == "1" then

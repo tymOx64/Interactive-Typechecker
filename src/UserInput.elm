@@ -6,9 +6,9 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
 import Parser exposing ((|.), (|=), Parser)
+import RuleTree exposing (addTypingAssumptionToContext, changeRuleTreeNode, createRuleTree, getContextFromRuleTree, getLeftTypeFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showTermVar, showType)
 import Set
 import SharedStructures as Shared exposing (..)
-import SimplyTypedLambdaCalculus as STLC exposing (addTypingAssumptionToContext, createRuleTree, getContextFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showTermVar)
 
 
 {-| Creates a new labeled text input field. When losing focus, triggers the Msg `TransformInput`.
@@ -173,16 +173,16 @@ fillSigmaInputFromRuleTree : RuleTree -> Model -> Model
 fillSigmaInputFromRuleTree ruleTree model =
     case ruleTree of
         RVar _ _ sigma _ ->
-            { model | sigmaInput = STLC.showType sigma }
+            { model | sigmaInput = showType sigma }
 
         RAbs _ _ (Arrow sigma _) _ ->
-            { model | sigmaInput = STLC.showType sigma }
+            { model | sigmaInput = showType sigma }
 
         RApp _ _ _ childRuleTree1 _ ->
             { model
                 | sigmaInput =
-                    STLC.getLeftTypeFromRuleTree childRuleTree1
-                        |> Maybe.map STLC.showType
+                    getLeftTypeFromRuleTree childRuleTree1
+                        |> Maybe.map showType
                         |> Maybe.withDefault ""
             }
 
@@ -196,10 +196,10 @@ fillTauInputFromRuleTree : RuleTree -> Model -> Model
 fillTauInputFromRuleTree ruleTree model =
     case ruleTree of
         RApp _ _ tau _ _ ->
-            { model | tauInput = STLC.showType tau }
+            { model | tauInput = showType tau }
 
         RAbs _ _ (Arrow _ tau) _ ->
-            { model | tauInput = STLC.showType tau }
+            { model | tauInput = showType tau }
 
         _ ->
             model
@@ -314,7 +314,7 @@ applyUserInputsToSelectedRuleTreeNode model =
         VarRule ->
             case ( maybeContext, parseTermEnd model.xInput, parseTypeEnd model.sigmaInput ) of
                 ( Just context, Just xTerm, Just typ ) ->
-                    STLC.changeRuleTreeNode model.ruleTree
+                    changeRuleTreeNode model.ruleTree
                         model.selectedNodeId
                         (RVar context
                             xTerm
@@ -357,7 +357,7 @@ applyUserInputsToSelectedRuleTreeNode model =
             -- tuples with more than 3 values are disallowed in elm, so we are using nested tuples here
             case ( maybeContext, maybeXVar, ( maybeMTerm, maybeSigmaType, maybeTauType ) ) of
                 ( Just context, Just (Var xVar), ( Just mTerm, Just sigmaType, Just tauType ) ) ->
-                    STLC.changeRuleTreeNode model.ruleTree
+                    changeRuleTreeNode model.ruleTree
                         model.selectedNodeId
                         (RAbs context
                             (Abs xVar mTerm)
@@ -403,7 +403,7 @@ applyUserInputsToSelectedRuleTreeNode model =
             -- tuples with more than 3 values are disallowed in elm, so we are using nested tuples here
             case ( maybeContext, maybeMTerm, ( maybeNTerm, maybeSigmaType, maybeTauType ) ) of
                 ( Just context, Just mTerm, ( Just nTerm, Just sigmaType, Just tauType ) ) ->
-                    STLC.changeRuleTreeNode
+                    changeRuleTreeNode
                         model.ruleTree
                         model.selectedNodeId
                         (RApp context

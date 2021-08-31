@@ -1,4 +1,4 @@
-module SimplyTypedLambdaCalculus exposing (..)
+module RuleTree exposing (..)
 
 --exposing (RuleTree, SContext, Term, SType, Type, Context, Var, r00, showRules, showTerm, showRuleContent, t1)
 
@@ -7,7 +7,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode exposing (dict)
-import SharedStructures as Shared exposing (..)
+import SharedStructures exposing (..)
 import Utilities exposing (getSuccessEmoji)
 
 
@@ -141,12 +141,12 @@ getConflictsInRuleTree ruleTree nodeId =
         RAbs _ _ _ Hole ->
             [ [ TermPointer nodeId FullTerm ], [ TypePointer nodeId FullType ] ]
 
-        RAbs context (Abs var mTerm) (Shared.Arrow sigma tau) childRuleTree ->
+        RAbs context (Abs var mTerm) (Arrow sigma tau) childRuleTree ->
             let
                 removeVarFromContext (Context dict) =
                     Context <| Dict.remove var dict
 
-                nextContextWithOutAbstractionVar =
+                childContextWithOutAbstractionVar =
                     removeVarFromContext (getContextFromRuleTree childRuleTree)
 
                 sigmaIsConflicting =
@@ -158,7 +158,7 @@ getConflictsInRuleTree ruleTree nodeId =
                         |> Maybe.withDefault True
 
                 contextIsConflicting =
-                    not <| contextsAreEqual context nextContextWithOutAbstractionVar
+                    not <| contextsAreEqual context childContextWithOutAbstractionVar
 
                 mTermIsConflicting =
                     getTermFromRuleTree childRuleTree |> Maybe.andThen (\term -> Just <| term /= mTerm) |> Maybe.withDefault False
@@ -198,10 +198,10 @@ getConflictsInRuleTree ruleTree nodeId =
                     Just tau /= getRightTypeFromRuleTree childRuleTree1
 
                 mTermIsConflicting =
-                    getTermFromRuleTree childRuleTree1 |> Maybe.andThen (\nextMTerm -> Just <| nextMTerm /= mTerm) |> Maybe.withDefault False
+                    getTermFromRuleTree childRuleTree1 |> Maybe.andThen (\childMTerm -> Just <| childMTerm /= mTerm) |> Maybe.withDefault False
 
                 nTermIsConflicting =
-                    getTermFromRuleTree childRuleTree2 |> Maybe.andThen (\nextNTerm -> Just <| nextNTerm /= nTerm) |> Maybe.withDefault False
+                    getTermFromRuleTree childRuleTree2 |> Maybe.andThen (\childNTerm -> Just <| childNTerm /= nTerm) |> Maybe.withDefault False
 
                 leftContextIsConflicting =
                     not <| contextsAreEqual context <| getContextFromRuleTree childRuleTree1

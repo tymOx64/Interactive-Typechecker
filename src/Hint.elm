@@ -3,9 +3,9 @@ module Hint exposing (..)
 import Array
 import Dict exposing (Dict)
 import Json.Decode exposing (dict)
+import RuleTree exposing (..)
 import Set exposing (Set)
 import SharedStructures exposing (..)
-import SimplyTypedLambdaCalculus exposing (..)
 import Tuple exposing (first)
 import UserInput exposing (fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet)
 
