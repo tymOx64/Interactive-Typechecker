@@ -46,72 +46,68 @@ getHint inputKind model =
     in
     case ( selectedRuleTree, model.menuState ) of
         ( RVar _ thisTerm thisType _, VarRule ) ->
-            case inputKind of
-                GammaInput ->
+            let
+                latestTypingForX =
                     case thisTerm of
-                        -- adds the typing assumption <var:thisType> in case it is missing
                         Var var ->
-                            Dict.insert var thisType contextDictUpdatedToLatestTypings
-                                |> Context
-                                |> showContext
-                                |> (\hintedContext -> { model | gammaInput = hintedContext })
+                            Dict.get var model.latestTermVarTypings
 
                         _ ->
-                            contextDictUpdatedToLatestTypings
-                                |> Context
-                                |> showContext
-                                |> (\hintedContext -> { model | gammaInput = hintedContext })
+                            Nothing
 
-                XInput ->
-                    case thisTerm of
-                        Var _ ->
-                            fillXInputFromRuleTree selectedRuleTree model
+                typeFromThisNode =
+                    case thisType of
+                        Untyped ->
+                            Nothing
 
-                        _ ->
-                            termAndRuleDoNotMatchUp
-
-                SigmaInput ->
-                    let
-                        latestTypingForX =
-                            case thisTerm of
-                                Var var ->
-                                    Dict.get var model.latestTermVarTypings
-                                        |> Maybe.andThen (\latestXType -> Just { model | sigmaInput = showType latestXType })
-
-                                _ ->
-                                    Nothing
-
-                        typeFromThisNode =
-                            case thisType of
-                                Untyped ->
-                                    Nothing
-
-                                _ ->
-                                    Just { model | sigmaInput = showType thisType }
-
-                        unusedTypeVar =
-                            case getUnusedTypeVar 0 of
-                                Just newTypeVar ->
-                                    { model | sigmaInput = newTypeVar }
-
-                                Nothing ->
-                                    tooManyTypeVarInUse
-                    in
-                    case ( thisTerm, latestTypingForX, typeFromThisNode ) of
-                        ( Var _, Just newModel, _ ) ->
-                            newModel
-
-                        ( Var _, _, Just newModel ) ->
-                            newModel
-
-                        ( Var _, _, _ ) ->
-                            unusedTypeVar
+                        Arrow Untyped Untyped ->
+                            Nothing
 
                         _ ->
-                            termAndRuleDoNotMatchUp
+                            Just thisType
 
-                _ ->
-                    model
+                unusedTypeVar =
+                    case getUnusedTypeVar 0 of
+                        Just newTypeVar ->
+                            BasicType newTypeVar |> Just
+
+                        _ ->
+                            Nothing
+
+                sigmaHint =
+                    case ( latestTypingForX, typeFromThisNode, unusedTypeVar ) of
+                        ( Just newSigma, _, _ ) ->
+                            newSigma
+
+                        ( _, Just newSigma, _ ) ->
+                            newSigma
+
+                        ( _, _, Just newSigma ) ->
+                            newSigma
+
+                        _ ->
+                            -- matching this case implies that all typeVar are in use which we want to
+                            -- show as a displayMessage. the handling for this is done below.
+                            Untyped
+            in
+            case ( inputKind, thisTerm, unusedTypeVar ) of
+                ( GammaInput, Var var, Just _ ) ->
+                    Dict.insert var sigmaHint contextDictUpdatedToLatestTypings
+                        |> Context
+                        |> showContext
+                        |> (\hintedContext -> { model | gammaInput = hintedContext })
+
+                ( XInput, Var _, Just _ ) ->
+                    fillXInputFromRuleTree selectedRuleTree model
+
+                ( SigmaInput, Var _, Just _ ) ->
+                    { model | sigmaInput = showType thisType }
+
+                ( _, _, Just _ ) ->
+                    termAndRuleDoNotMatchUp
+
+                ( _, _, Nothing ) ->
+                    tooManyTypeVarInUse
 
         ( RAbs _ thisTerm _ childRuleTree, AbsRule ) ->
             case inputKind of

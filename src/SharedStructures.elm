@@ -316,14 +316,11 @@ charLatinToGreekRepresentation char =
         't' ->
             'τ'
 
-        -- TODO: kollision mit 'y' fixen
-        --'u' ->
-        --'υ'
+        'u' ->
+            'υ'
+
         'x' ->
             'χ'
-
-        'y' ->
-            'υ'
 
         'z' ->
             'ζ'
