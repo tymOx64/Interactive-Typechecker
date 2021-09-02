@@ -59,7 +59,7 @@ inputBlock : (Model -> Html Msg) -> Model -> Msg -> Html Msg
 inputBlock textInput model msg =
     div [ class "menu__meta-variable-input-block" ]
         [ textInput model
-        , button [ onClick msg ] [ text "💡" ]
+        , button [ onClick msg, title "Hint Input" ] [ text "💡" ]
         ]
 
 
@@ -109,8 +109,8 @@ viewNodeInitiationInputs model =
 viewNodeInitiationButtons : Html Msg
 viewNodeInitiationButtons =
     div [ class "init-starting-node__button-block-container" ]
-        [ button [ onClick GetUrl, class "init-starting-node__button-block" ] [ text "Get URL 🌐" ]
-        , button [ onClick Start, class "init-starting-node__button-block" ] [ text "Start 🚀" ]
+        [ button [ onClick GetUrl, class "init-starting-node__button-block", title "Get the URL with your Inputs encoded into the Prooftree Query" ] [ text "Get URL 🌐" ]
+        , button [ onClick Start, class "init-starting-node__button-block", title "Start the Type Deduction" ] [ text "Start 🚀" ]
         ]
 
 
@@ -270,16 +270,20 @@ viewRuleUserInterface model =
                 style "display" "none"
             , class "menu__bottom-button-row"
             ]
-            [ button [ onClick Apply ] [ text "Apply" ]
+            [ button [ onClick Apply, title "Apply your Inputs to the Tree" ] [ text "Apply" ]
             , div [ style "justify-content" "flex-end" ]
-                [ button [ onClick FlushAllInputs ] [ text "🧹" ]
-                , button [ onClick ApplyLatestChangesToFullRuleTree ] [ text "♻️" ]
-                , button [ onClick FillAllInputs ] [ text "💊" ]
+                [ button
+                    [ onClick ApplyLatestChangesToFullRuleTree
+                    , title "Update the whole Tree's Typings based on the Typings of the currently Selected Node and the most recent Typing Changes overall"
+                    ]
+                    [ text "♻️" ]
+                , button [ onClick FlushAllInputs, title "Flush all Inputs" ] [ text "🧹" ]
+                , button [ onClick FillAllInputs, title "Fill all Inputs from the Selected Node" ] [ text "💊" ]
                 ]
             ]
         , div [ showFor [ SelectRule ], class "menu__bottom-button-row" ]
             [ div [ style "display" "flex", style "justify-content" "center" ]
-                [ button [ onClick (Hint RuleSelection), style "font-size" "120%" ] [ text "💡" ] ]
+                [ button [ onClick (Hint RuleSelection), style "font-size" "120%", title "Hint the Inference Rule" ] [ text "💡" ] ]
             ]
         ]
 

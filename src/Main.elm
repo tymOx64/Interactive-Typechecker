@@ -301,7 +301,7 @@ update msg model =
             ( { model | viewLatinChar = not model.viewLatinChar }, Cmd.none )
 
         StartPage ->
-            ( { model | menuState = CreateStartingNode, displayMessage = "TODO displayMessage" }, Cmd.none )
+            ( { model | menuState = CreateStartingNode, displayMessage = "" }, Cmd.none )
 
         NoOperation ->
             ( model, Cmd.none )
@@ -397,7 +397,7 @@ viewInitStartingNode model =
             , div [ class "description-text" ]
                 [ text "The Type '?' is a Wildcard Type and can be understood as \"I don't know the Type yet but I want to make sure to come back to it later!\"" ]
             , div [ class "description-text" ]
-                [ text "So it's especially useful for putting Typevariables into a Context for which you know it has to be in there. Example:" ]
+                [ text "So it's especially useful for putting Typevariables into a Context for which you know it has to be in there but don't know its Type yet. Example:" ]
             , div [ class "description-text" ]
                 [ text "For given Term "
                 , span [ class "code-text" ] [ text " (\\z.(\\w.(x w))) u " ]
@@ -425,7 +425,7 @@ viewInitStartingNode model =
                 , span [ class "meta-variable" ] [ text " M." ]
                 ]
             , div [ class "description-text" ]
-                [ text "It is recommended to leave this field empty and start the Typing Process in the Application itself!"
+                [ text "It is recommended to leave this field empty and begin the Typing Process in the Application itself!"
                 ]
             ]
         , viewNodeInitiationInputs model
@@ -437,18 +437,24 @@ viewInitStartingNode model =
 viewTopMenu : Model -> Html Msg
 viewTopMenu model =
     let
-        toggleLatinButtonLabel =
+        ( toggleLatinButtonLabel, toggleLatinButtonTooltip ) =
             if model.viewLatinChar then
-                "τ"
+                ( "τ", "Switch to the Greek representation of Type Variables" )
 
             else
-                "t"
+                ( "t", "Switch to the Latin representation of Type Variables" )
     in
     div [ class "menu__top-button-container" ]
         [ button
-            [ onClick ToggleLatinView, class "menu__top-button" ]
+            [ onClick ToggleLatinView, class "menu__top-button", title toggleLatinButtonTooltip ]
             [ text toggleLatinButtonLabel ]
         , button
-            [ onClick StartPage, class "menu__top-button", style "font-size" "85%", style "padding-left" "5px", style "padding-right" "5px" ]
+            [ onClick StartPage
+            , class "menu__top-button"
+            , style "font-size" "85%"
+            , style "padding-left" "5px"
+            , style "padding-right" "5px"
+            , title "Go to the Start Page"
+            ]
             [ text "🏠" ]
         ]

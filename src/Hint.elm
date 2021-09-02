@@ -43,6 +43,7 @@ getHint inputKind model =
                 (\var typ newDict -> Dict.insert var (Dict.get var model.latestTermVarTypings |> Maybe.withDefault typ) newDict)
                 Dict.empty
                 currentContextDict
+                |> Debug.log "cont dict up 2 lat tpyings"
     in
     case ( selectedRuleTree, model.menuState ) of
         ( RVar _ thisTerm thisType _, VarRule ) ->

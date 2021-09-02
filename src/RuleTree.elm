@@ -21,6 +21,7 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
             [ classList [ ( "ruletree__conclusion", True ), ( "ruletree__conclusion--selected", nodeId == model.selectedNodeId ) ]
             , onClickSelect
             , onDoubleClick <| ResetTreeNode <| nodeId
+            , title "Select Tree Node"
             ]
 
         pointersForCurrentRuleTree =
@@ -988,8 +989,17 @@ isEmptyContext (Context dict) =
 
 viewVarRule : Model -> Html Msg
 viewVarRule model =
-    div [ classList [ ( "menu__inference-rule", True ), ( "menu__inference-rule--selected", model.menuState == VarRule ) ], onClick <| ChangeState VarRule, style "margin-left" "47px", style "margin-right" "37px" ]
-        [ div [ classList [], style "margin-right" "39px" ]
+    div
+        [ classList
+            [ ( "menu__inference-rule", True )
+            , ( "menu__inference-rule--selected", model.menuState == VarRule )
+            ]
+        , onClick <| ChangeState VarRule
+        , style "margin-left" "47px"
+        , style "margin-right" "37px"
+        , title "Select Variable Rule"
+        ]
+        [ div [ style "margin-right" "39px" ]
             [ div [ class "inference-rule__text-style" ] [ text "x : σ ∈ Γ" ]
             , div [ class "inference-rule__seperation-line" ] [ text " ———————— (Var)" ]
             , div [ class "inference-rule__text-style" ] [ text "Γ ⊢ x : σ" ]
@@ -999,7 +1009,12 @@ viewVarRule model =
 
 viewApplicationRule : Model -> Html Msg
 viewApplicationRule model =
-    div [ classList [ ( "menu__inference-rule", True ), ( "menu__inference-rule--selected", model.menuState == AppRule ) ], onClick <| ChangeState AppRule, style "margin-right" "1px" ]
+    div
+        [ classList [ ( "menu__inference-rule", True ), ( "menu__inference-rule--selected", model.menuState == AppRule ) ]
+        , onClick <| ChangeState AppRule
+        , style "margin-right" "1px"
+        , title "Select Application Rule"
+        ]
         [ div [ style "margin-right" "2px" ]
             [ div [ class "inference-rule__text-style" ] [ text "Γ ⊢ M : (σ → τ)   Γ ⊢ N : σ" ]
             , div [ class "inference-rule__seperation-line" ] [ text "  ————————————————— (App)" ]
@@ -1010,7 +1025,12 @@ viewApplicationRule model =
 
 viewAbstractionRule : Model -> Html Msg
 viewAbstractionRule model =
-    div [ classList [ ( "menu__inference-rule", True ), ( "menu__inference-rule--selected", model.menuState == AbsRule ) ], onClick <| ChangeState AbsRule, style "margin-left" "4px" ]
+    div
+        [ classList [ ( "menu__inference-rule", True ), ( "menu__inference-rule--selected", model.menuState == AbsRule ) ]
+        , onClick <| ChangeState AbsRule
+        , style "margin-left" "4px"
+        , title "Select Abstraction Rule"
+        ]
         [ div [ style "margin-right" "22px" ]
             [ div [ class "inference-rule__text-style" ] [ text "Γ, x : σ ⊢ M : τ" ]
             , div [ class "inference-rule__seperation-line" ] [ text "  ———————————————— (Abs)" ]
