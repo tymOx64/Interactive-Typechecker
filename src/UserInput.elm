@@ -270,7 +270,7 @@ viewRuleUserInterface model =
                 style "display" "none"
             , class "menu__bottom-button-row"
             ]
-            [ button [ onClick Apply, title "Apply your Inputs to the Tree" ] [ text "Apply" ]
+            [ button [ onClick Apply, title "Apply your Inputs to the currently Selected Tree Node" ] [ text "Apply" ]
             , div [ style "justify-content" "flex-end" ]
                 [ button
                     [ onClick ApplyLatestChangesToFullRuleTree

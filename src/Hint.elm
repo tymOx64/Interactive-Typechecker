@@ -43,7 +43,6 @@ getHint inputKind model =
                 (\var typ newDict -> Dict.insert var (Dict.get var model.latestTermVarTypings |> Maybe.withDefault typ) newDict)
                 Dict.empty
                 currentContextDict
-                |> Debug.log "cont dict up 2 lat tpyings"
     in
     case ( selectedRuleTree, model.menuState ) of
         ( RVar _ thisTerm thisType _, VarRule ) ->
@@ -102,7 +101,7 @@ getHint inputKind model =
                     fillXInputFromRuleTree selectedRuleTree model
 
                 ( SigmaInput, Var _, Just _ ) ->
-                    { model | sigmaInput = showType thisType }
+                    { model | sigmaInput = showType sigmaHint }
 
                 ( _, _, Just _ ) ->
                     termAndRuleDoNotMatchUp
