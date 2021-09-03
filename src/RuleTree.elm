@@ -995,7 +995,7 @@ showContext (Context dict) =
         |> String.replace "endIndicator" ""
 
 
-{-| Views the variable inference rule.
+{-| Views the variable inference rule _(Var)_.
 -}
 viewVarRule : Model -> Html Msg
 viewVarRule model =
@@ -1017,7 +1017,7 @@ viewVarRule model =
         ]
 
 
-{-| Views the application inference rule.
+{-| Views the application inference rule _(App)_.
 -}
 viewApplicationRule : Model -> Html Msg
 viewApplicationRule model =
@@ -1035,7 +1035,7 @@ viewApplicationRule model =
         ]
 
 
-{-| Views the abstraction inference rule.
+{-| Views the abstraction inference rule _(Abs)_.
 -}
 viewAbstractionRule : Model -> Html Msg
 viewAbstractionRule model =
@@ -1100,6 +1100,22 @@ ruleTreeIsSuccessful ruleTree conflictPointers =
     ruleTreeIsComplete ruleTree
         && List.isEmpty conflictPointers
         && checkIfAllFreeVariablesExistInRuleTreesContext ruleTree
+
+
+{-| Returns a Display Message iff given `ruleTree` is correct and complete but
+there is at least one free variable missing in its context.
+-}
+generateDisplayMessageIfRuleTreeIsSuccessfulBesidesContextMissingFreeVar : RuleTree -> List Pointer -> Maybe String
+generateDisplayMessageIfRuleTreeIsSuccessfulBesidesContextMissingFreeVar ruleTree conflictPointers =
+    if
+        ruleTreeIsComplete ruleTree
+            && List.isEmpty conflictPointers
+            && (not <| checkIfAllFreeVariablesExistInRuleTreesContext ruleTree)
+    then
+        Just "The root term contains free variables that must exist in all contexts!"
+
+    else
+        Nothing
 
 
 {-| Returns all free variables (FV) from the term of given `ruleTree`.

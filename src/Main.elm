@@ -10,7 +10,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode
 import Regex
-import RuleTree exposing (encodeRuleTreeAsString, getFirstConflictFromRuleTree, getNodeIdForArrowDownKeyEvent, getNodeIdForArrowLeftOrRightKeyEvent, getNodeIdForArrowUpKeyEvent, getRuleTreeNode, getSelectedRuleTreeNode, resetRuleTreeNode, ruleTreeIsSuccessful, viewAbstractionRule, viewApplicationRule, viewRuleTree, viewVarRule)
+import RuleTree exposing (encodeRuleTreeAsString, generateDisplayMessageIfRuleTreeIsSuccessfulBesidesContextMissingFreeVar, getFirstConflictFromRuleTree, getNodeIdForArrowDownKeyEvent, getNodeIdForArrowLeftOrRightKeyEvent, getNodeIdForArrowUpKeyEvent, getRuleTreeNode, getSelectedRuleTreeNode, resetRuleTreeNode, ruleTreeIsSuccessful, viewAbstractionRule, viewApplicationRule, viewRuleTree, viewVarRule)
 import SharedStructures exposing (..)
 import Url
 import Url.Parser
@@ -273,7 +273,10 @@ update msg model =
                                 "Your Proof Tree is complete and correct - Great Job!"
 
                             else
-                                model.displayMessage
+                                generateDisplayMessageIfRuleTreeIsSuccessfulBesidesContextMissingFreeVar
+                                    parsedRuleTree
+                                    (getFirstConflictFromRuleTree parsedRuleTree)
+                                    |> Maybe.withDefault model.displayMessage
                       }
                     , Cmd.none
                     )
