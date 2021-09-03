@@ -7,6 +7,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode exposing (dict)
+import Set exposing (Set)
 import SharedStructures exposing (..)
 import Utilities exposing (getSuccessEmoji)
 
@@ -357,7 +358,7 @@ getTermFromRuleTree ruleTree =
         RApp _ term _ _ _ ->
             Just term
 
-        _ ->
+        Hole ->
             Nothing
 
 
@@ -903,6 +904,9 @@ showTermVar =
     String.fromChar
 
 
+{-| Shows the term with explicit parantheses being used around all
+Abstraction and Application expressions.
+-}
 showTerm : Term -> String
 showTerm term =
     let
@@ -931,6 +935,8 @@ showTerm term =
         termAsStringRaw
 
 
+{-| Shows the type with explicit parantheses being used around all Arrow expressions.
+-}
 showType : SType -> String
 showType typ =
     case typ of
@@ -944,6 +950,10 @@ showType typ =
             "?"
 
 
+{-| Shows the type with explicit parantheses being used around all Arrow expressions.
+In addition to the plain `showType` function, this function handles the conversion
+from latin to greek letters in case given `showLatinChars` equals `True`.
+-}
 showTypeForView : SType -> Bool -> String
 showTypeForView typ showLatinChars =
     let
@@ -973,6 +983,9 @@ showTypeForView typ showLatinChars =
             "?"
 
 
+{-| Shows the given `SContext` as a list of typing assumptions
+of the form `variable:type`.
+-}
 showContext : SContext -> String
 showContext (Context dict) =
     Dict.foldl (\var typ outputString -> showTermVar var ++ ":" ++ showType typ ++ ", " ++ outputString) "endIndicator" dict
@@ -982,11 +995,8 @@ showContext (Context dict) =
         |> String.replace "endIndicator" ""
 
 
-isEmptyContext : AContext term typ -> Bool
-isEmptyContext (Context dict) =
-    Dict.isEmpty dict
-
-
+{-| Views the variable inference rule.
+-}
 viewVarRule : Model -> Html Msg
 viewVarRule model =
     div
@@ -1007,6 +1017,8 @@ viewVarRule model =
         ]
 
 
+{-| Views the application inference rule.
+-}
 viewApplicationRule : Model -> Html Msg
 viewApplicationRule model =
     div
@@ -1023,6 +1035,8 @@ viewApplicationRule model =
         ]
 
 
+{-| Views the abstraction inference rule.
+-}
 viewAbstractionRule : Model -> Html Msg
 viewAbstractionRule model =
     div
@@ -1039,6 +1053,13 @@ viewAbstractionRule model =
         ]
 
 
+{-| Creates a new `RuleTree` based on the term form.
+
+    RVar for a Var Term
+    RAbs for an Abs Term
+    RApp for an App Term
+
+-}
 createRuleTree : SContext -> Term -> SType -> RuleTree
 createRuleTree context term typ =
     case term of
@@ -1052,19 +1073,8 @@ createRuleTree context term typ =
             RApp context term typ Hole Hole
 
 
-determineCorrespondingRule : Term -> MenuState
-determineCorrespondingRule term =
-    case term of
-        Var _ ->
-            VarRule
-
-        Abs _ _ ->
-            AbsRule
-
-        App _ _ ->
-            AppRule
-
-
+{-| Returns `True` iff all leafs are `RVar` nodes which have the inference rule applied by the user.
+-}
 ruleTreeIsComplete : RuleTree -> Bool
 ruleTreeIsComplete ruleTree =
     case ruleTree of
@@ -1081,6 +1091,66 @@ ruleTreeIsComplete ruleTree =
             False
 
 
+{-| Returns `True` iff given `ruleTree` is complete (see function `ruleTreeIsComplete`),
+there do not exist any conflicts (see `getConflictsInRuleTree`), and all FV exist
+in its context (see `checkIfAllFreeVariablesExistInRuleTreesContext`).
+-}
 ruleTreeIsSuccessful : RuleTree -> List Pointer -> Bool
 ruleTreeIsSuccessful ruleTree conflictPointers =
-    ruleTreeIsComplete ruleTree && List.isEmpty conflictPointers
+    ruleTreeIsComplete ruleTree
+        && List.isEmpty conflictPointers
+        && checkIfAllFreeVariablesExistInRuleTreesContext ruleTree
+
+
+{-| Returns all free variables (FV) from the term of given `ruleTree`.
+In case of `ruleTree == Hole` it will simply return a Set with `Var "x"`
+as we currently don't need any special handling for function calls
+on `Hole`.
+-}
+getFreeVariablesFromRuleTreesTerm : RuleTree -> Set TermVar
+getFreeVariablesFromRuleTreesTerm ruleTree =
+    let
+        term =
+            getTermFromRuleTree ruleTree |> Maybe.withDefault (Var 'x')
+
+        collectAllVar allVar term_ =
+            case term_ of
+                Var var ->
+                    Set.insert var allVar
+
+                Abs var body ->
+                    collectAllVar (Set.insert var allVar) body
+
+                App leftTerm rightTerm ->
+                    Set.union (collectAllVar allVar leftTerm) (collectAllVar allVar rightTerm)
+
+        collectBoundVar boundVar term_ =
+            case term_ of
+                Var _ ->
+                    boundVar
+
+                Abs var body ->
+                    collectBoundVar (Set.insert var boundVar) body
+
+                App leftTerm rightTerm ->
+                    Set.union (collectBoundVar boundVar leftTerm) (collectBoundVar boundVar rightTerm)
+    in
+    Set.diff (collectAllVar Set.empty term) (collectBoundVar Set.empty term)
+
+
+{-| Checks for given `ruleTree` if all its term's FV exist in its context.
+-}
+checkIfAllFreeVariablesExistInRuleTreesContext : RuleTree -> Bool
+checkIfAllFreeVariablesExistInRuleTreesContext ruleTree =
+    let
+        freeVarSet =
+            getFreeVariablesFromRuleTreesTerm ruleTree
+
+        contextDict =
+            case getContextFromRuleTree ruleTree of
+                Context dict ->
+                    dict
+    in
+    Set.filter (\freeVar -> Dict.member freeVar contextDict) freeVarSet
+        |> Set.size
+        |> (==) (Set.size freeVarSet)
