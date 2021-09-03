@@ -1099,7 +1099,7 @@ ruleTreeIsSuccessful : RuleTree -> List Pointer -> Bool
 ruleTreeIsSuccessful ruleTree conflictPointers =
     ruleTreeIsComplete ruleTree
         && List.isEmpty conflictPointers
-        && checkIfAllFreeVariablesExistInRuleTreesContext ruleTree
+        && allFreeVariablesExistInRuleTreesContext ruleTree
 
 
 {-| Returns a Display Message iff given `ruleTree` is correct and complete but
@@ -1110,7 +1110,7 @@ generateDisplayMessageIfRuleTreeIsSuccessfulBesidesContextMissingFreeVar ruleTre
     if
         ruleTreeIsComplete ruleTree
             && List.isEmpty conflictPointers
-            && (not <| checkIfAllFreeVariablesExistInRuleTreesContext ruleTree)
+            && (not <| allFreeVariablesExistInRuleTreesContext ruleTree)
     then
         Just "The root term contains free variables that must exist in all contexts!"
 
@@ -1156,8 +1156,8 @@ getFreeVariablesFromRuleTreesTerm ruleTree =
 
 {-| Checks for given `ruleTree` if all its term's FV exist in its context.
 -}
-checkIfAllFreeVariablesExistInRuleTreesContext : RuleTree -> Bool
-checkIfAllFreeVariablesExistInRuleTreesContext ruleTree =
+allFreeVariablesExistInRuleTreesContext : RuleTree -> Bool
+allFreeVariablesExistInRuleTreesContext ruleTree =
     let
         freeVarSet =
             getFreeVariablesFromRuleTreesTerm ruleTree
@@ -1170,3 +1170,20 @@ checkIfAllFreeVariablesExistInRuleTreesContext ruleTree =
     Set.filter (\freeVar -> Dict.member freeVar contextDict) freeVarSet
         |> Set.size
         |> (==) (Set.size freeVarSet)
+
+
+{-| Checks for given `term` if variable shadowing is occuring.
+-}
+variableShadowingIsOccuring : Term -> Set TermVar -> Bool
+variableShadowingIsOccuring term setOfFoundBoundVarSoFar =
+    case term of
+        Var _ ->
+            False
+
+        Abs var body ->
+            Set.member var setOfFoundBoundVarSoFar
+                || variableShadowingIsOccuring body (Set.insert var setOfFoundBoundVarSoFar)
+
+        App leftTerm rightTerm ->
+            variableShadowingIsOccuring leftTerm setOfFoundBoundVarSoFar
+                || variableShadowingIsOccuring rightTerm setOfFoundBoundVarSoFar

@@ -11,6 +11,7 @@ import Html.Events exposing (..)
 import Json.Decode
 import Regex
 import RuleTree exposing (encodeRuleTreeAsString, generateDisplayMessageIfRuleTreeIsSuccessfulBesidesContextMissingFreeVar, getFirstConflictFromRuleTree, getNodeIdForArrowDownKeyEvent, getNodeIdForArrowLeftOrRightKeyEvent, getNodeIdForArrowUpKeyEvent, getRuleTreeNode, getSelectedRuleTreeNode, resetRuleTreeNode, ruleTreeIsSuccessful, viewAbstractionRule, viewApplicationRule, viewRuleTree, viewVarRule)
+import Set
 import SharedStructures exposing (..)
 import Url
 import Url.Parser
@@ -131,6 +132,8 @@ update msg model =
             5
 
         --Debug.log "unusedTypeVar:" <| List.map (\x -> getUnusedTypeVariableFromRuleTree model.ruleTree x) (List.range 1 96)
+        varShadowingErrMsg =
+            "The Term M you have entered contains variable shadowing which is not supported. Please rename variables to prevent shadowing."
     in
     case msg of
         Gamma str ->
@@ -287,7 +290,12 @@ update msg model =
         Start ->
             case applyUserInitInputs model of
                 Ok ruleTree ->
-                    ( changeState SelectRule model, pushUrl <| getUrlWithProoftree model ruleTree )
+                    -- if ruleTree's term has variable shadowing, show a friendly error message
+                    if RuleTree.variableShadowingIsOccuring (RuleTree.getTermFromRuleTree ruleTree |> Maybe.withDefault (Var 'x')) Set.empty then
+                        ( { model | displayMessage = varShadowingErrMsg }, Cmd.none )
+
+                    else
+                        ( changeState SelectRule model |> flushAllInputs, pushUrl <| getUrlWithProoftree model ruleTree )
 
                 Err err ->
                     ( { model | displayMessage = err }, Cmd.none )
@@ -295,7 +303,12 @@ update msg model =
         GetUrl ->
             case applyUserInitInputs model of
                 Ok ruleTree ->
-                    ( { model | displayMessage = getUrlWithProoftree model ruleTree }, pushUrl <| getUrlWithProoftree model ruleTree )
+                    -- if ruleTree's term has variable shadowing, show a friendly error message
+                    if RuleTree.variableShadowingIsOccuring (RuleTree.getTermFromRuleTree ruleTree |> Maybe.withDefault (Var 'x')) Set.empty then
+                        ( { model | displayMessage = varShadowingErrMsg }, Cmd.none )
+
+                    else
+                        ( { model | displayMessage = getUrlWithProoftree model ruleTree }, pushUrl <| getUrlWithProoftree model ruleTree )
 
                 Err err ->
                     ( { model | displayMessage = err }, Cmd.none )
