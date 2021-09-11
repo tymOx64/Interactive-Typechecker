@@ -4,7 +4,7 @@ import Array
 import Dict exposing (Dict)
 import Json.Decode exposing (dict)
 import RuleTree exposing (..)
-import RuleTreeUtils exposing (getContextFromRuleTree, getLeftTypeFromRuleTree, getRightTypeFromRuleTree, getRuleTreeNode, getTermFromRuleTree, getTermTypeFromRuleTree, isLeaf)
+import RuleTreeUtils exposing (addTypingAssumptionToContext, getContextFromRuleTree, getLeftTypeFromRuleTree, getRightTypeFromRuleTree, getRuleTreeNode, getSelectedRuleTreeNode, getTermFromRuleTree, getTermTypeFromRuleTree, isLeaf)
 import Set exposing (Set)
 import SharedStructures exposing (..)
 import UserInput exposing (fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet)

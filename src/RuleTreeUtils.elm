@@ -1,7 +1,7 @@
 module RuleTreeUtils exposing (..)
 
 import Dict
-import SharedStructures exposing (AContext(..), RuleTree(..), SContext, SType, Term(..), Type(..))
+import SharedStructures exposing (AContext(..), Model, RuleTree(..), SContext, SType, Term(..), TermVar, Type(..))
 
 
 isLeaf : RuleTree -> Bool
@@ -34,6 +34,13 @@ getRuleTreeNode ruleTree nodeId =
 
         ( _, _ ) ->
             Hole
+
+
+{-| Returns the ruletree that is currently selected by the user.
+-}
+getSelectedRuleTreeNode : Model -> RuleTree
+getSelectedRuleTreeNode model =
+    getRuleTreeNode model.ruleTree model.selectedNodeId
 
 
 {-| Returns the context from given `ruleTree`
@@ -110,3 +117,10 @@ getRightTypeFromRuleTree ruleTree =
 
         _ ->
             Nothing
+
+
+{-| Adds the typing assumption given through `var` and `typ` to given `Context`.
+-}
+addTypingAssumptionToContext : TermVar -> SType -> SContext -> SContext
+addTypingAssumptionToContext var typ (Context dict) =
+    Context <| Dict.insert var typ dict

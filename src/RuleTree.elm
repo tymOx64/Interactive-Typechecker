@@ -320,6 +320,12 @@ changeRuleTreeNode ruleTree nodeId singletonNewRuleTree keepOldChildren =
             Hole
 
 
+{-| Resets the ruletree at given `nodeId`, i.e. all of its children become `Hole`;
+in case of `RVar` the value for `hasBeenApplied` gets set to `False`.
+
+The argument for `ruleTree` should be the root node.
+
+-}
 resetRuleTreeNode : RuleTree -> List Int -> RuleTree
 resetRuleTreeNode ruleTree nodeId =
     let
@@ -340,13 +346,8 @@ resetRuleTreeNode ruleTree nodeId =
             ruleTree
 
 
-getSelectedRuleTreeNode : Model -> RuleTree
-getSelectedRuleTreeNode model =
-    getRuleTreeNode model.ruleTree model.selectedNodeId
-
-
 {-| Returns the target node id if there is one available, otherwise returns the currently selected node id (i.e. the selected node id remains unchanged).
-The direction is defined through the parameter isLeftKeyEvent.
+The direction (left/right) is defined through given `isLeftKeyEvent`.
 -}
 getNodeIdForArrowLeftOrRightKeyEvent : RuleTree -> List Int -> Bool -> List Int
 getNodeIdForArrowLeftOrRightKeyEvent ruleTree selectedNodeId isLeftKeyEvent =
@@ -382,6 +383,11 @@ getNodeIdForArrowLeftOrRightKeyEvent ruleTree selectedNodeId isLeftKeyEvent =
             sidePart1 |> List.head |> Maybe.withDefault ( selectedNodeId, -1 ) |> Tuple.first
 
 
+{-| For non-root nodes the function simply returns the parent node id for given `selectedNodeId`.
+
+For the root node, the outmost node id at the top will be returned, i.e. the node id with the biggest length.
+
+-}
 getNodeIdForArrowDownKeyEvent : RuleTree -> List Int -> List Int
 getNodeIdForArrowDownKeyEvent ruleTree selectedNodeId =
     let
@@ -408,6 +414,11 @@ getNodeIdForArrowDownKeyEvent ruleTree selectedNodeId =
             List.take (List.length selectedNodeId - 1) selectedNodeId
 
 
+{-| Returns the leftmost child of given `selectedNodeId` if there is one.
+Otherwise it finds the closest node id which is one level high of `selectedNodeId` if there is one.
+If non of the above results in a node id, there is nothing above `selectedNodeId` and the
+root node id of `[]` gets returned in order to jump back to the bottom.
+-}
 getNodeIdForArrowUpKeyEvent : RuleTree -> List Int -> List Int
 getNodeIdForArrowUpKeyEvent ruleTree selectedNodeId =
     let
@@ -457,6 +468,12 @@ getNodeIdForArrowUpKeyEvent ruleTree selectedNodeId =
         firstMatch leftPartAndRightPart True
 
 
+{-| Splits given `list` at `nodeId` into a left and right part.
+Given `list` is supposed to be an inorder traversal where each node
+gets stored as a `Tuple` of the form `(nodeId, level)` where `level`
+is the level in the tree, e.g. root is at level 0, the roots children
+at level 1, etc.
+-}
 splitListAtNodeId : List Int -> List ( List Int, Int ) -> ( List ( List Int, Int ), List ( List Int, Int ) )
 splitListAtNodeId nodeId list =
     let
@@ -550,22 +567,15 @@ keepOldChildrenIfRuleIsIdentical oldRuleTree newRuleTree =
             newRuleTree
 
 
-
-{- showRuleContent : SContext -> Term -> SType -> String
-   showRuleContent context term type1 =
-       case term of
-           Var _ ->
-               showContext context ++ showTerm term ++ ":" ++ showType type1
-
-           _ ->
-               showContext context ++ showTerm term ++ " : " ++ showType type1
+{-| Views given `Context` as defined through given `contextHandler`.
+Highlightening can be defined through given `conflictPointers`.
+Representation of type variables in latin or greek letters is defined
+by `viewLatinChar`.
 -}
-
-
 viewContext :
-    AContextHandler comparable typ
-    -> AContext comparable typ
-    -> List (APointer () (AContPointer comparable) termPointer typePointer)
+    AContextHandler comparableVar typ
+    -> AContext comparableVar typ
+    -> List (APointer () (AContPointer comparableVar) termPointer typePointer)
     -> Bool
     -> List (Html Msg)
 viewContext contextHandler (Context dict) conflictPointers viewLatinChar =
@@ -620,6 +630,8 @@ viewContext contextHandler (Context dict) conflictPointers viewLatinChar =
            )
 
 
+{-| Views given `term` with given highlightening from `conflictElementsRaw`.
+-}
 viewTerm : Term -> List (APointer () contPointer TermPointer typePointer) -> List (Html Msg)
 viewTerm term conflictElementsRaw =
     let
@@ -670,6 +682,10 @@ viewTerm term conflictElementsRaw =
                 ]
 
 
+{-| Views given `typ` with given highlightening from `conflictElements`.
+Representation of type variables in latin or greek letters is defined
+by `viewLatinChar`.
+-}
 viewType : SType -> List (APointer () contPointer termPointer TypePointer) -> Bool -> List (Html Msg)
 viewType typ conflictElements viewLatinChars =
     let
@@ -701,6 +717,11 @@ viewType typ conflictElements viewLatinChars =
                 [ text <| showTypeForView typ viewLatinChars ]
 
 
+{-| Views the typing judgement as given through `context`, `term` and `typ`
+with given highlightening from `conflictElementsRaw`.
+Representation of type variables in latin or greek letters is defined
+by `viewLatinChar`.
+-}
 viewRuleContent : SContext -> Term -> SType -> List Pointer -> Bool -> List (Html Msg)
 viewRuleContent context term typ pointersToHighlightRaw viewLatinChar =
     let
@@ -729,11 +750,8 @@ stlcContextHandler =
     AContextHandler showTermVar showTypeForView
 
 
-addTypingAssumptionToContext : TermVar -> SType -> SContext -> SContext
-addTypingAssumptionToContext var typ (Context dict) =
-    Context <| Dict.insert var typ dict
-
-
+{-| Encodes given `ruleTree` as a `String`.
+-}
 encodeRuleTreeAsString : RuleTree -> String
 encodeRuleTreeAsString ruleTree =
     let
@@ -761,6 +779,8 @@ encodeRuleTreeAsString ruleTree =
             "_H_"
 
 
+{-| Shows the given `TermVar`.
+-}
 showTermVar : TermVar -> String
 showTermVar =
     String.fromChar
