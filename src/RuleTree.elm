@@ -745,6 +745,8 @@ viewRuleContent context term typ pointersToHighlightRaw viewLatinChar =
         :: viewType typ pointersToHighlight viewLatinChar
 
 
+{-| Defines the behavour of `Context`-handling in regard to showing term variables and types to the view.
+-}
 stlcContextHandler : SContextHandler {}
 stlcContextHandler =
     { showTermVar = showTermVar, showTypeForView = showTypeForView }

@@ -3,6 +3,8 @@ module SharedStructures exposing (..)
 import Dict exposing (Dict)
 
 
+{-| The type alias for `Model` which represents the complete program state of this application.
+-}
 type alias Model =
     { menuState : MenuState
     , ruleTree : RuleTree
@@ -21,6 +23,9 @@ type alias Model =
     }
 
 
+{-| The type `Msg` which is responsible for communicating
+user interaction to the `update` function.
+-}
 type Msg
     = Gamma String
     | X String
@@ -50,34 +55,50 @@ type Msg
 -- STLC
 
 
+{-| The type alias for `TermVar` which is used for term variables.
+-}
 type alias TermVar =
     String
 
 
+{-| The type `Type basicType` which is used for types in the lambda calculi.
+The type variable `basicType` defines the type for _type variables_ .
+-}
 type Type basicType
     = BasicType basicType
     | Arrow (Type basicType) (Type basicType)
     | Untyped
 
 
+{-| The type alias `SType` which is used for types of the `STLC`.
+-}
 type alias SType =
     Type String
 
 
+{-| An abstract type for _contexts_, i.e. a `Dict` for typing assumptions.
+-}
 type AContext termVar typ
     = Context (Dict termVar typ)
 
 
+{-| The type alias for the context used for the STLC.
+-}
 type alias SContext =
     AContext TermVar SType
 
 
+{-| The type of terms of the lambda calculi.
+-}
 type Term
     = Var TermVar
     | Abs TermVar Term
     | App Term Term
 
 
+{-| A `RuleTree` used for type inference in the STLC
+in natural deduction style.
+-}
 type RuleTree
     = RVar SContext Term SType Bool
     | RAbs SContext Term SType RuleTree
@@ -85,6 +106,8 @@ type RuleTree
     | Hole
 
 
+{-| Defines a set of input kinds from the user interface.
+-}
 type InputKind
     = GammaInput
     | XInput
@@ -95,6 +118,9 @@ type InputKind
     | RuleSelection
 
 
+{-| A pointer which is used for indexing sub parts of typing judgements,
+e.g. to accurately highlight conflicts in the process of type inference.
+-}
 type APointer nodeId contPointer termPointer typePointer
     = FullNode nodeId
     | TermAndType nodeId
@@ -103,38 +129,9 @@ type APointer nodeId contPointer termPointer typePointer
     | TypePointer nodeId typePointer
 
 
-containsFullNode : List (APointer nodeId contPointer termPointer typePointer) -> Bool
-containsFullNode =
-    List.foldl
-        (\pointer fullNodeFound ->
-            fullNodeFound
-                || (case pointer of
-                        FullNode _ ->
-                            True
-
-                        _ ->
-                            False
-                   )
-        )
-        False
-
-
-containsFullContext : List (APointer nodeId (AContPointer var) termPointer typePointer) -> Bool
-containsFullContext =
-    List.foldl
-        (\pointer fullNodeFound ->
-            fullNodeFound
-                || (case pointer of
-                        ContPointer _ FullContext ->
-                            True
-
-                        _ ->
-                            False
-                   )
-        )
-        False
-
-
+{-| A helper function for generically transforming an abstract pointer `APointer`
+through given functions.
+-}
 fmapPointer :
     (nodeId -> newNodeId)
     -> (contPointer -> newContPointer)
@@ -160,6 +157,9 @@ fmapPointer nodeIdFunc contPointerFunc termPointerFunc typePointerFunc aPointer 
             TypePointer (nodeIdFunc nodeId) (typePointerFunc typePointer)
 
 
+{-| For given list of `APointer` the `nodeId` will be discarded and
+replaced by `()`.
+-}
 discardNodeIds : List (APointer nodeId contPointer termPointer typePointer) -> List (APointer () contPointer termPointer typePointer)
 discardNodeIds =
     List.map <| fmapPointer (\_ -> ()) identity identity identity

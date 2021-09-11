@@ -4,6 +4,8 @@ import Dict
 import SharedStructures exposing (AContext(..), Model, RuleTree(..), SContext, SType, Term(..), TermVar, Type(..))
 
 
+{-| Returns `True` iff given `ruleTree` is a leaf, i.e. does not have any child nodes.
+-}
 isLeaf : RuleTree -> Bool
 isLeaf ruleTree =
     case ruleTree of
@@ -17,6 +19,9 @@ isLeaf ruleTree =
             True
 
 
+{-| Returns the `RuleTree` at given `nodeId`.
+The argument for `ruleTree` is supposed to be the root-`RuleTree`.
+-}
 getRuleTreeNode : RuleTree -> List Int -> RuleTree
 getRuleTreeNode ruleTree nodeId =
     case ( ruleTree, nodeId ) of
@@ -61,6 +66,8 @@ getContextFromRuleTree ruleTree =
             Context Dict.empty
 
 
+{-| Returns the `Term` from given `ruleTree`.
+-}
 getTermFromRuleTree : RuleTree -> Maybe Term
 getTermFromRuleTree ruleTree =
     case ruleTree of
