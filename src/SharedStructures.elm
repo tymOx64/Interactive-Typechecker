@@ -51,7 +51,7 @@ type Msg
 
 
 type alias TermVar =
-    Char
+    String
 
 
 type Type basicType

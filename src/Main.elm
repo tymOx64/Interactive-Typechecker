@@ -295,7 +295,7 @@ update msg model =
             case applyUserInitInputs model of
                 Ok ruleTree ->
                     -- if ruleTree's term has variable shadowing, show a friendly error message
-                    if RuleTree.variableShadowingIsOccuring (getTermFromRuleTree ruleTree |> Maybe.withDefault (Var 'x')) Set.empty then
+                    if RuleTree.variableShadowingIsOccuring (getTermFromRuleTree ruleTree |> Maybe.withDefault (Var "x")) Set.empty then
                         ( { model | displayMessage = varShadowingErrMsg }, Cmd.none )
 
                     else
@@ -308,7 +308,7 @@ update msg model =
             case applyUserInitInputs model of
                 Ok ruleTree ->
                     -- if ruleTree's term has variable shadowing, show a friendly error message
-                    if RuleTree.variableShadowingIsOccuring (getTermFromRuleTree ruleTree |> Maybe.withDefault (Var 'x')) Set.empty then
+                    if RuleTree.variableShadowingIsOccuring (getTermFromRuleTree ruleTree |> Maybe.withDefault (Var "x")) Set.empty then
                         ( { model | displayMessage = varShadowingErrMsg }, Cmd.none )
 
                     else

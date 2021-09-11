@@ -750,7 +750,7 @@ stlcContextHandler =
     { showTermVar = showTermVar, showTypeForView = showTypeForView }
 
 
-{-| Encodes given `ruleTree` as a `String`.
+{-| Encodes given `ruleTree` to a `String`.
 -}
 encodeRuleTreeAsString : RuleTree -> String
 encodeRuleTreeAsString ruleTree =
@@ -783,7 +783,7 @@ encodeRuleTreeAsString ruleTree =
 -}
 showTermVar : TermVar -> String
 showTermVar =
-    String.fromChar
+    identity
 
 
 {-| Shows the term with explicit parantheses being used around all
@@ -795,10 +795,10 @@ showTerm term =
         showTermWithOutmostParantheses term_ =
             case term_ of
                 Var var ->
-                    String.fromChar var
+                    var
 
                 Abs var subterm ->
-                    "(λ" ++ String.fromChar var ++ "." ++ showTerm subterm ++ ")"
+                    "(λ" ++ var ++ "." ++ showTerm subterm ++ ")"
 
                 App left right ->
                     "(" ++ showTerm left ++ " " ++ showTerm right ++ ")"
@@ -1009,7 +1009,7 @@ getFreeVariablesFromRuleTreesTerm : RuleTree -> Set TermVar
 getFreeVariablesFromRuleTreesTerm ruleTree =
     let
         term =
-            getTermFromRuleTree ruleTree |> Maybe.withDefault (Var 'x')
+            getTermFromRuleTree ruleTree |> Maybe.withDefault (Var "x")
 
         collectAllVar allVar term_ =
             case term_ of

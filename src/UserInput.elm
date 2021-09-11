@@ -343,7 +343,7 @@ applyUserInputsToSelectedRuleTreeNode model =
                 -- not necessary to handle childContext as a Maybe type because the other Maybe types cover all invalid input already
                 childContext =
                     addTypingAssumptionToContext
-                        (getFirstCharFromString model.xInput)
+                        (parseTermVar model.xInput |> Maybe.withDefault "#")
                         (parseTypeEnd model.sigmaInput |> Maybe.withDefault (BasicType "#"))
                         (maybeContext |> Maybe.withDefault (Context Dict.empty))
 
@@ -668,9 +668,21 @@ boolParser =
         ]
 
 
-parseTermVar : Parser Char
-parseTermVar =
-    Parser.chompIf Char.isAlpha |> Parser.getChompedString |> Parser.map getFirstCharFromString
+termVarParser : Parser String
+termVarParser =
+    Parser.variable { start = Char.isAlpha, inner = \c -> Char.isAlphaNum c || c == '\'' || c == '_', reserved = Set.empty }
+
+
+termVarParserEnd : Parser TermVar
+termVarParserEnd =
+    Parser.succeed identity
+        |= termVarParser
+        |. Parser.end
+
+
+parseTermVar : String -> Maybe TermVar
+parseTermVar str =
+    Parser.run termVarParserEnd str |> Result.toMaybe
 
 
 {-| Parses terms. Outmost parantheses may be omitted, e.g. it works both for
@@ -685,7 +697,7 @@ termParser =
             |= (Parser.backtrackable <| termParserInner)
         , Parser.succeed Abs
             |. Parser.symbol "λ"
-            |= parseTermVar
+            |= termVarParser
             |. Parser.symbol "."
             |= termParserInner
         , termParserInner
@@ -700,7 +712,7 @@ termParserInner =
         [ Parser.succeed Abs
             |. (Parser.backtrackable <| Parser.symbol "(")
             |. (Parser.backtrackable <| Parser.symbol "λ")
-            |= parseTermVar
+            |= termVarParser
             |. Parser.symbol "."
             |= Parser.lazy (\_ -> termParserInner)
             |. Parser.symbol ")"
@@ -711,7 +723,7 @@ termParserInner =
             |= Parser.lazy (\_ -> termParserInner)
             |. Parser.symbol ")"
         , Parser.succeed Var
-            |= (Parser.backtrackable <| parseTermVar)
+            |= (Parser.backtrackable <| termVarParser)
         ]
 
 
@@ -747,7 +759,7 @@ parseTerm str =
 typingAssumptionParser : Parser ( Shared.TermVar, Shared.SType )
 typingAssumptionParser =
     Parser.succeed Tuple.pair
-        |= parseTermVar
+        |= termVarParser
         |. Parser.symbol ":"
         |= typeParser
 
@@ -781,8 +793,8 @@ contextParser =
     Parser.map (\list -> Context <| Dict.fromList list) contextAsListParser
 
 
-parseTypeVar : Parser String
-parseTypeVar =
+typeVarParser : Parser String
+typeVarParser =
     Parser.variable { start = Char.isAlpha, inner = \c -> Char.isAlphaNum c || c == '\'' || c == '_', reserved = Set.empty }
 
 
@@ -803,7 +815,7 @@ typeParserInner : Parser SType
 typeParserInner =
     Parser.oneOf
         [ Parser.succeed BasicType
-            |= parseTypeVar
+            |= typeVarParser
         , Parser.succeed Arrow
             |. Parser.symbol "("
             |. Parser.spaces
