@@ -7,11 +7,19 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode exposing (dict)
+import RuleTreeUtils exposing (getContextFromRuleTree, getLeftTypeFromRuleTree, getRightTypeFromRuleTree, getRuleTreeNode, getTermFromRuleTree, getTermTypeFromRuleTree)
 import Set exposing (Set)
 import SharedStructures exposing (..)
-import Utilities exposing (getSuccessEmoji)
+import Utils exposing (contextsAreEqual, getSuccessEmoji, getTypeFromContext, varIsMissingInContext, variableAndTypeConflictExistingTypingAssumption)
 
 
+{-| Traverses given `ruleTree` and all of its child nodes in order to view them in tree structure.
+
+Nodes get highlighted according to given `pointersToHighlight`.
+
+`nodeId` should correspond to the given `ruleTree`, i.e. `[]` for the root node.
+
+-}
 viewRuleTree : RuleTree -> List Int -> Model -> List Pointer -> Html Msg
 viewRuleTree ruleTree nodeId model pointersToHighlight =
     let
@@ -96,19 +104,13 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
                 [ text "?" ]
 
 
-isLeaf : RuleTree -> Bool
-isLeaf ruleTree =
-    case ruleTree of
-        RAbs _ _ _ childRuleTree ->
-            childRuleTree == Hole
+{-| Collects all conflicts into a list.
+A conflict itself is a `List Pointer`, e.g. the following is a conflict saying that
+the left term of the Application at `nodeId` is in conflict with its leftmost childs full term:
 
-        RApp _ _ _ childRuleTree1 childRuleTree2 ->
-            childRuleTree1 == Hole && childRuleTree2 == Hole
+`[ [ TermPointer nodeId AppLeft, TermPointer (nodeId ++ [ 0 ]) FullTerm ] ]`
 
-        _ ->
-            True
-
-
+-}
 getConflictsInRuleTree : RuleTree -> List Int -> List (List Pointer)
 getConflictsInRuleTree ruleTree nodeId =
     let
@@ -122,10 +124,10 @@ getConflictsInRuleTree ruleTree nodeId =
     case ruleTree of
         RVar context (Var var) typ _ ->
             appendIfConditionHolds
-                (termAndTypeConflictsExistingTypingAssumption var typ context)
+                (variableAndTypeConflictExistingTypingAssumption var typ context)
                 [ [ ContPointer nodeId (FullAssump var), TermAndType nodeId ] ]
                 ++ appendIfConditionHolds
-                    (termAndTypeMissesTypingAssumption var context)
+                    (varIsMissingInContext var context)
                     [ [ ContPointer nodeId FullContext, TermAndType nodeId ] ]
 
         RVar _ _ _ _ ->
@@ -248,6 +250,13 @@ getConflictsInRuleTree ruleTree nodeId =
             []
 
 
+{-| Returns the first conflict within given `ruleTree`.
+If there is none, an empty conflict will be returned, i.e. an empty list
+of conflict pointers.
+
+See function `getConflictsInRuleTree`.
+
+-}
 getFirstConflictFromRuleTree : RuleTree -> List Pointer
 getFirstConflictFromRuleTree ruleTree =
     let
@@ -272,137 +281,14 @@ getFirstConflictFromRuleTree ruleTree =
         getConflictsInRuleTree ruleTree [] |> List.head |> Maybe.withDefault []
 
 
+{-| Replaces the `RuleTree` at given `nodeId` for given `singletonNewRuleTree`.
 
-{- contextSubsetsContext : SContext -> SContext -> Bool
-   contextSubsetsContext (Context dict1) (Context dict2) =
-       let
-           varTypePairIsContainedByDict2 var1 typ1 =
-               Dict.get var1 dict2 |> Maybe.andThen (\typ2 -> Just (typ1 == typ2)) |> Maybe.withDefault False
-       in
-       Dict.foldl (\var1 typ1 isSubset -> varTypePairIsContainedByDict2 var1 typ1 |> (&&) isSubset) True dict1
--}
+The initial call should be made with the root node as the argument for `ruleTree`.
 
-
-{-| Checks for given contexts if they are equal, i.e. all key-value-pairs appear in both contexts.
--}
-contextsAreEqual : SContext -> SContext -> Bool
-contextsAreEqual (Context dict1) (Context dict2) =
-    Dict.toList dict1 == Dict.toList dict2
-
-
-termAndTypeMissesTypingAssumption : TermVar -> SContext -> Bool
-termAndTypeMissesTypingAssumption var (Context dict) =
-    Dict.foldl
-        (\varFromContext _ typingAssumptionIsMissing ->
-            if typingAssumptionIsMissing then
-                var /= varFromContext
-
-            else
-                False
-        )
-        True
-        dict
-
-
-{-| Checks for `RVar` rules if the variable and its type conflict
-with an existing typing assumption in the context.
-Calling this function on the following rules would return:
-
-        x:α, y:β ⊢ x:γ => True
-        x:α, y:β ⊢ x:α => False
-        y:β ⊢ x:γ => False
-
-As the last example shows the function always returns `False` if the according
-typing assumption is missing. If you need to check for that, use `termAndTypeMissesTypingAssumption`.
+If `keepOldChildren` is set to `True`, it will be tried to keep the 2nd generation children.
+See function `keepChildrenOfOldChildrenIfTreeStructureIsUnchanged` for more details.
 
 -}
-termAndTypeConflictsExistingTypingAssumption : TermVar -> SType -> SContext -> Bool
-termAndTypeConflictsExistingTypingAssumption var typ (Context dict) =
-    Dict.foldl
-        (\varFromContext typFromContext conflictFound ->
-            if conflictFound then
-                True
-
-            else
-                (var == varFromContext) && (typ /= typFromContext)
-        )
-        False
-        dict
-
-
-getContextFromRuleTree : RuleTree -> SContext
-getContextFromRuleTree ruleTree =
-    case ruleTree of
-        RVar context _ _ _ ->
-            context
-
-        RAbs context _ _ _ ->
-            context
-
-        RApp context _ _ _ _ ->
-            context
-
-        _ ->
-            Context Dict.empty
-
-
-getTermFromRuleTree : RuleTree -> Maybe Term
-getTermFromRuleTree ruleTree =
-    case ruleTree of
-        RVar _ term _ _ ->
-            Just term
-
-        RAbs _ term _ _ ->
-            Just term
-
-        RApp _ term _ _ _ ->
-            Just term
-
-        Hole ->
-            Nothing
-
-
-getTermTypeFromRuleTree : RuleTree -> Maybe SType
-getTermTypeFromRuleTree ruleTree =
-    case ruleTree of
-        RVar _ _ typ _ ->
-            Just typ
-
-        RAbs _ _ typ _ ->
-            Just typ
-
-        RApp _ _ typ _ _ ->
-            Just typ
-
-        Hole ->
-            Nothing
-
-
-getLeftTypeFromRuleTree : RuleTree -> Maybe SType
-getLeftTypeFromRuleTree ruleTree =
-    case getTermTypeFromRuleTree ruleTree of
-        Just (Arrow left _) ->
-            Just left
-
-        _ ->
-            Nothing
-
-
-getRightTypeFromRuleTree : RuleTree -> Maybe SType
-getRightTypeFromRuleTree ruleTree =
-    case getTermTypeFromRuleTree ruleTree of
-        Just (Arrow _ right) ->
-            Just right
-
-        _ ->
-            Nothing
-
-
-getTypeFromContext : TermVar -> SContext -> Maybe SType
-getTypeFromContext var (Context dict) =
-    Dict.get var dict
-
-
 changeRuleTreeNode : RuleTree -> List Int -> RuleTree -> Bool -> RuleTree
 changeRuleTreeNode ruleTree nodeId singletonNewRuleTree keepOldChildren =
     let
@@ -429,9 +315,9 @@ changeRuleTreeNode ruleTree nodeId singletonNewRuleTree keepOldChildren =
         ( _, [] ) ->
             newRuleTree
 
-        --der letzte fall fängt den vorletzten natürlich immer mit ab, jedoch dürfte der unterste fall nur als ein fehler auftreten, daher diesen ggf später noch gesondert behandeln
+        -- this case can only get matched if given nodeId leads to a non existing ruletree node
         ( _, _ ) ->
-            newRuleTree
+            Hole
 
 
 resetRuleTreeNode : RuleTree -> List Int -> RuleTree
@@ -454,33 +340,9 @@ resetRuleTreeNode ruleTree nodeId =
             ruleTree
 
 
-getRuleTreeNode : RuleTree -> List Int -> RuleTree
-getRuleTreeNode ruleTree nodeId =
-    case ( ruleTree, nodeId ) of
-        ( RAbs _ _ _ childRuleTree, 0 :: childNodeId ) ->
-            getRuleTreeNode childRuleTree childNodeId
-
-        ( RApp _ _ _ childRuleTree _, 0 :: childNodeId ) ->
-            getRuleTreeNode childRuleTree childNodeId
-
-        ( RApp _ _ _ _ childRuleTree, 1 :: childNodeId ) ->
-            getRuleTreeNode childRuleTree childNodeId
-
-        ( _, [] ) ->
-            ruleTree
-
-        ( _, _ ) ->
-            Hole
-
-
 getSelectedRuleTreeNode : Model -> RuleTree
 getSelectedRuleTreeNode model =
     getRuleTreeNode model.ruleTree model.selectedNodeId
-
-
-showNodeId : List Int -> String
-showNodeId nodeId =
-    List.foldl (\int str -> str ++ String.fromInt int) "" nodeId
 
 
 {-| Returns the target node id if there is one available, otherwise returns the currently selected node id (i.e. the selected node id remains unchanged).
@@ -652,7 +514,7 @@ ruleTreeAsInOrderList ruleTree nodeId level currentUserSelectedNodeId =
 {-| Keeps the children of the children (_2nd generation children_) if the tree structure **remains unchanged**.
 The newly generated _1st generation children_ **remain new**. But the old 2nd generation children remain old if the
 tree structure allows for that. If the tree structure doesn't allow for that, the 2nd generation gets removed and
-all subsequent generation of the newRuleTree are being kept (which is usually just the one coming from the premise of the inference rule).
+all subsequent generations of the newRuleTree are being kept (which is usually just the one coming from the premise of the inference rule).
 
 The idea behind this is that updating a tree nodes conclusion directly dictates what its premise looks like
 (the premise is the 1st generation of children), so the premise gets updated as well.

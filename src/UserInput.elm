@@ -6,7 +6,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
 import Parser exposing ((|.), (|=), Parser)
-import RuleTree exposing (addTypingAssumptionToContext, changeRuleTreeNode, createRuleTree, getContextFromRuleTree, getLeftTypeFromRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showTermVar, showType)
+import RuleTree exposing (addTypingAssumptionToContext, changeRuleTreeNode, createRuleTree, getSelectedRuleTreeNode, showContext, showTerm, showTermVar, showType)
+import RuleTreeUtils exposing (getContextFromRuleTree, getLeftTypeFromRuleTree)
 import Set
 import SharedStructures as Shared exposing (..)
 

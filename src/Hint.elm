@@ -4,9 +4,11 @@ import Array
 import Dict exposing (Dict)
 import Json.Decode exposing (dict)
 import RuleTree exposing (..)
+import RuleTreeUtils exposing (getContextFromRuleTree, getLeftTypeFromRuleTree, getRightTypeFromRuleTree, getRuleTreeNode, getTermFromRuleTree, getTermTypeFromRuleTree, isLeaf)
 import Set exposing (Set)
 import SharedStructures exposing (..)
 import UserInput exposing (fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet)
+import Utils exposing (getTypeFromContext)
 
 
 {-| Gives a hint based on some limited information from the `RuleTree`. Hints may be _incorrect_.
