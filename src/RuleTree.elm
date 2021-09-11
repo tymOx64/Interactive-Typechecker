@@ -573,7 +573,7 @@ Representation of type variables in latin or greek letters is defined
 by `viewLatinChar`.
 -}
 viewContext :
-    AContextHandler comparableVar typ
+    AContextHandler t comparableVar typ
     -> AContext comparableVar typ
     -> List (APointer () (AContPointer comparableVar) termPointer typePointer)
     -> Bool
@@ -745,9 +745,9 @@ viewRuleContent context term typ pointersToHighlightRaw viewLatinChar =
         :: viewType typ pointersToHighlight viewLatinChar
 
 
-stlcContextHandler : SContextHandler
+stlcContextHandler : SContextHandler {}
 stlcContextHandler =
-    AContextHandler showTermVar showTypeForView
+    { showTermVar = showTermVar, showTypeForView = showTypeForView }
 
 
 {-| Encodes given `ruleTree` as a `String`.

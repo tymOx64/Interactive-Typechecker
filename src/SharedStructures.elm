@@ -176,23 +176,15 @@ type AContPointer var
     | JustTypFromAssump var
 
 
-
-{- type alias AContextHandler t var typ =
-   { t
-       | showVar : var -> String
-       , showType : typ -> String
-   }
--}
-
-
-type alias AContextHandler termVar typ =
-    { showTermVar : termVar -> String
-    , showTypeForView : typ -> Bool -> String
+type alias AContextHandler t var typ =
+    { t
+        | showTermVar : var -> String
+        , showTypeForView : typ -> Bool -> String
     }
 
 
-type alias SContextHandler =
-    AContextHandler TermVar SType
+type alias SContextHandler t =
+    AContextHandler t TermVar SType
 
 
 type alias ContPointer =
