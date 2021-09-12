@@ -552,10 +552,13 @@ viewHelp =
         , div [ class "description-text-block" ]
             [ h3 [ class "description-text-headline" ] [ text "♻️" ]
             , div [ class "description-text" ]
-                [ text "This propagates your most recent changes on the Typings for Term Variables through the whole Proof Tree."
+                [ text "This propagates your most recent changes on all of the Typings for Term Variables through the whole Proof Tree."
                 ]
             , div [ class "description-text" ]
-                [ text "Works on Contexts, Typing Judgements that have a Variable as their Term, and also on the Typing Variables in Abstractions."
+                [ text "So whenever you change a Type that belongs to a Term Variable, you have the option to automatically propagate that change globally."
+                ]
+            , div [ class "description-text" ]
+                [ text "Works on Contexts, Typing Judgements that have a Variable as their Term, as well as on the Typing of Variables in Abstractions."
                 ]
             ]
         , div [ style "margin-top" "42px" ]
