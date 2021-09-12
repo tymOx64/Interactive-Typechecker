@@ -423,6 +423,10 @@ viewHome model =
                 [ text "The set of valid Term- and Typevariable Names is defined through the following Regex:"
                 , span [ class "code-text" ] [ text " [a-zA-Z][a-zA-Z0-9'_]*" ]
                 ]
+            , div [ class "description-text" ]
+                [ text "Both Terms and Types need all inner Terms and Types to be put into explicit parantheses "
+                , text "except for Termvariables and Typevariables."
+                ]
             ]
         , div [ class "description-text-block" ]
             [ h3 [ class "meta-variable", style "font-weight" "bold", class "description-text-headline" ] [ text "Γ" ]
@@ -450,7 +454,7 @@ viewHome model =
         , div [ class "description-text-block" ]
             [ h3 [ class "meta-variable", style "font-weight" "bold", class "description-text-headline" ] [ text "M" ]
             , div [ class "description-text" ]
-                [ text "Enter the Lambda Term with all inner Terms (except Variables) put in parantheses."
+                [ text "Enter the Lambda Term."
                 ]
             , div [ class "description-text" ]
                 [ text "Examples:  "
@@ -464,7 +468,7 @@ viewHome model =
                 , span [ class "meta-variable" ] [ text " M." ]
                 ]
             , div [ class "description-text" ]
-                [ text "It is recommended to leave this field empty and begin the Typing Process in the Application itself!"
+                [ text "It is recommended to leave this field empty and begin the Typing process in the Application itself!"
                 ]
             ]
         , viewNodeInitiationInputs model
@@ -475,24 +479,31 @@ viewHome model =
 
 viewHelp : Html Msg
 viewHelp =
-    div [ class "ruletree-container" ]
+    div [ class "help-container" ]
         [ div [ class "description-text-block" ]
             [ div [ class "description-text" ]
                 [ text "The set of valid Term- and Typevariable Names is defined through the following Regex:"
                 , span [ class "code-text" ] [ text " [a-zA-Z][a-zA-Z0-9'_]*" ]
                 ]
+            , div [ class "description-text" ]
+                [ text "Both Terms and Types need all inner Terms and Types to be put into explicit parantheses "
+                , text "except for Termvariables and Typevariables."
+                ]
             ]
         , div [ class "description-text-block" ]
             [ h3 [ class "meta-variable", class "description-text-headline" ] [ text "Γ" ]
             , div [ class "description-text" ]
-                [ text "Enter the Context as a set of Typing Assumptions, e.g. "
+                [ text "Enter the corresponding Context as a set of Typing Assumptions"
+                ]
+            , div [ class "description-text" ]
+                [ text "Example:  "
                 , span [ class "code-text" ] [ text " x:a, y:b->(c->a), z:Int->Bool, x:?" ]
                 ]
             ]
         , div [ class "description-text-block" ]
             [ h3 [ class "meta-variable", class "description-text-headline" ] [ text "x, M, N" ]
             , div [ class "description-text" ]
-                [ text "Enter the corresponding Lambda Term with all inner Terms (except Variables) put in parantheses."
+                [ text "Enter the corresponding Lambda Term."
                 ]
             , div [ class "description-text" ]
                 [ text "Examples:  "
@@ -502,33 +513,59 @@ viewHelp =
         , div [ class "description-text-block" ]
             [ h3 [ class "meta-variable", class "description-text-headline" ] [ text "σ, τ" ]
             , div [ class "description-text" ]
-                [ text "Enter the Type for Term "
-                , span [ class "meta-variable" ] [ text " M." ]
+                [ text "Enter the corresponding Type(s) for the selected Term."
                 ]
             ]
         , div [ class "description-text-block" ]
             [ h3 [ class "description-text-headline" ] [ text "💡" ]
             , div [ class "description-text" ]
-                [ text "todo"
+                [ text "Get a Hint for each kind of input. The given Hint is primarily based on the local and recent information, so it might be just a step closer towards the correct solution,"
+                ]
+            , div [ class "description-text" ]
+                [ text "or it might even be completely wrong if there are mistakes in the Proof Tree."
+                ]
+            , div [ class "description-text" ]
+                [ text "The Hint function can also be used for propagating changes through the Proof Tree."
+                ]
+            , div [ class "description-text" ]
+                [ text "If you have changed a Type in a certain node, then using the Hint function on adjacent nodes can help to quickly get your changes applied on other places."
                 ]
             ]
         , div [ class "description-text-block" ]
             [ h3 [ class "description-text-headline" ] [ text "💊" ]
             , div [ class "description-text" ]
-                [ text "todo"
+                [ text "This takes all the stuff that is within your currently selected Tree Node and puts it into the Input Fields."
+                ]
+            , div [ class "description-text" ]
+                [ text "This can be helpful for inner Tree Nodes to make corrections,"
+                ]
+            , div [ class "description-text" ]
+                [ text "or for outer Tree Nodes to save some time if you already feel confident on these steps."
                 ]
             ]
         , div [ class "description-text-block" ]
             [ h3 [ class "description-text-headline" ] [ text "🧹" ]
             , div [ class "description-text" ]
-                [ text "todo"
+                [ text "The broom sweeps all inputs."
                 ]
             ]
         , div [ class "description-text-block" ]
             [ h3 [ class "description-text-headline" ] [ text "♻️" ]
             , div [ class "description-text" ]
-                [ text "todo"
+                [ text "This propagates your most recent changes on the Typings for Term Variables through the whole Proof Tree."
                 ]
+            , div [ class "description-text" ]
+                [ text "Works on Contexts, Typing Judgements that have a Variable as their Term, and also on the Typing Variables in Abstractions."
+                ]
+            ]
+        , div [ style "margin-top" "42px" ]
+            [ button
+                [ class "menu__top-button"
+                , onClick HelpPage
+                , style "font-family" "Monaco, monospace"
+                , style "font-size" "130%"
+                ]
+                [ text " Return to Proof Tree " ]
             ]
         ]
 
@@ -545,7 +582,7 @@ viewTopMenu model =
 
         ( helpButtonLabel, helpButtonTooltip ) =
             if model.menuState == Help then
-                ( "Return", "Return to the Proof Tree" )
+                ( "Return", "Return to Proof Tree" )
 
             else
                 ( "?", "Show the Help Page (You can return to the Proof Tree and continue where you have stopped)" )

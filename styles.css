@@ -233,3 +233,9 @@ div.ruletree__conclusion:hover {
 	text-align: center;
 	white-space: pre;
 }
+
+.help-container {
+	margin: auto;
+    white-space: pre;
+	text-align: center;	
+}
