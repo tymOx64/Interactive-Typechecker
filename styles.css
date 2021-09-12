@@ -13,9 +13,9 @@ body {
 	height: 100%;
 }
 
-/* ------------------------------------ Start/Init Page ------------------------------------ */
+/* ------------------------------------ Start/Home Menu ------------------------------------ */
 
-.init-starting-node {
+.start-menu {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -25,32 +25,34 @@ body {
     white-space: pre;
 }
 
-.init-starting-node__input-block-container {
+.start-menu__input-block-container {
 	display: flex;
 	flex-direction: row;
 	margin-top: 10px;
 }
 
-.init-starting-node__input-block {
+.start-menu__input-block {
 	margin: 26px 15px;
 }
 
-.init-starting-node__button-block-container {
+.start-menu__button-block-container {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
 }
 
-.init-starting-node__button-block {
+.start-menu__button-block {
 	margin: 8px 60px;
 	padding: 2px 10px;
 }
 
-.init-starting-node__headline {	
+.start-menu__headline {	
 	font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 	word-spacing: 10px;
 	margin-bottom: 40px;
 }
+
+/* ------------------------------------ Generic Text ------------------------------------ */
 
 .description-text {
 	margin-top: 2px;

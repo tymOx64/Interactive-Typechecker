@@ -44,11 +44,11 @@ type Msg
     | ChangeState MenuState
     | KeyDown String
     | UrlChanged String
-    | Start
-    | GetUrl
+    | StartClick
+    | GetUrlClick
     | ToggleLatinView
-    | StartPage
-    | HelpPage
+    | OpenStartMenu
+    | OpenHelpMenu
     | NoOperation
 
 
@@ -230,7 +230,7 @@ getNodeIdFromPointer aPointer =
 
 
 type MenuState
-    = Home
+    = Start
     | SelectRule
     | VarRule
     | AppRule

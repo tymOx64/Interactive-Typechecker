@@ -64,41 +64,41 @@ inputBlock textInput model msg =
         ]
 
 
-{-| Views the gamma input and its label for the init screen.
+{-| Views the gamma input and its label for the start screen.
 -}
 viewContextInitBlock : Model -> Html Msg
 viewContextInitBlock model =
-    div [ class "init-starting-node__input-block" ]
+    div [ class "start-menu__input-block" ]
         [ label [ for "gammaInput", class "capital-letter-label" ] [ text "Γ" ]
         , newInput model.gammaInput "gammaInput" Gamma
         ]
 
 
-{-| Views the term input (M) and its label for the init screen.
+{-| Views the term input (M) and its label for the start screen.
 -}
 viewTermInitBlock : Model -> Html Msg
 viewTermInitBlock model =
-    div [ class "init-starting-node__input-block" ]
+    div [ class "start-menu__input-block" ]
         [ label [ for "mInput", class "capital-letter-label" ] [ text "M" ]
         , newInput model.mInput "mInput" M
         ]
 
 
-{-| Views the type input (tau) and its label for the init screen.
+{-| Views the type input (tau) and its label for the start screen.
 -}
 viewTypeInitBlock : Model -> Html Msg
 viewTypeInitBlock model =
-    div [ class "init-starting-node__input-block" ]
+    div [ class "start-menu__input-block" ]
         [ label [ for "tauInput", class "capital-letter-label" ] [ text "τ" ]
         , newInput model.tauInput "tauInput" Tau
         ]
 
 
-{-| Views the three inputs `Γ, M, τ` for the init screen.
+{-| Views the three inputs `Γ, M, τ` for the start screen.
 -}
 viewNodeInitiationInputs : Model -> Html Msg
 viewNodeInitiationInputs model =
-    div [ class "init-starting-node__input-block-container" ]
+    div [ class "start-menu__input-block-container" ]
         [ viewContextInitBlock model
         , viewTermInitBlock model
         , viewTypeInitBlock model
@@ -109,9 +109,9 @@ viewNodeInitiationInputs model =
 -}
 viewNodeInitiationButtons : Html Msg
 viewNodeInitiationButtons =
-    div [ class "init-starting-node__button-block-container" ]
-        [ button [ onClick GetUrl, class "init-starting-node__button-block", title "Get the URL with your Inputs encoded into the Prooftree Query" ] [ text "Get URL 🌐" ]
-        , button [ onClick Start, class "init-starting-node__button-block", title "Start the Type Deduction" ] [ text "Start 🚀" ]
+    div [ class "start-menu__button-block-container" ]
+        [ button [ onClick GetUrlClick, class "start-menu__button-block", title "Get the URL with your Inputs encoded into the Prooftree Query" ] [ text "Get URL 🌐" ]
+        , button [ onClick StartClick, class "start-menu__button-block", title "Start the Type Deduction" ] [ text "Start 🚀" ]
         ]
 
 

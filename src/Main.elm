@@ -50,7 +50,7 @@ init locationHref =
     in
     ( { menuState =
             if noProoftreeQueryGiven then
-                Home
+                Start
 
             else
                 SelectRule
@@ -74,7 +74,7 @@ init locationHref =
                 ( _, Nothing, False ) ->
                     "Unable to parse the URL. The application needs to be launched from an html file!"
 
-                -- for the init screen, don't show any display message initially
+                -- for the start menu, don't show any display message initially
                 ( _, _, True ) ->
                     ""
       , ruleTreeSuccessful = ruleTreeIsSuccessful initialRuleTree (getFirstConflictFromRuleTree initialRuleTree)
@@ -291,7 +291,7 @@ update msg model =
                 Nothing ->
                     ( { model | ruleTree = model.ruleTree, displayMessage = "Unexpected parsing error on the prooftree query." }, Cmd.none )
 
-        Start ->
+        StartClick ->
             case applyUserInitInputs model of
                 Ok ruleTree ->
                     -- if ruleTree's term has variable shadowing, show a friendly error message
@@ -304,7 +304,7 @@ update msg model =
                 Err err ->
                     ( { model | displayMessage = err }, Cmd.none )
 
-        GetUrl ->
+        GetUrlClick ->
             case applyUserInitInputs model of
                 Ok ruleTree ->
                     -- if ruleTree's term has variable shadowing, show a friendly error message
@@ -320,10 +320,10 @@ update msg model =
         ToggleLatinView ->
             ( { model | viewLatinChar = not model.viewLatinChar }, Cmd.none )
 
-        StartPage ->
-            ( { model | menuState = Home, displayMessage = "" }, Cmd.none )
+        OpenStartMenu ->
+            ( { model | menuState = Start, displayMessage = "" }, Cmd.none )
 
-        HelpPage ->
+        OpenHelpMenu ->
             ( { model
                 | menuState =
                     if model.menuState == Help then
@@ -367,7 +367,7 @@ port pushUrl : String -> Cmd msg
 view : Model -> Html Msg
 view model =
     case model.menuState of
-        Home ->
+        Start ->
             viewHome model
 
         Help ->
@@ -407,8 +407,8 @@ viewLeft model =
 
 viewHome : Model -> Html Msg
 viewHome model =
-    div [ class "init-starting-node" ]
-        [ h1 [ class "init-starting-node__headline" ]
+    div [ class "start-menu" ]
+        [ h1 [ class "start-menu__headline" ]
             [ text "STLC λ"
             , span [ style "vertical-align" "super" ] [ text "→" ]
             , text " Typechecker"
@@ -468,7 +468,7 @@ viewHome model =
                 , span [ class "meta-variable" ] [ text " M." ]
                 ]
             , div [ class "description-text" ]
-                [ text "It is recommended to leave this field empty and begin the Typing process in the Application itself!"
+                [ text "It is recommended to leave this field empty and begin the Typing Process in the Application itself!"
                 ]
             ]
         , viewNodeInitiationInputs model
@@ -564,7 +564,7 @@ viewHelp =
         , div [ style "margin-top" "42px" ]
             [ button
                 [ class "menu__top-button"
-                , onClick HelpPage
+                , onClick OpenHelpMenu
                 , style "font-family" "Monaco, monospace"
                 , style "font-size" "130%"
                 ]
@@ -594,9 +594,9 @@ viewTopMenu model =
         [ button
             [ onClick ToggleLatinView, class "menu__top-button", title toggleLatinButtonTooltip ]
             [ text toggleLatinButtonLabel ]
-        , button [ class "menu__top-button", onClick HelpPage, title helpButtonTooltip, style "font-family" "Monaco, monospace" ] [ text helpButtonLabel ]
+        , button [ class "menu__top-button", onClick OpenHelpMenu, title helpButtonTooltip, style "font-family" "Monaco, monospace" ] [ text helpButtonLabel ]
         , button
-            [ onClick StartPage
+            [ onClick OpenStartMenu
             , class "menu__top-button"
             , style "font-size" "85%"
             , style "padding-left" "5px"
