@@ -10,7 +10,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode
 import Regex
-import RuleTree exposing (encodeRuleTreeAsString, generateDisplayMessageIfRuleTreeIsSuccessfulBesidesContextMissingFreeVar, getFirstConflictFromRuleTree, getNodeIdForArrowDownKeyEvent, getNodeIdForArrowLeftOrRightKeyEvent, getNodeIdForArrowUpKeyEvent, resetRuleTreeNode, ruleTreeIsSuccessful, viewAbstractionRule, viewApplicationRule, viewRuleTree, viewVarRule)
+import RuleTree exposing (encodeRuleTreeAsString, generateDisplayMessageIfRuleTreeIsSuccessfulBesidesContextMissingFreeVar, getFirstConflictFromRuleTree, getNodeIDForArrowDownKeyEvent, getNodeIDForArrowLeftOrRightKeyEvent, getNodeIDForArrowUpKeyEvent, resetRuleTreeNode, ruleTreeIsSuccessful, viewAbstractionRule, viewApplicationRule, viewRuleTree, viewVarRule)
 import RuleTreeUtils exposing (getRuleTreeNode, getSelectedRuleTreeNode, getTermFromRuleTree)
 import Set
 import SharedStructures exposing (..)
@@ -55,7 +55,7 @@ init locationHref =
             else
                 SelectRule
       , ruleTree = initialRuleTree
-      , selectedNodeId = []
+      , selectedNodeID = []
       , latestTermVarTypings = Dict.empty
       , gammaInput = ""
       , xInput = ""
@@ -184,9 +184,9 @@ update msg model =
                     applyLatestTermVarTypingsToFullRuleTree model.latestTermVarTypings model.ruleTree
 
                 currentlySelectedRuleTree =
-                    getRuleTreeNode ruleTreeWithLatestTermVarTypings model.selectedNodeId
+                    getRuleTreeNode ruleTreeWithLatestTermVarTypings model.selectedNodeID
             in
-            ( model, pushUrl <| getUrlWithProoftree model <| passChangesThroughRuleTree currentlySelectedRuleTree model.selectedNodeId ruleTreeWithLatestTermVarTypings )
+            ( model, pushUrl <| getUrlWithProoftree model <| passChangesThroughRuleTree currentlySelectedRuleTree model.selectedNodeID ruleTreeWithLatestTermVarTypings )
 
         Apply ->
             case UserInput.applyUserInputsToSelectedRuleTreeNode model of
@@ -196,12 +196,12 @@ update msg model =
                 Err err ->
                     ( { model | displayMessage = err }, Cmd.none )
 
-        SelectTreeNode nodeId ->
-            ( adjustViewStateToSelectedRuleTree { model | selectedNodeId = nodeId }, Cmd.none )
+        SelectTreeNode nodeID ->
+            ( adjustViewStateToSelectedRuleTree { model | selectedNodeID = nodeID }, Cmd.none )
 
-        ResetTreeNode nodeId ->
+        ResetTreeNode nodeID ->
             ( adjustViewStateToSelectedRuleTree model
-            , pushUrl <| getUrlWithProoftree model (resetRuleTreeNode model.ruleTree nodeId)
+            , pushUrl <| getUrlWithProoftree model (resetRuleTreeNode model.ruleTree nodeID)
             )
 
         ChangeState newState ->
@@ -219,25 +219,25 @@ update msg model =
                                 Cmd.none
 
                     else if key == "Delete" then
-                        pushUrl <| getUrlWithProoftree model (resetRuleTreeNode model.ruleTree model.selectedNodeId)
+                        pushUrl <| getUrlWithProoftree model (resetRuleTreeNode model.ruleTree model.selectedNodeID)
 
                     else
                         Cmd.none
             in
             ( if key == "ArrowUp" then
-                { model | selectedNodeId = getNodeIdForArrowUpKeyEvent model.ruleTree model.selectedNodeId }
+                { model | selectedNodeID = getNodeIDForArrowUpKeyEvent model.ruleTree model.selectedNodeID }
                     |> adjustViewStateToSelectedRuleTree
 
               else if key == "ArrowDown" then
-                { model | selectedNodeId = getNodeIdForArrowDownKeyEvent model.ruleTree model.selectedNodeId }
+                { model | selectedNodeID = getNodeIDForArrowDownKeyEvent model.ruleTree model.selectedNodeID }
                     |> adjustViewStateToSelectedRuleTree
 
               else if key == "ArrowLeft" then
-                { model | selectedNodeId = getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId True }
+                { model | selectedNodeID = getNodeIDForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeID True }
                     |> adjustViewStateToSelectedRuleTree
 
               else if key == "ArrowRight" then
-                { model | selectedNodeId = getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId False }
+                { model | selectedNodeID = getNodeIDForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeID False }
                     |> adjustViewStateToSelectedRuleTree
 
               else if key == "1" then
@@ -273,7 +273,7 @@ update msg model =
                 Just parsedRuleTree ->
                     ( { model
                         | ruleTree = parsedRuleTree
-                        , latestTermVarTypings = updateLatestTermVarTypings model.latestTermVarTypings (getRuleTreeNode parsedRuleTree model.selectedNodeId) True
+                        , latestTermVarTypings = updateLatestTermVarTypings model.latestTermVarTypings (getRuleTreeNode parsedRuleTree model.selectedNodeID) True
                         , ruleTreeSuccessful = ruleTreeIsSuccessful parsedRuleTree (getFirstConflictFromRuleTree parsedRuleTree)
                         , displayMessage =
                             if ruleTreeIsSuccessful parsedRuleTree (getFirstConflictFromRuleTree parsedRuleTree) then
@@ -513,7 +513,7 @@ viewHelp =
         , div [ class "description-text-block" ]
             [ h3 [ class "meta-variable", class "description-text-headline" ] [ text "σ, τ" ]
             , div [ class "description-text" ]
-                [ text "Enter the corresponding Type(s) for the selected Term."
+                [ text "Enter the corresponding Type(s) for the selected Typing Judgement."
                 ]
             ]
         , div [ class "description-text-block" ]

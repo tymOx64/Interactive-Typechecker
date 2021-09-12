@@ -19,20 +19,20 @@ isLeaf ruleTree =
             True
 
 
-{-| Returns the `RuleTree` at given `nodeId`.
+{-| Returns the `RuleTree` at given `nodeID`.
 The argument for `ruleTree` is supposed to be the root-`RuleTree`.
 -}
 getRuleTreeNode : RuleTree -> List Int -> RuleTree
-getRuleTreeNode ruleTree nodeId =
-    case ( ruleTree, nodeId ) of
-        ( RAbs _ _ _ childRuleTree, 0 :: childNodeId ) ->
-            getRuleTreeNode childRuleTree childNodeId
+getRuleTreeNode ruleTree nodeID =
+    case ( ruleTree, nodeID ) of
+        ( RAbs _ _ _ childRuleTree, 0 :: childNodeID ) ->
+            getRuleTreeNode childRuleTree childNodeID
 
-        ( RApp _ _ _ childRuleTree _, 0 :: childNodeId ) ->
-            getRuleTreeNode childRuleTree childNodeId
+        ( RApp _ _ _ childRuleTree _, 0 :: childNodeID ) ->
+            getRuleTreeNode childRuleTree childNodeID
 
-        ( RApp _ _ _ _ childRuleTree, 1 :: childNodeId ) ->
-            getRuleTreeNode childRuleTree childNodeId
+        ( RApp _ _ _ _ childRuleTree, 1 :: childNodeID ) ->
+            getRuleTreeNode childRuleTree childNodeID
 
         ( _, [] ) ->
             ruleTree
@@ -45,7 +45,7 @@ getRuleTreeNode ruleTree nodeId =
 -}
 getSelectedRuleTreeNode : Model -> RuleTree
 getSelectedRuleTreeNode model =
-    getRuleTreeNode model.ruleTree model.selectedNodeId
+    getRuleTreeNode model.ruleTree model.selectedNodeID
 
 
 {-| Returns the context from given `ruleTree`

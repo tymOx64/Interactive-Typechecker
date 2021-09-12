@@ -320,7 +320,7 @@ applyUserInputsToSelectedRuleTreeNode model =
             case ( maybeContext, parseTermEnd model.xInput, parseTypeEnd model.sigmaInput ) of
                 ( Just context, Just xTerm, Just typ ) ->
                     changeRuleTreeNode model.ruleTree
-                        model.selectedNodeId
+                        model.selectedNodeID
                         (RVar context
                             xTerm
                             typ
@@ -363,7 +363,7 @@ applyUserInputsToSelectedRuleTreeNode model =
             case ( maybeContext, maybeXVar, ( maybeMTerm, maybeSigmaType, maybeTauType ) ) of
                 ( Just context, Just (Var xVar), ( Just mTerm, Just sigmaType, Just tauType ) ) ->
                     changeRuleTreeNode model.ruleTree
-                        model.selectedNodeId
+                        model.selectedNodeID
                         (RAbs context
                             (Abs xVar mTerm)
                             (Arrow sigmaType tauType)
@@ -410,7 +410,7 @@ applyUserInputsToSelectedRuleTreeNode model =
                 ( Just context, Just mTerm, ( Just nTerm, Just sigmaType, Just tauType ) ) ->
                     changeRuleTreeNode
                         model.ruleTree
-                        model.selectedNodeId
+                        model.selectedNodeID
                         (RApp context
                             (App mTerm nTerm)
                             tauType

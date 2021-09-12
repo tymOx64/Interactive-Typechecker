@@ -17,26 +17,26 @@ import Utils exposing (contextsAreEqual, getSuccessEmoji, getTypeFromContext, va
 
 Nodes get highlighted according to given `pointersToHighlight`.
 
-`nodeId` should correspond to the given `ruleTree`, i.e. `[]` for the root node.
+`nodeID` should correspond to the given `ruleTree`, i.e. `[]` for the root node.
 
 -}
 viewRuleTree : RuleTree -> List Int -> Model -> List Pointer -> Html Msg
-viewRuleTree ruleTree nodeId model pointersToHighlight =
+viewRuleTree ruleTree nodeID model pointersToHighlight =
     let
         onClickSelect =
-            onClick <| SelectTreeNode <| nodeId
+            onClick <| SelectTreeNode <| nodeID
 
         nodeAttributes =
-            [ classList [ ( "ruletree__conclusion", True ), ( "ruletree__conclusion--selected", nodeId == model.selectedNodeId ) ]
+            [ classList [ ( "ruletree__conclusion", True ), ( "ruletree__conclusion--selected", nodeID == model.selectedNodeID ) ]
             , onClickSelect
-            , onDoubleClick <| ResetTreeNode <| nodeId
+            , onDoubleClick <| ResetTreeNode <| nodeID
             , title "Select Tree Node"
             ]
 
         pointersForCurrentRuleTree =
             List.foldl
                 (\conflictPointer list ->
-                    if getNodeIdFromPointer conflictPointer == nodeId then
+                    if getNodeIDFromPointer conflictPointer == nodeID then
                         conflictPointer :: list
 
                     else
@@ -71,7 +71,7 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
                         div [ class "ruletree__hole", onClickSelect ] [ text "?" ]
 
                     else
-                        div [] [ viewRuleTree childRuleTree (nodeId ++ [ 0 ]) model pointersToHighlight ]
+                        div [] [ viewRuleTree childRuleTree (nodeID ++ [ 0 ]) model pointersToHighlight ]
             in
             div [ class "ruletree__rule-container" ]
                 [ premise
@@ -88,9 +88,9 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
                     else
                         div []
                             [ div [ class "ruletree__split-up-node" ]
-                                [ viewRuleTree childRuleTree1 (nodeId ++ [ 0 ]) model pointersToHighlight ]
+                                [ viewRuleTree childRuleTree1 (nodeID ++ [ 0 ]) model pointersToHighlight ]
                             , div [ class "ruletree__split-up-node" ]
-                                [ viewRuleTree childRuleTree2 (nodeId ++ [ 1 ]) model pointersToHighlight ]
+                                [ viewRuleTree childRuleTree2 (nodeID ++ [ 1 ]) model pointersToHighlight ]
                             ]
             in
             div [ class "ruletree__rule-container" ]
@@ -106,13 +106,13 @@ viewRuleTree ruleTree nodeId model pointersToHighlight =
 
 {-| Collects all conflicts into a list.
 A conflict itself is a `List Pointer`, e.g. the following is a conflict saying that
-the left term of the Application at `nodeId` is in conflict with its leftmost childs full term:
+the left term of the Application at `nodeID` is in conflict with its leftmost childs full term:
 
-`[ [ TermPointer nodeId AppLeft, TermPointer (nodeId ++ [ 0 ]) FullTerm ] ]`
+`[ [ TermPointer nodeID AppLeft, TermPointer (nodeID ++ [ 0 ]) FullTerm ] ]`
 
 -}
 getConflictsInRuleTree : RuleTree -> List Int -> List (List Pointer)
-getConflictsInRuleTree ruleTree nodeId =
+getConflictsInRuleTree ruleTree nodeID =
     let
         appendIfConditionHolds condition conflictList =
             if condition then
@@ -125,25 +125,25 @@ getConflictsInRuleTree ruleTree nodeId =
         RVar context (Var var) typ _ ->
             appendIfConditionHolds
                 (variableAndTypeConflictExistingTypingAssumption var typ context)
-                [ [ ContPointer nodeId (FullAssump var), TermAndType nodeId ] ]
+                [ [ ContPointer nodeID (FullAssump var), TermAndType nodeID ] ]
                 ++ appendIfConditionHolds
                     (varIsMissingInContext var context)
-                    [ [ ContPointer nodeId FullContext, TermAndType nodeId ] ]
+                    [ [ ContPointer nodeID FullContext, TermAndType nodeID ] ]
 
         RVar _ _ _ _ ->
-            [ [ TermPointer nodeId FullTerm ] ]
+            [ [ TermPointer nodeID FullTerm ] ]
 
         RAbs _ (Abs _ _) (Arrow _ _) Hole ->
             []
 
         RAbs _ _ (Arrow _ _) Hole ->
-            [ [ TermPointer nodeId FullTerm ] ]
+            [ [ TermPointer nodeID FullTerm ] ]
 
         RAbs _ (Abs _ _) _ Hole ->
-            [ [ TypePointer nodeId FullType ] ]
+            [ [ TypePointer nodeID FullType ] ]
 
         RAbs _ _ _ Hole ->
-            [ [ TermPointer nodeId FullTerm ], [ TypePointer nodeId FullType ] ]
+            [ [ TermPointer nodeID FullTerm ], [ TypePointer nodeID FullType ] ]
 
         RAbs context (Abs var mTerm) (Arrow sigma tau) childRuleTree ->
             let
@@ -174,32 +174,32 @@ getConflictsInRuleTree ruleTree nodeId =
             in
             appendIfConditionHolds
                 sigmaIsConflicting
-                [ [ TypePointer nodeId ArrLeft, ContPointer (nodeId ++ [ 0 ]) FullContext ] ]
+                [ [ TypePointer nodeID ArrLeft, ContPointer (nodeID ++ [ 0 ]) FullContext ] ]
                 ++ appendIfConditionHolds
                     tauIsConflicting
-                    [ [ TypePointer nodeId ArrRight, TypePointer (nodeId ++ [ 0 ]) FullType ] ]
+                    [ [ TypePointer nodeID ArrRight, TypePointer (nodeID ++ [ 0 ]) FullType ] ]
                 ++ appendIfConditionHolds
                     contextIsConflicting
-                    [ [ ContPointer nodeId FullContext, ContPointer (nodeId ++ [ 0 ]) FullContext ] ]
+                    [ [ ContPointer nodeID FullContext, ContPointer (nodeID ++ [ 0 ]) FullContext ] ]
                 ++ appendIfConditionHolds
                     mTermIsConflicting
-                    [ [ TermPointer nodeId AbsBody, TermPointer (nodeId ++ [ 0 ]) FullTerm ] ]
-                ++ getConflictsInRuleTree childRuleTree (nodeId ++ [ 0 ])
+                    [ [ TermPointer nodeID AbsBody, TermPointer (nodeID ++ [ 0 ]) FullTerm ] ]
+                ++ getConflictsInRuleTree childRuleTree (nodeID ++ [ 0 ])
 
         RAbs _ _ (Arrow _ _) childRuleTree ->
-            [ TermPointer nodeId FullTerm ] :: getConflictsInRuleTree childRuleTree (nodeId ++ [ 0 ])
+            [ TermPointer nodeID FullTerm ] :: getConflictsInRuleTree childRuleTree (nodeID ++ [ 0 ])
 
         RAbs _ (Abs _ _) _ childRuleTree ->
-            [ TypePointer nodeId FullType ] :: getConflictsInRuleTree childRuleTree (nodeId ++ [ 0 ])
+            [ TypePointer nodeID FullType ] :: getConflictsInRuleTree childRuleTree (nodeID ++ [ 0 ])
 
         RAbs _ _ _ childRuleTree ->
-            [ [ TermPointer nodeId FullTerm ], [ TypePointer nodeId FullType ] ] ++ getConflictsInRuleTree childRuleTree (nodeId ++ [ 0 ])
+            [ [ TermPointer nodeID FullTerm ], [ TypePointer nodeID FullType ] ] ++ getConflictsInRuleTree childRuleTree (nodeID ++ [ 0 ])
 
         RApp _ (App _ _) _ Hole Hole ->
             []
 
         RApp _ _ _ Hole Hole ->
-            [ [ TermPointer nodeId FullTerm ] ]
+            [ [ TermPointer nodeID FullTerm ] ]
 
         RApp context (App mTerm nTerm) tau childRuleTree1 childRuleTree2 ->
             let
@@ -224,27 +224,27 @@ getConflictsInRuleTree ruleTree nodeId =
             in
             appendIfConditionHolds
                 tauIsConflicting
-                [ [ TypePointer nodeId FullType, TypePointer (nodeId ++ [ 0 ]) ArrRight ] ]
+                [ [ TypePointer nodeID FullType, TypePointer (nodeID ++ [ 0 ]) ArrRight ] ]
                 ++ appendIfConditionHolds
                     mTermIsConflicting
-                    [ [ TermPointer nodeId AppLeft, TermPointer (nodeId ++ [ 0 ]) FullTerm ] ]
+                    [ [ TermPointer nodeID AppLeft, TermPointer (nodeID ++ [ 0 ]) FullTerm ] ]
                 ++ appendIfConditionHolds
                     nTermIsConflicting
-                    [ [ TermPointer nodeId AppRight, TermPointer (nodeId ++ [ 1 ]) FullTerm ] ]
+                    [ [ TermPointer nodeID AppRight, TermPointer (nodeID ++ [ 1 ]) FullTerm ] ]
                 ++ appendIfConditionHolds
                     leftContextIsConflicting
-                    [ [ ContPointer nodeId FullContext, ContPointer (nodeId ++ [ 0 ]) FullContext ] ]
+                    [ [ ContPointer nodeID FullContext, ContPointer (nodeID ++ [ 0 ]) FullContext ] ]
                 ++ appendIfConditionHolds
                     rightContextIsConflicting
-                    [ [ ContPointer nodeId FullContext, ContPointer (nodeId ++ [ 1 ]) FullContext ] ]
+                    [ [ ContPointer nodeID FullContext, ContPointer (nodeID ++ [ 1 ]) FullContext ] ]
                 ++ appendIfConditionHolds
                     upperSigmaIsConflicting
-                    [ [ TypePointer (nodeId ++ [ 0 ]) ArrLeft, TypePointer (nodeId ++ [ 1 ]) FullType ] ]
-                ++ getConflictsInRuleTree childRuleTree1 (nodeId ++ [ 0 ])
-                ++ getConflictsInRuleTree childRuleTree2 (nodeId ++ [ 1 ])
+                    [ [ TypePointer (nodeID ++ [ 0 ]) ArrLeft, TypePointer (nodeID ++ [ 1 ]) FullType ] ]
+                ++ getConflictsInRuleTree childRuleTree1 (nodeID ++ [ 0 ])
+                ++ getConflictsInRuleTree childRuleTree2 (nodeID ++ [ 1 ])
 
         RApp _ _ _ _ _ ->
-            [ [ TermPointer nodeId FullTerm ] ]
+            [ [ TermPointer nodeID FullTerm ] ]
 
         Hole ->
             []
@@ -281,7 +281,7 @@ getFirstConflictFromRuleTree ruleTree =
         getConflictsInRuleTree ruleTree [] |> List.head |> Maybe.withDefault []
 
 
-{-| Replaces the `RuleTree` at given `nodeId` for given `singletonNewRuleTree`.
+{-| Replaces the `RuleTree` at given `nodeID` for given `singletonNewRuleTree`.
 
 The initial call should be made with the root node as the argument for `ruleTree`.
 
@@ -290,10 +290,10 @@ See function `keepChildrenOfOldChildrenIfTreeStructureIsUnchanged` for more deta
 
 -}
 changeRuleTreeNode : RuleTree -> List Int -> RuleTree -> Bool -> RuleTree
-changeRuleTreeNode ruleTree nodeId singletonNewRuleTree keepOldChildren =
+changeRuleTreeNode ruleTree nodeID singletonNewRuleTree keepOldChildren =
     let
         ruleTreeNodeToBeChanged =
-            getRuleTreeNode ruleTree nodeId
+            getRuleTreeNode ruleTree nodeID
 
         newRuleTree =
             if keepOldChildren then
@@ -302,45 +302,45 @@ changeRuleTreeNode ruleTree nodeId singletonNewRuleTree keepOldChildren =
             else
                 singletonNewRuleTree
     in
-    case ( ruleTree, nodeId ) of
-        ( RAbs a b c childRuleTree, 0 :: childNodeId ) ->
-            RAbs a b c <| changeRuleTreeNode childRuleTree childNodeId newRuleTree keepOldChildren
+    case ( ruleTree, nodeID ) of
+        ( RAbs a b c childRuleTree, 0 :: childNodeID ) ->
+            RAbs a b c <| changeRuleTreeNode childRuleTree childNodeID newRuleTree keepOldChildren
 
-        ( RApp a b c childRuleTree d, 0 :: childNodeId ) ->
-            (RApp a b c <| changeRuleTreeNode childRuleTree childNodeId newRuleTree keepOldChildren) d
+        ( RApp a b c childRuleTree d, 0 :: childNodeID ) ->
+            (RApp a b c <| changeRuleTreeNode childRuleTree childNodeID newRuleTree keepOldChildren) d
 
-        ( RApp a b c d childRuleTree, 1 :: childNodeId ) ->
-            RApp a b c d <| changeRuleTreeNode childRuleTree childNodeId newRuleTree keepOldChildren
+        ( RApp a b c d childRuleTree, 1 :: childNodeID ) ->
+            RApp a b c d <| changeRuleTreeNode childRuleTree childNodeID newRuleTree keepOldChildren
 
         ( _, [] ) ->
             newRuleTree
 
-        -- this case can only get matched if given nodeId leads to a non existing ruletree node
+        -- this case can only get matched if given nodeID leads to a non existing ruletree node
         ( _, _ ) ->
             Hole
 
 
-{-| Resets the ruletree at given `nodeId`, i.e. all of its children become `Hole`;
+{-| Resets the ruletree at given `nodeID`, i.e. all of its children become `Hole`;
 in case of `RVar` the value for `hasBeenApplied` gets set to `False`.
 
 The argument for `ruleTree` should be the root node.
 
 -}
 resetRuleTreeNode : RuleTree -> List Int -> RuleTree
-resetRuleTreeNode ruleTree nodeId =
+resetRuleTreeNode ruleTree nodeID =
     let
         ruleTreeNodeToBeResetted =
-            getRuleTreeNode ruleTree nodeId
+            getRuleTreeNode ruleTree nodeID
     in
     case ruleTreeNodeToBeResetted of
         RVar a b c _ ->
-            changeRuleTreeNode ruleTree nodeId (RVar a b c False) False
+            changeRuleTreeNode ruleTree nodeID (RVar a b c False) False
 
         RAbs a b c _ ->
-            changeRuleTreeNode ruleTree nodeId (RAbs a b c Hole) False
+            changeRuleTreeNode ruleTree nodeID (RAbs a b c Hole) False
 
         RApp a b c _ _ ->
-            changeRuleTreeNode ruleTree nodeId (RApp a b c Hole Hole) False
+            changeRuleTreeNode ruleTree nodeID (RApp a b c Hole Hole) False
 
         Hole ->
             ruleTree
@@ -349,11 +349,11 @@ resetRuleTreeNode ruleTree nodeId =
 {-| Returns the target node id if there is one available, otherwise returns the currently selected node id (i.e. the selected node id remains unchanged).
 The direction (left/right) is defined through given `isLeftKeyEvent`.
 -}
-getNodeIdForArrowLeftOrRightKeyEvent : RuleTree -> List Int -> Bool -> List Int
-getNodeIdForArrowLeftOrRightKeyEvent ruleTree selectedNodeId isLeftKeyEvent =
+getNodeIDForArrowLeftOrRightKeyEvent : RuleTree -> List Int -> Bool -> List Int
+getNodeIDForArrowLeftOrRightKeyEvent ruleTree selectedNodeID isLeftKeyEvent =
     let
         targetLevel =
-            List.length selectedNodeId
+            List.length selectedNodeID
 
         filterPartsToTargetLevel parts =
             Tuple.pair
@@ -361,7 +361,7 @@ getNodeIdForArrowLeftOrRightKeyEvent ruleTree selectedNodeId isLeftKeyEvent =
                 (List.filter (\pair -> Tuple.second pair == targetLevel) (Tuple.second parts))
 
         leftPartAndRightPart =
-            ruleTreeAsInOrderList ruleTree [] 0 [ -1 ] |> splitListAtNodeId selectedNodeId |> filterPartsToTargetLevel
+            ruleTreeAsInOrderList ruleTree [] 0 [ -1 ] |> splitListAtNodeID selectedNodeID |> filterPartsToTargetLevel
 
         -- in case of right key event, swap the parts around to reverse the direction
         splittedInOrderParts =
@@ -374,59 +374,59 @@ getNodeIdForArrowLeftOrRightKeyEvent ruleTree selectedNodeId isLeftKeyEvent =
     in
     case splittedInOrderParts of
         ( [], [] ) ->
-            selectedNodeId
+            selectedNodeID
 
         ( [], sidePart2 ) ->
-            sidePart2 |> List.reverse |> List.head |> Maybe.withDefault ( selectedNodeId, -1 ) |> Tuple.first
+            sidePart2 |> List.reverse |> List.head |> Maybe.withDefault ( selectedNodeID, -1 ) |> Tuple.first
 
         ( sidePart1, _ ) ->
-            sidePart1 |> List.head |> Maybe.withDefault ( selectedNodeId, -1 ) |> Tuple.first
+            sidePart1 |> List.head |> Maybe.withDefault ( selectedNodeID, -1 ) |> Tuple.first
 
 
-{-| For non-root nodes the function simply returns the parent node id for given `selectedNodeId`.
+{-| For non-root nodes the function simply returns the parent node id for given `selectedNodeID`.
 
 For the root node, the outmost node id at the top will be returned, i.e. the node id with the biggest length.
 
 -}
-getNodeIdForArrowDownKeyEvent : RuleTree -> List Int -> List Int
-getNodeIdForArrowDownKeyEvent ruleTree selectedNodeId =
+getNodeIDForArrowDownKeyEvent : RuleTree -> List Int -> List Int
+getNodeIDForArrowDownKeyEvent ruleTree selectedNodeID =
     let
-        allNodeIds =
+        allNodeIDs =
             ruleTreeAsInOrderList ruleTree [] 0 [ -1 ]
 
-        outmostNodeId =
+        outmostNodeID =
             List.foldl
-                (\pair maxLengthNodeId ->
-                    if List.length (Tuple.first pair) > List.length maxLengthNodeId then
+                (\pair maxLengthNodeID ->
+                    if List.length (Tuple.first pair) > List.length maxLengthNodeID then
                         Tuple.first pair
 
                     else
-                        maxLengthNodeId
+                        maxLengthNodeID
                 )
                 []
-                allNodeIds
+                allNodeIDs
     in
-    case selectedNodeId of
+    case selectedNodeID of
         [] ->
-            outmostNodeId
+            outmostNodeID
 
         _ ->
-            List.take (List.length selectedNodeId - 1) selectedNodeId
+            List.take (List.length selectedNodeID - 1) selectedNodeID
 
 
-{-| Returns the leftmost child of given `selectedNodeId` if there is one.
-Otherwise it finds the closest node id which is one level high of `selectedNodeId` if there is one.
-If non of the above results in a node id, there is nothing above `selectedNodeId` and the
+{-| Returns the leftmost child of given `selectedNodeID` if there is one.
+Otherwise it finds the closest node id which is one level high of `selectedNodeID` if there is one.
+If non of the above results in a node id, there is nothing above `selectedNodeID` and the
 root node id of `[]` gets returned in order to jump back to the bottom.
 -}
-getNodeIdForArrowUpKeyEvent : RuleTree -> List Int -> List Int
-getNodeIdForArrowUpKeyEvent ruleTree selectedNodeId =
+getNodeIDForArrowUpKeyEvent : RuleTree -> List Int -> List Int
+getNodeIDForArrowUpKeyEvent ruleTree selectedNodeID =
     let
         targetLevel =
-            List.length selectedNodeId + 1
+            List.length selectedNodeID + 1
 
         leftPartAndRightPart =
-            ruleTreeAsInOrderList ruleTree [] 0 selectedNodeId |> splitListAtNodeId [ -1 ]
+            ruleTreeAsInOrderList ruleTree [] 0 selectedNodeID |> splitListAtNodeID [ -1 ]
 
         firstMatch leftRightPair scanLeftNext =
             case leftRightPair of
@@ -461,33 +461,33 @@ getNodeIdForArrowUpKeyEvent ruleTree selectedNodeId =
                     else
                         firstMatch ( l :: ls, rs ) True
     in
-    if getRuleTreeNode ruleTree (selectedNodeId ++ [ 0 ]) /= Hole then
-        selectedNodeId ++ [ 0 ]
+    if getRuleTreeNode ruleTree (selectedNodeID ++ [ 0 ]) /= Hole then
+        selectedNodeID ++ [ 0 ]
 
     else
         firstMatch leftPartAndRightPart True
 
 
-{-| Splits given `list` at `nodeId` into a left and right part.
+{-| Splits given `list` at `nodeID` into a left and right part.
 Given `list` is supposed to be an inorder traversal where each node
-gets stored as a `Tuple` of the form `(nodeId, level)` where `level`
+gets stored as a `Tuple` of the form `(nodeID, level)` where `level`
 is the level in the tree, e.g. root is at level 0, the roots children
 at level 1, etc.
 -}
-splitListAtNodeId : List Int -> List ( List Int, Int ) -> ( List ( List Int, Int ), List ( List Int, Int ) )
-splitListAtNodeId nodeId list =
+splitListAtNodeID : List Int -> List ( List Int, Int ) -> ( List ( List Int, Int ), List ( List Int, Int ) )
+splitListAtNodeID nodeID list =
     let
         splittingResult =
             List.foldl
-                (\nodeIdPair splitData ->
-                    if Tuple.first nodeIdPair == nodeId then
+                (\nodeIDPair splitData ->
+                    if Tuple.first nodeIDPair == nodeID then
                         { splitData | onLeftSide = False }
 
                     else if splitData.onLeftSide then
-                        { splitData | leftPart = nodeIdPair :: splitData.leftPart }
+                        { splitData | leftPart = nodeIDPair :: splitData.leftPart }
 
                     else
-                        { splitData | rightPart = splitData.rightPart ++ [ nodeIdPair ] }
+                        { splitData | rightPart = splitData.rightPart ++ [ nodeIDPair ] }
                 )
                 { leftPart = [], rightPart = [], onLeftSide = True }
                 list
@@ -496,33 +496,33 @@ splitListAtNodeId nodeId list =
 
 
 {-| Traverses `ruleTree` Inorder (i.e. _Left -> Root -> Right_ for two children; _Top -> Root_ for one children)
-to add each node to the resulting `List` in form of a `Tuple` consisting of the nodes _nodeId_ and _level_.
+to add each node to the resulting `List` in form of a `Tuple` consisting of the nodes _nodeID_ and _level_.
 
 The level starts at 0 for the lowest node.
 
 In case of traversing an `RVar` node as the current user selected node an auxiliary `Tuple` gets added to the
-`List` with an invalid _nodeId_ of [ -1 ] and (level + 1).
+`List` with an invalid _nodeID_ of [ -1 ] and (level + 1).
 This simplifies the process of splitting up the resulting `List` into a left and right part for all
 nodes on (level + 1).
 
 -}
 ruleTreeAsInOrderList : RuleTree -> List Int -> Int -> List Int -> List ( List Int, Int )
-ruleTreeAsInOrderList ruleTree nodeId level currentUserSelectedNodeId =
+ruleTreeAsInOrderList ruleTree nodeID level currentUserSelectedNodeID =
     case ruleTree of
         RVar _ _ _ _ ->
-            if nodeId /= currentUserSelectedNodeId then
-                [ ( nodeId, level ) ]
+            if nodeID /= currentUserSelectedNodeID then
+                [ ( nodeID, level ) ]
 
             else
-                [ ( [ -1 ], level + 1 ), ( nodeId, level ) ]
+                [ ( [ -1 ], level + 1 ), ( nodeID, level ) ]
 
         RAbs _ _ _ childRuleTree ->
-            ruleTreeAsInOrderList childRuleTree (nodeId ++ [ 0 ]) (level + 1) currentUserSelectedNodeId |> (++) [ ( nodeId, level ) ]
+            ruleTreeAsInOrderList childRuleTree (nodeID ++ [ 0 ]) (level + 1) currentUserSelectedNodeID |> (++) [ ( nodeID, level ) ]
 
         RApp _ _ _ childRuleTree1 childRuleTree2 ->
-            ruleTreeAsInOrderList childRuleTree1 (nodeId ++ [ 0 ]) (level + 1) currentUserSelectedNodeId
-                |> (++) [ ( nodeId, level ) ]
-                |> (++) (ruleTreeAsInOrderList childRuleTree2 (nodeId ++ [ 1 ]) (level + 1) currentUserSelectedNodeId)
+            ruleTreeAsInOrderList childRuleTree1 (nodeID ++ [ 0 ]) (level + 1) currentUserSelectedNodeID
+                |> (++) [ ( nodeID, level ) ]
+                |> (++) (ruleTreeAsInOrderList childRuleTree2 (nodeID ++ [ 1 ]) (level + 1) currentUserSelectedNodeID)
 
         Hole ->
             []
@@ -636,7 +636,7 @@ viewTerm : Term -> List (APointer () contPointer TermPointer typePointer) -> Lis
 viewTerm term conflictElementsRaw =
     let
         conflictElements =
-            discardNodeIds conflictElementsRaw
+            discardNodeIDs conflictElementsRaw
 
         highlightFullTerm =
             List.member (TermPointer () FullTerm) conflictElements
@@ -734,7 +734,7 @@ viewRuleContent context term typ pointersToHighlightRaw viewLatinChar =
                     " : "
 
         pointersToHighlight =
-            discardNodeIds pointersToHighlightRaw
+            discardNodeIDs pointersToHighlightRaw
 
         highlightColon =
             List.member (FullNode ()) pointersToHighlight || List.member (TermAndType ()) pointersToHighlight

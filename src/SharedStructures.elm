@@ -8,7 +8,7 @@ import Dict exposing (Dict)
 type alias Model =
     { viewState : ViewState
     , ruleTree : RuleTree
-    , selectedNodeId : List Int
+    , selectedNodeID : List Int
     , latestTermVarTypings : Dict TermVar SType
     , gammaInput : String
     , xInput : String
@@ -122,47 +122,47 @@ type InputKind
 {-| A pointer which is used for indexing sub parts of typing judgements,
 e.g. to accurately highlight conflicts in the process of type inference.
 -}
-type APointer nodeId contPointer termPointer typePointer
-    = FullNode nodeId
-    | TermAndType nodeId
-    | ContPointer nodeId contPointer
-    | TermPointer nodeId termPointer
-    | TypePointer nodeId typePointer
+type APointer nodeID contPointer termPointer typePointer
+    = FullNode nodeID
+    | TermAndType nodeID
+    | ContPointer nodeID contPointer
+    | TermPointer nodeID termPointer
+    | TypePointer nodeID typePointer
 
 
 {-| A helper function for generically transforming an abstract pointer `APointer`
 through given functions.
 -}
 fmapPointer :
-    (nodeId -> newNodeId)
+    (nodeID -> newNodeID)
     -> (contPointer -> newContPointer)
     -> (termPointer -> newTermPointer)
     -> (typePointer -> newTypePointer)
-    -> APointer nodeId contPointer termPointer typePointer
-    -> APointer newNodeId newContPointer newTermPointer newTypePointer
-fmapPointer nodeIdFunc contPointerFunc termPointerFunc typePointerFunc aPointer =
+    -> APointer nodeID contPointer termPointer typePointer
+    -> APointer newNodeID newContPointer newTermPointer newTypePointer
+fmapPointer nodeIDFunc contPointerFunc termPointerFunc typePointerFunc aPointer =
     case aPointer of
-        FullNode nodeId ->
-            FullNode (nodeIdFunc nodeId)
+        FullNode nodeID ->
+            FullNode (nodeIDFunc nodeID)
 
-        TermAndType nodeId ->
-            TermAndType (nodeIdFunc nodeId)
+        TermAndType nodeID ->
+            TermAndType (nodeIDFunc nodeID)
 
-        ContPointer nodeId contPointer ->
-            ContPointer (nodeIdFunc nodeId) (contPointerFunc contPointer)
+        ContPointer nodeID contPointer ->
+            ContPointer (nodeIDFunc nodeID) (contPointerFunc contPointer)
 
-        TermPointer nodeId termPointer ->
-            TermPointer (nodeIdFunc nodeId) (termPointerFunc termPointer)
+        TermPointer nodeID termPointer ->
+            TermPointer (nodeIDFunc nodeID) (termPointerFunc termPointer)
 
-        TypePointer nodeId typePointer ->
-            TypePointer (nodeIdFunc nodeId) (typePointerFunc typePointer)
+        TypePointer nodeID typePointer ->
+            TypePointer (nodeIDFunc nodeID) (typePointerFunc typePointer)
 
 
-{-| For given list of `APointer` the `nodeId` will be discarded and
+{-| For given list of `APointer` the `nodeID` will be discarded and
 replaced by `()`.
 -}
-discardNodeIds : List (APointer nodeId contPointer termPointer typePointer) -> List (APointer () contPointer termPointer typePointer)
-discardNodeIds =
+discardNodeIDs : List (APointer nodeID contPointer termPointer typePointer) -> List (APointer () contPointer termPointer typePointer)
+discardNodeIDs =
     List.map <| fmapPointer (\_ -> ()) identity identity identity
 
 
@@ -206,23 +206,23 @@ type TermPointer
     | AppRight
 
 
-getNodeIdFromPointer : APointer nodeId contPointer termPointer typePointer -> nodeId
-getNodeIdFromPointer aPointer =
+getNodeIDFromPointer : APointer nodeID contPointer termPointer typePointer -> nodeID
+getNodeIDFromPointer aPointer =
     case aPointer of
-        FullNode nodeId ->
-            nodeId
+        FullNode nodeID ->
+            nodeID
 
-        TermAndType nodeId ->
-            nodeId
+        TermAndType nodeID ->
+            nodeID
 
-        ContPointer nodeId _ ->
-            nodeId
+        ContPointer nodeID _ ->
+            nodeID
 
-        TermPointer nodeId _ ->
-            nodeId
+        TermPointer nodeID _ ->
+            nodeID
 
-        TypePointer nodeId _ ->
-            nodeId
+        TypePointer nodeID _ ->
+            nodeID
 
 
 

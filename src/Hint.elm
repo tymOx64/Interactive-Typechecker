@@ -566,8 +566,8 @@ getUsedTypeVariables ruleTree =
 See `passChangesDownwards` and `passChangesUpwards`.
 -}
 passChangesThroughRuleTree : RuleTree -> List Int -> RuleTree -> RuleTree
-passChangesThroughRuleTree ruleTree nodeId root =
-    passChangesDownwards (passChangesUpwards ruleTree) nodeId root
+passChangesThroughRuleTree ruleTree nodeID root =
+    passChangesDownwards (passChangesUpwards ruleTree) nodeID root
 
 
 {-| Propagates typing changes downwards according to the type inference rules.
@@ -626,20 +626,20 @@ and `passChangesDownwards` on `parent`.
 
 -}
 passChangesDownwards : RuleTree -> List Int -> RuleTree -> RuleTree
-passChangesDownwards ruleTree nodeId root =
+passChangesDownwards ruleTree nodeID root =
     let
         _ =
-            Debug.log "currentNodeId" nodeId
+            Debug.log "currentNodeID" nodeID
 
-        parentNodeId =
-            List.take (List.length nodeId - 1) nodeId |> Debug.log "parentNodeId"
+        parentNodeID =
+            List.take (List.length nodeID - 1) nodeID |> Debug.log "parentNodeID"
 
         -- to decide wether the ruleTree is the left child (0) or right child (1) of an RApp parent
         lastNodePointer =
-            List.reverse nodeId |> List.head |> Maybe.withDefault -1
+            List.reverse nodeID |> List.head |> Maybe.withDefault -1
 
         parentRuleTree =
-            getRuleTreeNode root parentNodeId
+            getRuleTreeNode root parentNodeID
 
         context =
             getContextFromRuleTree ruleTree
@@ -661,7 +661,7 @@ passChangesDownwards ruleTree nodeId root =
                 _ ->
                     Nothing
     in
-    case ( parentRuleTree, lastNodePointer, nodeId ) of
+    case ( parentRuleTree, lastNodePointer, nodeID ) of
         -- reached the root node
         ( _, _, [] ) ->
             ruleTree
@@ -680,7 +680,7 @@ passChangesDownwards ruleTree nodeId root =
                 (typeChangeInfo newArrowType FullType)
                 (Just ruleTree)
                 Nothing
-                |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
+                |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeID root)
 
         ( RApp parentContext _ _ _ parentsNext2, 0, _ ) ->
             let
@@ -692,7 +692,7 @@ passChangesDownwards ruleTree nodeId root =
                 (typeChangeInfo rightType FullType)
                 (Just ruleTree)
                 (reconstructOnPassedChanges parentsNext2 newContextForParentsNext2 (typeChangeInfo leftType FullType) Nothing Nothing |> passChangesUpwards |> Just)
-                |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
+                |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeID root)
 
         ( RApp parentContext _ _ parentsNext1 _, 1, _ ) ->
             let
@@ -704,11 +704,11 @@ passChangesDownwards ruleTree nodeId root =
                 Nothing
                 (reconstructOnPassedChanges parentsNext1 newContextForParentsNext1 (typeChangeInfo fullType ArrLeft) Nothing Nothing |> passChangesUpwards |> Just)
                 (ruleTree |> Just)
-                |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
+                |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeID root)
 
         -- dont change anything, except that the parent now has the newly changed child 'ruleTree'
         ( RAbs a b c _, _, _ ) ->
-            RAbs a b c ruleTree |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeId root)
+            RAbs a b c ruleTree |> (\newlyBuiltParentRuleTree -> passChangesDownwards newlyBuiltParentRuleTree parentNodeID root)
 
         _ ->
             Hole
