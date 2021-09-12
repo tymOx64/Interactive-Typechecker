@@ -50,7 +50,7 @@ init locationHref =
     in
     ( { menuState =
             if noProoftreeQueryGiven then
-                CreateStartingNode
+                Home
 
             else
                 SelectRule
@@ -321,7 +321,19 @@ update msg model =
             ( { model | viewLatinChar = not model.viewLatinChar }, Cmd.none )
 
         StartPage ->
-            ( { model | menuState = CreateStartingNode, displayMessage = "" }, Cmd.none )
+            ( { model | menuState = Home, displayMessage = "" }, Cmd.none )
+
+        HelpPage ->
+            ( { model
+                | menuState =
+                    if model.menuState == Help then
+                        SelectRule
+
+                    else
+                        Help
+              }
+            , Cmd.none
+            )
 
         NoOperation ->
             ( model, Cmd.none )
@@ -355,8 +367,14 @@ port pushUrl : String -> Cmd msg
 view : Model -> Html Msg
 view model =
     case model.menuState of
-        CreateStartingNode ->
-            viewInitStartingNode model
+        Home ->
+            viewHome model
+
+        Help ->
+            div [ class "main-application-container" ]
+                [ viewHelp
+                , viewRight model
+                ]
 
         _ ->
             div [ class "main-application-container" ]
@@ -387,8 +405,8 @@ viewLeft model =
     div [ class "ruletree-container" ] [ viewRuleTree model.ruleTree [] model (getFirstConflictFromRuleTree model.ruleTree) ]
 
 
-viewInitStartingNode : Model -> Html Msg
-viewInitStartingNode model =
+viewHome : Model -> Html Msg
+viewHome model =
     div [ class "init-starting-node" ]
         [ h1 [ class "init-starting-node__headline" ]
             [ text "STLC λ"
@@ -397,19 +415,19 @@ viewInitStartingNode model =
             ]
         , div [ class "description-text", style "margin-bottom" "13px" ]
             [ text "Set up the Typing Judgement"
-            , span [ class "meta-variable" ] [ text "    Γ  ⊢  M  :  τ    " ]
+            , span [ class "meta-variable", style "font-weight" "bold" ] [ text "    Γ  ⊢  M  :  τ    " ]
             , text "you would like your Proof Tree to start with!"
             ]
         , div [ class "description-text-block" ]
             [ div [ class "description-text" ]
-                [ text "The Set of valid Typevariable Names is defined through the following Regex:"
+                [ text "The set of valid Term- and Typevariable Names is defined through the following Regex:"
                 , span [ class "code-text" ] [ text " [a-zA-Z][a-zA-Z0-9'_]*" ]
                 ]
             ]
         , div [ class "description-text-block" ]
-            [ div [ class "description-text" ]
-                [ span [ class "meta-variable" ] [ text "Γ " ]
-                , text ":  Enter the Context as a Set of Typing Assumptions, e.g. "
+            [ h3 [ class "meta-variable", style "font-weight" "bold", class "description-text-headline" ] [ text "Γ" ]
+            , div [ class "description-text" ]
+                [ text "Enter the Context as a set of Typing Assumptions, e.g. "
                 , span [ class "code-text" ] [ text " x:a, y:b->(c->a), z:Int->Bool, x:?" ]
                 ]
             , div [ class "description-text" ]
@@ -430,18 +448,19 @@ viewInitStartingNode model =
                 ]
             ]
         , div [ class "description-text-block" ]
-            [ div [ class "description-text" ]
-                [ span [ class "meta-variable" ] [ text "M " ]
-                , text ":  Enter the Lambda Term with all inner Terms (except Variables) put in parantheses. Examples:"
+            [ h3 [ class "meta-variable", style "font-weight" "bold", class "description-text-headline" ] [ text "M" ]
+            , div [ class "description-text" ]
+                [ text "Enter the Lambda Term with all inner Terms (except Variables) put in parantheses."
                 ]
             , div [ class "description-text" ]
-                [ span [ class "code-text" ] [ text " x, x y, \\x.y, \\p.(k p), (\\z.(\\w.(x w))) u" ]
+                [ text "Examples:  "
+                , span [ class "code-text" ] [ text " x, x y, \\x.y, \\p.(k p), (\\z.(\\w.(x w))) u" ]
                 ]
             ]
         , div [ class "description-text-block" ]
-            [ div [ class "description-text" ]
-                [ span [ class "meta-variable" ] [ text "τ " ]
-                , text ":  Enter the Type for Term "
+            [ h3 [ class "meta-variable", style "font-weight" "bold", class "description-text-headline" ] [ text "τ" ]
+            , div [ class "description-text" ]
+                [ text "Enter the Type for Term "
                 , span [ class "meta-variable" ] [ text " M." ]
                 ]
             , div [ class "description-text" ]
@@ -454,6 +473,66 @@ viewInitStartingNode model =
         ]
 
 
+viewHelp : Html Msg
+viewHelp =
+    div [ class "ruletree-container" ]
+        [ div [ class "description-text-block" ]
+            [ div [ class "description-text" ]
+                [ text "The set of valid Term- and Typevariable Names is defined through the following Regex:"
+                , span [ class "code-text" ] [ text " [a-zA-Z][a-zA-Z0-9'_]*" ]
+                ]
+            ]
+        , div [ class "description-text-block" ]
+            [ h3 [ class "meta-variable", class "description-text-headline" ] [ text "Γ" ]
+            , div [ class "description-text" ]
+                [ text "Enter the Context as a set of Typing Assumptions, e.g. "
+                , span [ class "code-text" ] [ text " x:a, y:b->(c->a), z:Int->Bool, x:?" ]
+                ]
+            ]
+        , div [ class "description-text-block" ]
+            [ h3 [ class "meta-variable", class "description-text-headline" ] [ text "x, M, N" ]
+            , div [ class "description-text" ]
+                [ text "Enter the corresponding Lambda Term with all inner Terms (except Variables) put in parantheses."
+                ]
+            , div [ class "description-text" ]
+                [ text "Examples:  "
+                , span [ class "code-text" ] [ text " x, x y, \\x.y, \\p.(k p), (\\z.(\\w.(x w))) u" ]
+                ]
+            ]
+        , div [ class "description-text-block" ]
+            [ h3 [ class "meta-variable", class "description-text-headline" ] [ text "σ, τ" ]
+            , div [ class "description-text" ]
+                [ text "Enter the Type for Term "
+                , span [ class "meta-variable" ] [ text " M." ]
+                ]
+            ]
+        , div [ class "description-text-block" ]
+            [ h3 [ class "description-text-headline" ] [ text "💡" ]
+            , div [ class "description-text" ]
+                [ text "todo"
+                ]
+            ]
+        , div [ class "description-text-block" ]
+            [ h3 [ class "description-text-headline" ] [ text "💊" ]
+            , div [ class "description-text" ]
+                [ text "todo"
+                ]
+            ]
+        , div [ class "description-text-block" ]
+            [ h3 [ class "description-text-headline" ] [ text "🧹" ]
+            , div [ class "description-text" ]
+                [ text "todo"
+                ]
+            ]
+        , div [ class "description-text-block" ]
+            [ h3 [ class "description-text-headline" ] [ text "♻️" ]
+            , div [ class "description-text" ]
+                [ text "todo"
+                ]
+            ]
+        ]
+
+
 viewTopMenu : Model -> Html Msg
 viewTopMenu model =
     let
@@ -463,11 +542,19 @@ viewTopMenu model =
 
             else
                 ( "t", "Switch to the Latin representation of Type Variables" )
+
+        ( helpButtonLabel, helpButtonTooltip ) =
+            if model.menuState == Help then
+                ( "Return", "Return to the Proof Tree" )
+
+            else
+                ( "?", "Show the Help Page (You can return to the Proof Tree and continue where you have stopped)" )
     in
     div [ class "menu__top-button-container" ]
         [ button
             [ onClick ToggleLatinView, class "menu__top-button", title toggleLatinButtonTooltip ]
             [ text toggleLatinButtonLabel ]
+        , button [ class "menu__top-button", onClick HelpPage, title helpButtonTooltip, style "font-family" "Monaco, monospace" ] [ text helpButtonLabel ]
         , button
             [ onClick StartPage
             , class "menu__top-button"

@@ -65,8 +65,12 @@ body {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	margin-top: 8px;
-	margin-bottom: 8px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+.description-text-headline {
+	margin-bottom: 4px;
 }
 
 .code-text {

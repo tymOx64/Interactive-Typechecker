@@ -48,6 +48,7 @@ type Msg
     | GetUrl
     | ToggleLatinView
     | StartPage
+    | HelpPage
     | NoOperation
 
 
@@ -229,11 +230,12 @@ getNodeIdFromPointer aPointer =
 
 
 type MenuState
-    = SelectRule
+    = Home
+    | SelectRule
     | VarRule
     | AppRule
     | AbsRule
-    | CreateStartingNode
+    | Help
 
 
 changeState : MenuState -> Model -> Model
