@@ -15,7 +15,7 @@ body {
 
 /* ------------------------------------ Start/Home Menu ------------------------------------ */
 
-.start-menu {
+.start-page {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -25,28 +25,28 @@ body {
     white-space: pre;
 }
 
-.start-menu__input-block-container {
+.start-page__input-block-container {
 	display: flex;
 	flex-direction: row;
 	margin-top: 10px;
 }
 
-.start-menu__input-block {
+.start-page__input-block {
 	margin: 26px 15px;
 }
 
-.start-menu__button-block-container {
+.start-page__button-block-container {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
 }
 
-.start-menu__button-block {
+.start-page__button-block {
 	margin: 8px 60px;
 	padding: 2px 10px;
 }
 
-.start-menu__headline {	
+.start-page__headline {	
 	font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 	word-spacing: 10px;
 	margin-bottom: 40px;

@@ -46,7 +46,7 @@ getHint inputKind model =
                 Dict.empty
                 currentContextDict
     in
-    case ( selectedRuleTree, model.menuState ) of
+    case ( selectedRuleTree, model.viewState ) of
         ( RVar _ thisTerm thisType _, VarRule ) ->
             let
                 latestTypingForX =
@@ -377,13 +377,13 @@ getHint inputKind model =
         ( ruleTree, SelectRule ) ->
             case ( inputKind, getTermFromRuleTree ruleTree ) of
                 ( RuleSelection, Just (Var _) ) ->
-                    changeState VarRule model
+                    changeViewState VarRule model
 
                 ( RuleSelection, Just (Abs _ _) ) ->
-                    changeState AbsRule model
+                    changeViewState AbsRule model
 
                 ( RuleSelection, Just (App _ _) ) ->
-                    changeState AppRule model
+                    changeViewState AppRule model
 
                 ( RuleSelection, Nothing ) ->
                     { model | displayMessage = "Could not determine the corresponding inference rule. Try to select a valid tree node!" }

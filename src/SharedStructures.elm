@@ -6,7 +6,7 @@ import Dict exposing (Dict)
 {-| The type alias for `Model` which represents the complete program state of this application.
 -}
 type alias Model =
-    { menuState : MenuState
+    { viewState : ViewState
     , ruleTree : RuleTree
     , selectedNodeId : List Int
     , latestTermVarTypings : Dict TermVar SType
@@ -41,7 +41,7 @@ type Msg
     | Apply
     | SelectTreeNode (List Int)
     | ResetTreeNode (List Int)
-    | ChangeState MenuState
+    | ChangeState ViewState
     | KeyDown String
     | UrlChanged String
     | StartClick
@@ -229,24 +229,24 @@ getNodeIdFromPointer aPointer =
 -- USER INPUT
 
 
-type MenuState
+type ViewState
     = Start
+    | Help
     | SelectRule
     | VarRule
     | AppRule
     | AbsRule
-    | Help
 
 
-changeState : MenuState -> Model -> Model
-changeState menuState model =
+changeViewState : ViewState -> Model -> Model
+changeViewState viewState model =
     { model
-        | menuState = menuState
+        | viewState = viewState
         , displayMessage =
-            if List.member menuState [ VarRule, AbsRule, AppRule ] then
+            if List.member viewState [ VarRule, AbsRule, AppRule ] then
                 "Fill out the input fields and hit 'Apply'!"
 
-            else if menuState == SelectRule then
+            else if viewState == SelectRule then
                 "Select the corresponding inference rule!"
 
             else

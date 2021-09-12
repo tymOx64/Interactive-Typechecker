@@ -48,7 +48,7 @@ init locationHref =
         _ =
             Debug.log "test stuff" <| 5
     in
-    ( { menuState =
+    ( { viewState =
             if noProoftreeQueryGiven then
                 Start
 
@@ -197,15 +197,15 @@ update msg model =
                     ( { model | displayMessage = err }, Cmd.none )
 
         SelectTreeNode nodeId ->
-            ( adjustMenuStateToSelectedRuleTree { model | selectedNodeId = nodeId }, Cmd.none )
+            ( adjustViewStateToSelectedRuleTree { model | selectedNodeId = nodeId }, Cmd.none )
 
         ResetTreeNode nodeId ->
-            ( adjustMenuStateToSelectedRuleTree model
+            ( adjustViewStateToSelectedRuleTree model
             , pushUrl <| getUrlWithProoftree model (resetRuleTreeNode model.ruleTree nodeId)
             )
 
         ChangeState newState ->
-            ( changeState newState model, Cmd.none )
+            ( changeViewState newState model, Cmd.none )
 
         KeyDown key ->
             let
@@ -226,34 +226,34 @@ update msg model =
             in
             ( if key == "ArrowUp" then
                 { model | selectedNodeId = getNodeIdForArrowUpKeyEvent model.ruleTree model.selectedNodeId }
-                    |> adjustMenuStateToSelectedRuleTree
+                    |> adjustViewStateToSelectedRuleTree
 
               else if key == "ArrowDown" then
                 { model | selectedNodeId = getNodeIdForArrowDownKeyEvent model.ruleTree model.selectedNodeId }
-                    |> adjustMenuStateToSelectedRuleTree
+                    |> adjustViewStateToSelectedRuleTree
 
               else if key == "ArrowLeft" then
                 { model | selectedNodeId = getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId True }
-                    |> adjustMenuStateToSelectedRuleTree
+                    |> adjustViewStateToSelectedRuleTree
 
               else if key == "ArrowRight" then
                 { model | selectedNodeId = getNodeIdForArrowLeftOrRightKeyEvent model.ruleTree model.selectedNodeId False }
-                    |> adjustMenuStateToSelectedRuleTree
+                    |> adjustViewStateToSelectedRuleTree
 
               else if key == "1" then
-                changeState VarRule model
+                changeViewState VarRule model
 
               else if key == "2" then
-                changeState AppRule model
+                changeViewState AppRule model
 
               else if key == "3" then
-                changeState AbsRule model
+                changeViewState AbsRule model
 
               else if key == "Enter" then
                 -- the actual application happens through the cmd (see "let in" above)
                 case UserInput.applyUserInputsToSelectedRuleTreeNode model of
                     Ok _ ->
-                        adjustMenuStateToSelectedRuleTree model
+                        adjustViewStateToSelectedRuleTree model
                             |> flushAllInputs
 
                     Err err ->
@@ -261,7 +261,7 @@ update msg model =
 
               else if key == "Delete" then
                 -- the actual deletion happens through the cmd (see "let in" above)
-                adjustMenuStateToSelectedRuleTree model
+                adjustViewStateToSelectedRuleTree model
 
               else
                 model
@@ -299,7 +299,7 @@ update msg model =
                         ( { model | displayMessage = varShadowingErrMsg }, Cmd.none )
 
                     else
-                        ( changeState SelectRule model |> flushAllInputs, pushUrl <| getUrlWithProoftree model ruleTree )
+                        ( changeViewState SelectRule model |> flushAllInputs, pushUrl <| getUrlWithProoftree model ruleTree )
 
                 Err err ->
                     ( { model | displayMessage = err }, Cmd.none )
@@ -321,12 +321,12 @@ update msg model =
             ( { model | viewLatinChar = not model.viewLatinChar }, Cmd.none )
 
         OpenStartMenu ->
-            ( { model | menuState = Start, displayMessage = "" }, Cmd.none )
+            ( { model | viewState = Start, displayMessage = "" }, Cmd.none )
 
         OpenHelpMenu ->
             ( { model
-                | menuState =
-                    if model.menuState == Help then
+                | viewState =
+                    if model.viewState == Help then
                         SelectRule
 
                     else
@@ -366,7 +366,7 @@ port pushUrl : String -> Cmd msg
 
 view : Model -> Html Msg
 view model =
-    case model.menuState of
+    case model.viewState of
         Start ->
             viewHome model
 
@@ -407,8 +407,8 @@ viewLeft model =
 
 viewHome : Model -> Html Msg
 viewHome model =
-    div [ class "start-menu" ]
-        [ h1 [ class "start-menu__headline" ]
+    div [ class "start-page" ]
+        [ h1 [ class "start-page__headline" ]
             [ text "STLC λ"
             , span [ style "vertical-align" "super" ] [ text "→" ]
             , text " Typechecker"
@@ -584,7 +584,7 @@ viewTopMenu model =
                 ( "t", "Switch to the Latin representation of Type Variables" )
 
         ( helpButtonLabel, helpButtonTooltip ) =
-            if model.menuState == Help then
+            if model.viewState == Help then
                 ( "Return", "Return to Proof Tree" )
 
             else

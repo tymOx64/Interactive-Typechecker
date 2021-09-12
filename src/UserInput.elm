@@ -68,7 +68,7 @@ inputBlock textInput model msg =
 -}
 viewContextInitBlock : Model -> Html Msg
 viewContextInitBlock model =
-    div [ class "start-menu__input-block" ]
+    div [ class "start-page__input-block" ]
         [ label [ for "gammaInput", class "capital-letter-label" ] [ text "Γ" ]
         , newInput model.gammaInput "gammaInput" Gamma
         ]
@@ -78,7 +78,7 @@ viewContextInitBlock model =
 -}
 viewTermInitBlock : Model -> Html Msg
 viewTermInitBlock model =
-    div [ class "start-menu__input-block" ]
+    div [ class "start-page__input-block" ]
         [ label [ for "mInput", class "capital-letter-label" ] [ text "M" ]
         , newInput model.mInput "mInput" M
         ]
@@ -88,7 +88,7 @@ viewTermInitBlock model =
 -}
 viewTypeInitBlock : Model -> Html Msg
 viewTypeInitBlock model =
-    div [ class "start-menu__input-block" ]
+    div [ class "start-page__input-block" ]
         [ label [ for "tauInput", class "capital-letter-label" ] [ text "τ" ]
         , newInput model.tauInput "tauInput" Tau
         ]
@@ -98,7 +98,7 @@ viewTypeInitBlock model =
 -}
 viewNodeInitiationInputs : Model -> Html Msg
 viewNodeInitiationInputs model =
-    div [ class "start-menu__input-block-container" ]
+    div [ class "start-page__input-block-container" ]
         [ viewContextInitBlock model
         , viewTermInitBlock model
         , viewTypeInitBlock model
@@ -109,9 +109,9 @@ viewNodeInitiationInputs model =
 -}
 viewNodeInitiationButtons : Html Msg
 viewNodeInitiationButtons =
-    div [ class "start-menu__button-block-container" ]
-        [ button [ onClick GetUrlClick, class "start-menu__button-block", title "Get the URL with your Inputs encoded into the Prooftree Query" ] [ text "Get URL 🌐" ]
-        , button [ onClick StartClick, class "start-menu__button-block", title "Start the Type Deduction" ] [ text "Start 🚀" ]
+    div [ class "start-page__button-block-container" ]
+        [ button [ onClick GetUrlClick, class "start-page__button-block", title "Get the URL with your Inputs encoded into the Prooftree Query" ] [ text "Get URL 🌐" ]
+        , button [ onClick StartClick, class "start-page__button-block", title "Start the Type Deduction" ] [ text "Start 🚀" ]
         ]
 
 
@@ -231,8 +231,8 @@ flushAllInputs model =
 viewRuleUserInterface : Model -> Html Msg
 viewRuleUserInterface model =
     let
-        showFor menuStates =
-            if List.member model.menuState menuStates then
+        showFor viewStates =
+            if List.member model.viewState viewStates then
                 style "display" "block"
 
             else
@@ -264,7 +264,7 @@ viewRuleUserInterface model =
             , inputBlock tauInput model (Hint TauInput)
             ]
         , div
-            [ if List.member model.menuState [ VarRule, AbsRule, AppRule ] then
+            [ if List.member model.viewState [ VarRule, AbsRule, AppRule ] then
                 style "display" "flex"
 
               else
@@ -315,7 +315,7 @@ applyUserInputsToSelectedRuleTreeNode model =
         nErr =
             "Unable to parse the N input. Did you forget to put explicit parantheses? Example input: \\x.(x y)"
     in
-    case model.menuState of
+    case model.viewState of
         VarRule ->
             case ( maybeContext, parseTermEnd model.xInput, parseTypeEnd model.sigmaInput ) of
                 ( Just context, Just xTerm, Just typ ) ->
@@ -488,35 +488,35 @@ applyUserInitInputs model =
             Err tauErr
 
 
-adjustMenuStateToSelectedRuleTree : Model -> Model
-adjustMenuStateToSelectedRuleTree model =
+adjustViewStateToSelectedRuleTree : Model -> Model
+adjustViewStateToSelectedRuleTree model =
     let
         currentSelectedRuleTree =
             getSelectedRuleTreeNode model
     in
     case currentSelectedRuleTree of
         RVar _ _ _ True ->
-            changeState VarRule model
+            changeViewState VarRule model
 
         RVar _ _ _ False ->
-            changeState SelectRule model
+            changeViewState SelectRule model
 
         RAbs _ _ _ childRuleTree ->
             if childRuleTree == Hole then
-                changeState SelectRule model
+                changeViewState SelectRule model
 
             else
-                changeState AbsRule model
+                changeViewState AbsRule model
 
         RApp _ _ _ childRuleTree1 childRuleTree2 ->
             if childRuleTree1 == Hole && childRuleTree2 == Hole then
-                changeState SelectRule model
+                changeViewState SelectRule model
 
             else
-                changeState AppRule model
+                changeViewState AppRule model
 
         Hole ->
-            changeState SelectRule model
+            changeViewState SelectRule model
 
 
 {-| Label for the gamma input.
