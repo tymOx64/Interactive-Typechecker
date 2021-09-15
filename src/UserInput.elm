@@ -450,7 +450,7 @@ applyUserInitInputs model =
 
         maybeTauType =
             if model.tauInput == "" then
-                Just Untyped
+                Just Unknown
 
             else
                 parseTypeEnd model.tauInput
@@ -826,7 +826,7 @@ typeParserInner =
             |= Parser.lazy (\_ -> typeParserInner)
             |. Parser.spaces
             |. Parser.symbol ")"
-        , Parser.succeed Untyped
+        , Parser.succeed Unknown
             |. Parser.symbol "?"
         ]
 

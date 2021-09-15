@@ -59,10 +59,10 @@ getHint inputKind model =
 
                 typeFromThisNode =
                     case thisType of
-                        Untyped ->
+                        Unknown ->
                             Nothing
 
-                        Arrow Untyped Untyped ->
+                        Arrow Unknown Unknown ->
                             Nothing
 
                         _ ->
@@ -90,7 +90,7 @@ getHint inputKind model =
                         _ ->
                             -- matching this case implies that all typeVar are in use which we want to
                             -- show as a displayMessage. the handling for this is done below.
-                            Untyped
+                            Unknown
             in
             case ( inputKind, thisTerm, unusedTypeVar ) of
                 ( GammaInput, Var var, Just _ ) ->
@@ -148,7 +148,7 @@ getHint inputKind model =
 
                         leftTypeFromThisNode =
                             case getLeftTypeFromRuleTree selectedRuleTree of
-                                Just Untyped ->
+                                Just Unknown ->
                                     Nothing
 
                                 Just leftType ->
@@ -191,7 +191,7 @@ getHint inputKind model =
 
                         rightTypeFromThisNode =
                             case getRightTypeFromRuleTree selectedRuleTree of
-                                Just Untyped ->
+                                Just Unknown ->
                                     Nothing
 
                                 Just rightType ->
@@ -280,7 +280,7 @@ getHint inputKind model =
                         sigmaTypeFromArbitraryUpperTerms =
                             -- try the left RuleTree first
                             case getLeftTypeFromRuleTree childRuleTree1 of
-                                Just Untyped ->
+                                Just Unknown ->
                                     Nothing
 
                                 Just leftType ->
@@ -289,7 +289,7 @@ getHint inputKind model =
                                 _ ->
                                     -- try the right RuleTree
                                     case getTermTypeFromRuleTree childRuleTree2 of
-                                        Just Untyped ->
+                                        Just Unknown ->
                                             Nothing
 
                                         Just typ ->
@@ -344,7 +344,7 @@ getHint inputKind model =
 
                         tauTypeFromArbitraryMTerm =
                             case thisType of
-                                Untyped ->
+                                Unknown ->
                                     Nothing
 
                                 typ ->
@@ -431,7 +431,7 @@ updateLatestTermVarTypings latestTermVarTypingsParam ruleTree alsoCallOnChildren
 
         updateLatestTypingsWith var typ latestTypings =
             -- do not update with the most unknown types
-            if typ /= Untyped && typ /= Arrow Untyped Untyped then
+            if typ /= Unknown && typ /= Arrow Unknown Unknown then
                 Dict.insert var typ latestTypings
 
             else
@@ -539,7 +539,7 @@ getUsedTypeVariables ruleTree =
                 Arrow left right ->
                     Set.union (typeVariablesFromTypeToSet left) (typeVariablesFromTypeToSet right)
 
-                Untyped ->
+                Unknown ->
                     Set.empty
 
         typeVariablesFromContextToSet (Context dict) =
@@ -731,7 +731,7 @@ reconstructOnPassedChanges ruleTree newContext typeChangeInfo newChild1 newChild
     let
         oldType =
             -- the ruleTree given to this function should never be 'Hole' so getTermTypeFromRuleTree should never return 'Nothing'
-            getTermTypeFromRuleTree ruleTree |> Maybe.withDefault Untyped
+            getTermTypeFromRuleTree ruleTree |> Maybe.withDefault Unknown
 
         newType =
             case ( typeChangeInfo, oldType ) of

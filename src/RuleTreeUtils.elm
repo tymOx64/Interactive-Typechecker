@@ -1,7 +1,7 @@
 module RuleTreeUtils exposing (..)
 
 import Dict
-import SharedStructures exposing (AContext(..), Model, RuleTree(..), SContext, SType, Term(..), TermVar, Type(..))
+import SharedStructures exposing (AContext(..), AType(..), Model, RuleTree(..), SContext, SType, Term(..), TermVar)
 
 
 {-| Returns `True` iff given `ruleTree` is a leaf, i.e. does not have any child nodes.

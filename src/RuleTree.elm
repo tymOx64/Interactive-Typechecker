@@ -830,7 +830,7 @@ showType typ =
         Arrow left right ->
             "(" ++ showType left ++ "→" ++ showType right ++ ")"
 
-        Untyped ->
+        Unknown ->
             "?"
 
 
@@ -863,7 +863,7 @@ showTypeForView typ showLatinChars =
         Arrow left right ->
             "(" ++ showTypeForView left showLatinChars ++ "→" ++ showTypeForView right showLatinChars ++ ")"
 
-        Untyped ->
+        Unknown ->
             "?"
 
 

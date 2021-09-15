@@ -65,16 +65,16 @@ type alias TermVar =
 {-| The type `Type basicType` which is used for types in the lambda calculi.
 The type variable `basicType` defines the type for _type variables_ .
 -}
-type Type basicType
+type AType basicType
     = BasicType basicType
-    | Arrow (Type basicType) (Type basicType)
-    | Untyped
+    | Arrow (AType basicType) (AType basicType)
+    | Unknown
 
 
 {-| The type alias `SType` which is used for types of the `STLC`.
 -}
 type alias SType =
-    Type String
+    AType String
 
 
 {-| An abstract type for _contexts_, i.e. a `Dict` for typing assumptions.
