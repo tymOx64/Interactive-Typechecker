@@ -275,7 +275,9 @@ viewRuleUserInterface model =
             , div [ style "justify-content" "flex-end" ]
                 [ button
                     [ onClick ApplyLatestChangesToFullRuleTree
-                    , title "Update the whole Tree's Typings based on the Typings of the currently Selected Node and the most recent Typing Changes overall"
+                    , title <|
+                        "Update the whole Tree's Typings based on the Typings of the currently Selected Node and the most recent Typing Changes overall."
+                            ++ " Does NOT include changes that are just written in input fields but have not been applied yet."
                     ]
                     [ text "♻️" ]
                 , button [ onClick FlushAllInputs, title "Flush all Inputs" ] [ text "🧹" ]
@@ -284,7 +286,20 @@ viewRuleUserInterface model =
             ]
         , div [ showFor [ SelectRule ], class "menu__bottom-button-row" ]
             [ div [ style "display" "flex", style "justify-content" "center" ]
-                [ button [ onClick (Hint RuleSelection), style "font-size" "120%", title "Hint the Inference Rule" ] [ text "💡" ] ]
+                [ button [ onClick (Hint RuleSelection), style "font-size" "120%", style "margin-right" "36px", title "Hint the Inference Rule" ] [ text "💡" ]
+                , if Dict.size model.latestTermVarTypings > 0 then
+                    button
+                        [ onClick ApplyLatestChangesToFullRuleTree
+                        , style "margin-left" "36px"
+                        , title <|
+                            "Update the whole Tree's Typings based on the Typings of the currently Selected Node and the most recent Typing Changes overall."
+                                ++ " Does NOT include changes that are just written in input fields but have not been applied yet."
+                        ]
+                        [ text "♻️" ]
+
+                  else
+                    text ""
+                ]
             ]
         ]
 

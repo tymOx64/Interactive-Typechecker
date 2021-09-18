@@ -563,6 +563,9 @@ viewHelp =
                 [ text "So whenever you change a Type that belongs to a Term Variable, you have the option to automatically propagate that change globally."
                 ]
             , div [ class "description-text" ]
+                [ text "Does NOT include changes that are just written in input fields but have not been applied yet."
+                ]
+            , div [ class "description-text" ]
                 [ text "Works on Contexts, Typing Judgements that have a Variable as their Term, as well as on the Typing of Variables in Abstractions."
                 ]
             ]

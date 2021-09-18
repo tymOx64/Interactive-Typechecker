@@ -50,7 +50,7 @@ viewRuleTree ruleTree nodeID model pointersToHighlight =
             let
                 premise =
                     if model.ruleTreeSuccessful then
-                        div [ class "ruletree__hole", onClickSelect ] [ text (getSuccessEmoji <| String.length (showContext context)) ]
+                        div [ class "ruletree__hole", onClickSelect ] [ text <| getSuccessEmoji <| (List.sum nodeID * 3 + List.length nodeID * 5) ]
 
                     else if hasBeenApplied then
                         text ""
