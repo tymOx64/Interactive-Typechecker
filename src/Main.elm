@@ -387,7 +387,12 @@ viewRight : Model -> Html Msg
 viewRight model =
     let
         viewDisplayMessage =
-            div [ class "display-message-container" ] [ strong [] [ text model.displayMessage ] ]
+            -- don't show any display message when the help page is active
+            if model.viewState == Help then
+                text ""
+
+            else
+                div [ class "display-message-container" ] [ strong [] [ text model.displayMessage ] ]
     in
     div
         [ class "menu-container" ]
