@@ -50,6 +50,7 @@ viewRuleTree ruleTree nodeID model pointersToHighlight =
             let
                 premise =
                     if model.ruleTreeSuccessful then
+                        -- the argument for getSuccessEmoji just serves the purpose of simulating some kind of randomness
                         div [ class "ruletree__hole", onClickSelect ] [ text <| getSuccessEmoji <| (List.sum nodeID * 3 + List.length nodeID * 5) ]
 
                     else if hasBeenApplied then

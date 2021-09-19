@@ -47,8 +47,8 @@ type Msg
     | StartClick
     | GetUrlClick
     | ToggleLatinView
-    | OpenStartMenu
-    | OpenHelpMenu
+    | OpenStartPage
+    | OpenHelpText
     | NoOperation
 
 

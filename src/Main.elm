@@ -320,10 +320,10 @@ update msg model =
         ToggleLatinView ->
             ( { model | viewLatinChar = not model.viewLatinChar }, Cmd.none )
 
-        OpenStartMenu ->
+        OpenStartPage ->
             ( { model | viewState = Start, displayMessage = "" }, Cmd.none )
 
-        OpenHelpMenu ->
+        OpenHelpText ->
             ( { model
                 | viewState =
                     if model.viewState == Help then
@@ -572,7 +572,7 @@ viewHelp =
         , div [ style "margin-top" "42px" ]
             [ button
                 [ class "menu__top-button"
-                , onClick OpenHelpMenu
+                , onClick OpenHelpText
                 , style "font-family" "Monaco, monospace"
                 , style "font-size" "130%"
                 ]
@@ -602,9 +602,9 @@ viewTopMenu model =
         [ button
             [ onClick ToggleLatinView, class "menu__top-button", title toggleLatinButtonTooltip ]
             [ text toggleLatinButtonLabel ]
-        , button [ class "menu__top-button", onClick OpenHelpMenu, title helpButtonTooltip, style "font-family" "Monaco, monospace" ] [ text helpButtonLabel ]
+        , button [ class "menu__top-button", onClick OpenHelpText, title helpButtonTooltip, style "font-family" "Monaco, monospace" ] [ text helpButtonLabel ]
         , button
-            [ onClick OpenStartMenu
+            [ onClick OpenStartPage
             , class "menu__top-button"
             , style "font-size" "85%"
             , style "padding-left" "5px"
