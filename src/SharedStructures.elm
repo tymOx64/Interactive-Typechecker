@@ -41,14 +41,13 @@ type Msg
     | Apply
     | SelectTreeNode (List Int)
     | ResetTreeNode (List Int)
-    | ChangeState ViewState
+    | ChangeViewState ViewState
     | KeyDown String
     | UrlChanged String
     | StartClick
     | GetUrlClick
     | ToggleLatinView
-    | OpenStartPage
-    | OpenHelpText
+    | ToggleHelpText
     | NoOperation
 
 

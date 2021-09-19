@@ -889,7 +889,7 @@ viewVarRule model =
             [ ( "menu__inference-rule", True )
             , ( "menu__inference-rule--selected", model.viewState == VarRule )
             ]
-        , onClick <| ChangeState VarRule
+        , onClick <| ChangeViewState VarRule
         , style "margin-left" "47px"
         , style "margin-right" "37px"
         , title "Select Variable Rule"
@@ -908,7 +908,7 @@ viewApplicationRule : Model -> Html Msg
 viewApplicationRule model =
     div
         [ classList [ ( "menu__inference-rule", True ), ( "menu__inference-rule--selected", model.viewState == AppRule ) ]
-        , onClick <| ChangeState AppRule
+        , onClick <| ChangeViewState AppRule
         , style "margin-right" "1px"
         , title "Select Application Rule"
         ]
@@ -926,7 +926,7 @@ viewAbstractionRule : Model -> Html Msg
 viewAbstractionRule model =
     div
         [ classList [ ( "menu__inference-rule", True ), ( "menu__inference-rule--selected", model.viewState == AbsRule ) ]
-        , onClick <| ChangeState AbsRule
+        , onClick <| ChangeViewState AbsRule
         , style "margin-left" "4px"
         , title "Select Abstraction Rule"
         ]

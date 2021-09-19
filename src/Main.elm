@@ -204,7 +204,7 @@ update msg model =
             , pushUrl <| getUrlWithProoftree model (resetRuleTreeNode model.ruleTree nodeID)
             )
 
-        ChangeState newState ->
+        ChangeViewState newState ->
             ( changeViewState newState model, Cmd.none )
 
         KeyDown key ->
@@ -320,10 +320,7 @@ update msg model =
         ToggleLatinView ->
             ( { model | viewLatinChar = not model.viewLatinChar }, Cmd.none )
 
-        OpenStartPage ->
-            ( { model | viewState = Start, displayMessage = "" }, Cmd.none )
-
-        OpenHelpText ->
+        ToggleHelpText ->
             ( { model
                 | viewState =
                     if model.viewState == Help then
@@ -572,7 +569,7 @@ viewHelp =
         , div [ style "margin-top" "42px" ]
             [ button
                 [ class "menu__top-button"
-                , onClick OpenHelpText
+                , onClick ToggleHelpText
                 , style "font-family" "Monaco, monospace"
                 , style "font-size" "130%"
                 ]
@@ -602,9 +599,9 @@ viewTopMenu model =
         [ button
             [ onClick ToggleLatinView, class "menu__top-button", title toggleLatinButtonTooltip ]
             [ text toggleLatinButtonLabel ]
-        , button [ class "menu__top-button", onClick OpenHelpText, title helpButtonTooltip, style "font-family" "Monaco, monospace" ] [ text helpButtonLabel ]
+        , button [ class "menu__top-button", onClick ToggleHelpText, title helpButtonTooltip, style "font-family" "Monaco, monospace" ] [ text helpButtonLabel ]
         , button
-            [ onClick OpenStartPage
+            [ onClick <| ChangeViewState Start
             , class "menu__top-button"
             , style "font-size" "85%"
             , style "padding-left" "5px"
