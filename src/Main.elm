@@ -92,7 +92,7 @@ getUrlWithProoftree model ruleTree =
 
 getRuleTreeFromUrlQuery : String -> Maybe RuleTree
 getRuleTreeFromUrlQuery urlAsString =
-    Maybe.andThen parseRuleTree <| Debug.log "showUrlQuery" <| getUrlQuery "prooftree" <| Debug.log "fixUrl" <| fixLocalUrl urlAsString
+    Maybe.andThen parseRuleTree <| getUrlQuery "prooftree" <| fixLocalUrl urlAsString
 
 
 {-| Transforms a local URL to a common web URL since Elms current URL packages can't handle local URLs very well (as of 21st August 2021).
@@ -158,8 +158,8 @@ update msg model =
         Tau str ->
             ( { model | tauInput = str }, Cmd.none )
 
-        Hint inputField ->
-            ( getHint inputField model, Cmd.none )
+        Hint inputKind ->
+            ( getHint inputKind model, Cmd.none )
 
         TransformInput ->
             ( { model
@@ -374,18 +374,18 @@ view model =
         Help ->
             div [ class "main-application-container" ]
                 [ viewHelp
-                , viewRight model
+                , viewTypecheckingMenu model
                 ]
 
         _ ->
             div [ class "main-application-container" ]
-                [ viewLeft model
-                , viewRight model
+                [ viewRuleTreeContainer model
+                , viewTypecheckingMenu model
                 ]
 
 
-viewRight : Model -> Html Msg
-viewRight model =
+viewTypecheckingMenu : Model -> Html Msg
+viewTypecheckingMenu model =
     let
         viewDisplayMessage =
             -- don't show any display message when the help page is active
@@ -406,8 +406,8 @@ viewRight model =
         ]
 
 
-viewLeft : Model -> Html Msg
-viewLeft model =
+viewRuleTreeContainer : Model -> Html Msg
+viewRuleTreeContainer model =
     div [ class "ruletree-container" ] [ viewRuleTree model.ruleTree [] model (getFirstConflictFromRuleTree model.ruleTree) ]
 
 
