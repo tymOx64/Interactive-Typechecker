@@ -16,12 +16,12 @@
       node: document.getElementById('stlcTypechecker')
     });
 
-    // Inform app of browser navigation (the BACK and FORWARD buttons)
+    //inform the app of browser navigation (back and forward buttons)
     window.addEventListener('popstate', function () {
       app.ports.onUrlChange.send(location.href);
     });
 
-    // Change the URL upon request, inform app of the change.
+    //change the URL upon request and inform the app of the change
     app.ports.pushUrl.subscribe(function (url) {
       history.pushState({}, '', url);
       app.ports.onUrlChange.send(location.href);

@@ -133,7 +133,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
         _ =
-            5
+            Debug.log "update log" msg
 
         --Debug.log "unusedTypeVar:" <| List.map (\x -> getUnusedTypeVariableFromRuleTree model.ruleTree x) (List.range 1 96)
         varShadowingErrMsg =
@@ -289,7 +289,7 @@ update msg model =
                     )
 
                 Nothing ->
-                    ( { model | ruleTree = model.ruleTree, displayMessage = "Unexpected parsing error on the prooftree query." }, Cmd.none )
+                    ( { model | displayMessage = "Unexpected parsing error on the prooftree query." }, Cmd.none )
 
         StartClick ->
             case applyUserInitInputs model of
@@ -349,6 +349,10 @@ subscriptions _ =
             )
         , onUrlChange UrlChanged
         ]
+
+
+
+-- PORTS
 
 
 port onUrlChange : (String -> msg) -> Sub msg
