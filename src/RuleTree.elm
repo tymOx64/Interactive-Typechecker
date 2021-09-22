@@ -34,16 +34,7 @@ viewRuleTree ruleTree nodeID model pointersToHighlight =
             ]
 
         pointersForCurrentRuleTree =
-            List.foldl
-                (\conflictPointer list ->
-                    if getNodeIDFromPointer conflictPointer == nodeID then
-                        conflictPointer :: list
-
-                    else
-                        list
-                )
-                []
-                pointersToHighlight
+            List.filter (\conflictPointer -> getNodeIDFromPointer conflictPointer == nodeID) pointersToHighlight
     in
     case ruleTree of
         RVar context term typ hasBeenApplied ->
