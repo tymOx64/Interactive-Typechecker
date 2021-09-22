@@ -604,9 +604,9 @@ viewContext contextHandler (Context dict) conflictPointers viewLatinChar =
 
         typingAssumptionToHtmlList var typ =
             [ span []
-                [ span [ classList [ ( "ruletree__conflict-highlight", highlightVar var ) ] ] [ text (contextHandler.showTermVar var) ]
-                , span [ classList [ ( "ruletree__conflict-highlight", highlightColon var ) ] ] [ text ":" ]
-                , span [ classList [ ( "ruletree__conflict-highlight", highlightType var ) ] ] [ text (contextHandler.showTypeForView typ viewLatinChar) ]
+                [ span [ classList [ ( "ruletree--conflict-highlight", highlightVar var ) ] ] [ text (contextHandler.showTermVar var) ]
+                , span [ classList [ ( "ruletree--conflict-highlight", highlightColon var ) ] ] [ text ":" ]
+                , span [ classList [ ( "ruletree--conflict-highlight", highlightType var ) ] ] [ text (contextHandler.showTypeForView typ viewLatinChar) ]
                 ]
             ]
     in
@@ -616,18 +616,18 @@ viewContext contextHandler (Context dict) conflictPointers viewLatinChar =
         )
         []
         dict
-        |> List.intersperse (span [ classList [ ( "ruletree__conflict-highlight", highlightFullContext ) ] ] [ text ", " ])
+        |> List.intersperse (span [ classList [ ( "ruletree--conflict-highlight", highlightFullContext ) ] ] [ text ", " ])
         |> (\list ->
                 if List.length list == 0 && not highlightFullContext then
-                    [ span [ classList [ ( "ruletree__conflict-highlight", highlightFullNode ) ] ] [ text "⊢ " ] ]
+                    [ span [ classList [ ( "ruletree--conflict-highlight", highlightFullNode ) ] ] [ text "⊢ " ] ]
 
                 else if List.length list == 0 then
-                    [ span [ classList [ ( "ruletree__conflict-highlight", True ) ] ] [ text "<?>" ]
+                    [ span [ classList [ ( "ruletree--conflict-highlight", True ) ] ] [ text "<?>" ]
                     , span [] [ text " ⊢ " ]
                     ]
 
                 else
-                    list ++ [ span [ classList [ ( "ruletree__conflict-highlight", highlightFullNode ) ] ] [ text " ⊢ " ] ]
+                    list ++ [ span [ classList [ ( "ruletree--conflict-highlight", highlightFullNode ) ] ] [ text " ⊢ " ] ]
            )
 
 
@@ -645,7 +645,7 @@ viewTerm term conflictElementsRaw =
                 || List.member (TermAndType ()) conflictElements
     in
     if highlightFullTerm then
-        [ span [ class "ruletree__conflict-highlight" ] [ text <| showTerm term ] ]
+        [ span [ class "ruletree--conflict-highlight" ] [ text <| showTerm term ] ]
 
     else
         case term of
@@ -661,9 +661,9 @@ viewTerm term conflictElementsRaw =
                         List.member (TermPointer () AbsBody) conflictElements
                 in
                 [ text "(λ"
-                , span [ classList [ ( "ruletree__conflict-highlight", highlightAbsVar ) ] ] [ text <| showTermVar var ]
+                , span [ classList [ ( "ruletree--conflict-highlight", highlightAbsVar ) ] ] [ text <| showTermVar var ]
                 , text "."
-                , span [ classList [ ( "ruletree__conflict-highlight", highlightAbsBody ) ] ] [ text <| showTerm mTerm ]
+                , span [ classList [ ( "ruletree--conflict-highlight", highlightAbsBody ) ] ] [ text <| showTerm mTerm ]
                 , text ")"
                 ]
 
@@ -676,9 +676,9 @@ viewTerm term conflictElementsRaw =
                         List.member (TermPointer () AppRight) conflictElements
                 in
                 [ text "("
-                , span [ classList [ ( "ruletree__conflict-highlight", highlightAppLeft ) ] ] [ text <| showTerm mTerm ]
+                , span [ classList [ ( "ruletree--conflict-highlight", highlightAppLeft ) ] ] [ text <| showTerm mTerm ]
                 , text " "
-                , span [ classList [ ( "ruletree__conflict-highlight", highlightAppRight ) ] ] [ text <| showTerm nTerm ]
+                , span [ classList [ ( "ruletree--conflict-highlight", highlightAppRight ) ] ] [ text <| showTerm nTerm ]
                 , text ")"
                 ]
 
@@ -702,15 +702,15 @@ viewType typ conflictElements viewLatinChars =
             List.member (TypePointer () ArrRight) conflictElements
     in
     if highlightFullTypeOrFullRule then
-        [ span [ class "ruletree__conflict-highlight" ] [ text <| showTypeForView typ viewLatinChars ] ]
+        [ span [ class "ruletree--conflict-highlight" ] [ text <| showTypeForView typ viewLatinChars ] ]
 
     else
         case typ of
             Arrow left right ->
                 [ text "("
-                , span [ classList [ ( "ruletree__conflict-highlight", highlightLeft ) ] ] [ text <| showTypeForView left viewLatinChars ]
+                , span [ classList [ ( "ruletree--conflict-highlight", highlightLeft ) ] ] [ text <| showTypeForView left viewLatinChars ]
                 , text "→"
-                , span [ classList [ ( "ruletree__conflict-highlight", highlightRight ) ] ] [ text <| showTypeForView right viewLatinChars ]
+                , span [ classList [ ( "ruletree--conflict-highlight", highlightRight ) ] ] [ text <| showTypeForView right viewLatinChars ]
                 , text ")"
                 ]
 
@@ -742,7 +742,7 @@ viewRuleContent context term typ pointersToHighlightRaw viewLatinChar =
     in
     viewContext stlcContextHandler context pointersToHighlight viewLatinChar
         ++ viewTerm term pointersToHighlight
-        ++ span [ classList [ ( "ruletree__conflict-highlight", highlightColon ) ] ] [ text colon ]
+        ++ span [ classList [ ( "ruletree--conflict-highlight", highlightColon ) ] ] [ text colon ]
         :: viewType typ pointersToHighlight viewLatinChar
 
 

@@ -150,7 +150,7 @@ div.ruletree__conclusion:hover {
 	padding: 2px;
 }
 
-.ruletree__conflict-highlight {
+.ruletree--conflict-highlight {
 	color: red;
 }
 
