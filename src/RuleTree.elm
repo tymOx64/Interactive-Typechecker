@@ -260,26 +260,7 @@ See function `getConflictsInRuleTree`.
 -}
 getFirstConflictFromRuleTree : RuleTree -> List Pointer
 getFirstConflictFromRuleTree ruleTree =
-    let
-        isSingleton =
-            case ruleTree of
-                RVar _ _ _ _ ->
-                    True
-
-                RAbs _ _ _ Hole ->
-                    True
-
-                RApp _ _ _ Hole Hole ->
-                    True
-
-                _ ->
-                    False
-    in
-    if isSingleton then
-        []
-
-    else
-        getConflictsInRuleTree ruleTree [] |> List.head |> Maybe.withDefault []
+    getConflictsInRuleTree ruleTree [] |> List.head |> Maybe.withDefault []
 
 
 {-| Replaces the `RuleTree` at given `nodeID` for given `singletonNewRuleTree`.
