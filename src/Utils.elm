@@ -49,16 +49,9 @@ typing assumption is missing. If you need to check for that, use `Utils.varIsMis
 -}
 variableAndTypeConflictExistingTypingAssumption : TermVar -> SType -> SContext -> Bool
 variableAndTypeConflictExistingTypingAssumption var typ (Context dict) =
-    Dict.foldl
-        (\varFromContext typFromContext conflictFound ->
-            if conflictFound then
-                True
-
-            else
-                (var == varFromContext) && (typ /= typFromContext)
-        )
-        False
-        dict
+    Dict.get var dict
+        |> Maybe.map (\typFromContext -> typFromContext /= typ)
+        |> Maybe.withDefault False
 
 
 {-| Returns one of three success emojis (🎈, 🎉, 🥳, 🏆) based on some given `rngInt` to emulate some kind of randomness.

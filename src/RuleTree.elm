@@ -27,7 +27,10 @@ viewRuleTree ruleTree nodeID model pointersToHighlight =
             onClick <| SelectTreeNode <| nodeID
 
         nodeAttributes =
-            [ classList [ ( "ruletree__conclusion", True ), ( "ruletree__conclusion--selected", nodeID == model.selectedNodeID ) ]
+            [ classList
+                [ ( "ruletree__conclusion", True )
+                , ( "ruletree__conclusion--selected", nodeID == model.selectedNodeID )
+                ]
             , onClickSelect
             , onDoubleClick <| ResetTreeNode <| nodeID
             , title "Select Tree Node"
@@ -106,19 +109,19 @@ the left term of the Application at `nodeID` is in conflict with its leftmost ch
 getConflictsInRuleTree : RuleTree -> List Int -> List (List Pointer)
 getConflictsInRuleTree ruleTree nodeID =
     let
-        appendIfConditionHolds condition conflictList =
+        retainIfConditionHolds condition conflict =
             if condition then
-                conflictList
+                conflict
 
             else
                 []
     in
     case ruleTree of
         RVar context (Var var) typ _ ->
-            appendIfConditionHolds
+            retainIfConditionHolds
                 (variableAndTypeConflictExistingTypingAssumption var typ context)
                 [ [ ContPointer nodeID (FullAssump var), TermAndType nodeID ] ]
-                ++ appendIfConditionHolds
+                ++ retainIfConditionHolds
                     (varIsMissingInContext var context)
                     [ [ ContPointer nodeID FullContext, TermAndType nodeID ] ]
 
@@ -153,27 +156,22 @@ getConflictsInRuleTree ruleTree nodeID =
                     Maybe.map2 (/=) (Just tau) (getTermTypeFromRuleTree childRuleTree)
                         |> Maybe.withDefault True
 
-                -- checks for equality for both cases (1) x:sigma is not in the parents context (2) x:sigma is already in the parents context
-                -- if either of both cases is true, no conflict will be tracked
                 contextIsConflicting =
-                    not <|
-                        (contextsAreEqual context childContextWithOutAbstractionVar
-                            || contextsAreEqual context (getContextFromRuleTree childRuleTree)
-                        )
+                    not <| contextsAreEqual context childContextWithOutAbstractionVar
 
                 mTermIsConflicting =
                     getTermFromRuleTree childRuleTree |> Maybe.andThen (\term -> Just <| term /= mTerm) |> Maybe.withDefault False
             in
-            appendIfConditionHolds
+            retainIfConditionHolds
                 sigmaIsConflicting
                 [ [ TypePointer nodeID ArrLeft, ContPointer (nodeID ++ [ 0 ]) FullContext ] ]
-                ++ appendIfConditionHolds
+                ++ retainIfConditionHolds
                     tauIsConflicting
                     [ [ TypePointer nodeID ArrRight, TypePointer (nodeID ++ [ 0 ]) FullType ] ]
-                ++ appendIfConditionHolds
+                ++ retainIfConditionHolds
                     contextIsConflicting
                     [ [ ContPointer nodeID FullContext, ContPointer (nodeID ++ [ 0 ]) FullContext ] ]
-                ++ appendIfConditionHolds
+                ++ retainIfConditionHolds
                     mTermIsConflicting
                     [ [ TermPointer nodeID AbsBody, TermPointer (nodeID ++ [ 0 ]) FullTerm ] ]
                 ++ getConflictsInRuleTree childRuleTree (nodeID ++ [ 0 ])
@@ -214,22 +212,22 @@ getConflictsInRuleTree ruleTree nodeID =
                     Maybe.map2 (/=) (getLeftTypeFromRuleTree childRuleTree1) (getTermTypeFromRuleTree childRuleTree2)
                         |> Maybe.withDefault True
             in
-            appendIfConditionHolds
+            retainIfConditionHolds
                 tauIsConflicting
                 [ [ TypePointer nodeID FullType, TypePointer (nodeID ++ [ 0 ]) ArrRight ] ]
-                ++ appendIfConditionHolds
+                ++ retainIfConditionHolds
                     mTermIsConflicting
                     [ [ TermPointer nodeID AppLeft, TermPointer (nodeID ++ [ 0 ]) FullTerm ] ]
-                ++ appendIfConditionHolds
+                ++ retainIfConditionHolds
                     nTermIsConflicting
                     [ [ TermPointer nodeID AppRight, TermPointer (nodeID ++ [ 1 ]) FullTerm ] ]
-                ++ appendIfConditionHolds
+                ++ retainIfConditionHolds
                     leftContextIsConflicting
                     [ [ ContPointer nodeID FullContext, ContPointer (nodeID ++ [ 0 ]) FullContext ] ]
-                ++ appendIfConditionHolds
+                ++ retainIfConditionHolds
                     rightContextIsConflicting
                     [ [ ContPointer nodeID FullContext, ContPointer (nodeID ++ [ 1 ]) FullContext ] ]
-                ++ appendIfConditionHolds
+                ++ retainIfConditionHolds
                     upperSigmaIsConflicting
                     [ [ TypePointer (nodeID ++ [ 0 ]) ArrLeft, TypePointer (nodeID ++ [ 1 ]) FullType ] ]
                 ++ getConflictsInRuleTree childRuleTree1 (nodeID ++ [ 0 ])
@@ -595,7 +593,7 @@ viewContext contextHandler (Context dict) conflictPointers viewLatinChar =
 
                 else if List.length list == 0 then
                     [ span [ classList [ ( "ruletree__conclusion--conflict-highlight", True ) ] ] [ text "<?>" ]
-                    , span [] [ text " ⊢ " ]
+                    , span [ classList [ ( "ruletree__conclusion--conflict-highlight", highlightFullNode ) ] ] [ text " ⊢ " ]
                     ]
 
                 else

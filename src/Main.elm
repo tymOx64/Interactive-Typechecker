@@ -44,9 +44,6 @@ init locationHref =
 
         initialRuleTree =
             ruleTreeFromUrlQuery |> Maybe.withDefault Hole
-
-        _ =
-            Debug.log "test stuff" <| 5
     in
     ( { viewState =
             if noProoftreeQueryGiven then
@@ -111,11 +108,6 @@ fixLocalUrl =
 -}
 getBaseUrl : String -> Maybe String
 getBaseUrl str =
-    {- let
-           _ =
-               Debug.log "getBaseUrl" (Regex.find (Maybe.withDefault Regex.never (Regex.fromString ".*[.]html")) str |> List.map .match |> List.head |> Maybe.withDefault "gg")
-       in
-    -}
     Regex.find (Maybe.withDefault Regex.never (Regex.fromString ".*[.]html")) str |> List.map .match |> List.head
 
 
@@ -132,10 +124,6 @@ getUrlQuery query urlAsString =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        _ =
-            Debug.log "update log" msg
-
-        --Debug.log "unusedTypeVar:" <| List.map (\x -> getUnusedTypeVariableFromRuleTree model.ruleTree x) (List.range 1 96)
         varShadowingErrMsg =
             "The Term M you have entered contains variable shadowing which is not supported. Please rename variables to prevent shadowing."
     in

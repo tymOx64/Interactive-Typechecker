@@ -23,8 +23,8 @@ type alias Model =
     }
 
 
-{-| The type `Msg` which is responsible for communicating
-user interaction to the `update` function.
+{-| The type `Msg` which is responsible for communication
+from user input or from subscriptions to the `update` function.
 -}
 type Msg
     = Gamma String

@@ -863,11 +863,6 @@ parseTypeEnd str =
     Parser.run typeParserEnd str |> Result.toMaybe
 
 
-lowerCaseLatinAlphabet : List Char
-lowerCaseLatinAlphabet =
-    List.range (Char.toCode 'a') (Char.toCode 'z') |> List.map Char.fromCode
-
-
 {-| Returns the first char from a string if possible, otherise `'#'`.
 
 This is currently not returning a Maybe type to simplify its usage with `Parser`.

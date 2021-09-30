@@ -7,7 +7,7 @@ import RuleTree exposing (..)
 import RuleTreeUtils exposing (addTypingAssumptionToContext, getContextFromRuleTree, getLeftTypeFromRuleTree, getRightTypeFromRuleTree, getRuleTreeNode, getSelectedRuleTreeNode, getTermFromRuleTree, getTermTypeFromRuleTree, isLeaf)
 import Set exposing (Set)
 import SharedStructures exposing (..)
-import UserInput exposing (fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree, lowerCaseLatinAlphabet)
+import UserInput exposing (fillMInputFromRuleTree, fillNInputFromRuleTree, fillXInputFromRuleTree)
 import Utils exposing (getTypeFromContext)
 
 
@@ -111,10 +111,10 @@ getHint inputKind model =
                 ( _, _, Nothing ) ->
                     tooManyTypeVarInUse
 
-        ( RAbs _ thisTerm _ childRuleTree, AbsRule ) ->
+        ( RAbs _ thisTerm _ _, AbsRule ) ->
             case inputKind of
                 GammaInput ->
-                    addNewTypingAssumps (getContextFromRuleTree childRuleTree) contextDictUpdatedToLatestTypings
+                    contextDictUpdatedToLatestTypings
                         |> Context
                         |> showContext
                         |> (\hintedContext -> { model | gammaInput = hintedContext })
@@ -628,11 +628,8 @@ and `passChangesDownwards` on `parent`.
 passChangesDownwards : RuleTree -> List Int -> RuleTree -> RuleTree
 passChangesDownwards ruleTree nodeID root =
     let
-        _ =
-            Debug.log "currentNodeID" nodeID
-
         parentNodeID =
-            List.take (List.length nodeID - 1) nodeID |> Debug.log "parentNodeID"
+            List.take (List.length nodeID - 1) nodeID
 
         -- to decide wether the ruleTree is the left child (0) or right child (1) of an RApp parent
         lastNodePointer =
@@ -787,12 +784,15 @@ updateContext (Context dictFrom) (Context dictTo) =
         |> Context
 
 
-{-| Contains latin alphabet with none, one, two, and three primes, e.g. `a`, `a'`, `x''`, `e'''`.
-The Cardinality is **96** = 4 \* 24.
+{-| Contains latin alphabet with zero, one, two, and three primes, e.g. `a`, `a'`, `x''`, `e'''`.
+The Cardinality is **104** = 4 \* 26.
 -}
-setOfUnusedTypeVariables : Set String
-setOfUnusedTypeVariables =
+setOfTypeVariableNames : Set String
+setOfTypeVariableNames =
     let
+        lowerCaseLatinAlphabet =
+            List.range (Char.toCode 'a') (Char.toCode 'z') |> List.map Char.fromCode
+
         baseNames =
             List.map String.fromChar lowerCaseLatinAlphabet
     in
@@ -815,7 +815,7 @@ and `index = 95` would return `z'''`.
 getUnusedTypeVariableFromRuleTree : RuleTree -> Int -> Maybe String
 getUnusedTypeVariableFromRuleTree ruleTree index =
     getUsedTypeVariables ruleTree
-        |> Set.diff setOfUnusedTypeVariables
+        |> Set.diff setOfTypeVariableNames
         |> Set.toList
         |> List.sortBy (\name -> String.toList name |> List.map Char.toCode |> List.sum)
         |> Array.fromList
