@@ -19,7 +19,7 @@ All changes you apply to the prooftree on the typechecking site will be tracked 
 
 In the top right corner of the typechecking site you can access a basic manual through the '**?**' button. This manual does not cover **mouse and keyboard input** yet.
 
-##### Mouse and Keyboard Input on the Typechecking Page
+### Mouse and Keyboard Input on the Typechecking Page
 
 Here a description for some input functions is given which is not covered by the application manual yet. The keyboard input only works when the website's focus i *not* onto a text input field.
 
@@ -34,10 +34,10 @@ Apply inputs to prooftree (only available when an inference rule is selected) | 
 
 For testing purposes you can use the following URL queries:
 
-##### Exercise / Starting Node
+#### Exercise / Starting Node
 
 `?prooftree=_AB_{}(λz.((λx.(λy.x))%20z))$?$_H_`
 
-##### Full Prooftree
+#### Full Prooftree
 
 `?prooftree=_AB_{}(λz.((λx.(λy.x))%20z))$(a→(b→a))$_AP_{z:a}((λx.(λy.x))%20z)$(b→a)$_AB_{z:a}(λx.(λy.x))$(a→(b→a))$_AB_{z:a,x:a}(λy.x)$(b→a)$_V_{z:a,y:b,x:a}x$a$T_V_{z:a}z$a$T`
