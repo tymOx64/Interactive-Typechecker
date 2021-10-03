@@ -27,7 +27,7 @@ Function | Mouse | Keyboard
 --- | --- | ---
 Select an inference rule | Leftclick on an inference rule | Press `1`, `2`, `3` to select (Var), (App), (Abs) respectively
 Select a tree node | Leftclick on the target tree node | Press `←`, `↑`, `→`, `↓` to select a tree node which is adjacent to the currently selected one
-Reset a tree node | Double-Leftclick on the target tree node | Press `DEL` to reset the currently selected tree node
+Reset a tree node | Double-Leftclick on the target tree node | Press `Delete` to reset the currently selected tree node
 Apply inputs to prooftree (only available when an inference rule is selected) | Leftclick on the `Apply` button | Press `Enter`
 
 ## Example Proof Tree
