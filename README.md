@@ -14,14 +14,14 @@ Do not change the file name so it can be accessed by `typechecker.html`. Use a w
 
 A basic manual is given in the application itself. The *start page* is the initial page and covers all relevant instructions for exporting or starting new typechecking exercises.
 Exporting an exercise will create a URL with a *prooftree*-query containing the encoded exercise.
-The *typechecking site* is the page which opens up after starting an exercise from the start page, or opening the application through a URL which contains a prooftree-query.
-All changes you apply to the prooftree on the typechecking site will be tracked automatically by the prooftree query, i.e. you can copy the URL from your browsers address bar at any time to export the current state of your prooftree.
+The *typechecking page* is the page which opens up after starting an exercise from the start page, or opening the application through a URL which contains a prooftree-query.
+All changes you apply to the prooftree on the typechecking page will be tracked automatically by the prooftree query, i.e. you can copy the URL from your browsers address bar at any time to export the current state of your prooftree.
 
-In the top right corner of the typechecking site you can access a basic manual through the '**?**' button. This manual does not cover **mouse and keyboard input** yet.
+In the top right corner of the typechecking page you can access a basic manual through the '**?**' button. This manual does not cover **mouse and keyboard input** yet.
 
-### Mouse and Keyboard Input on the Typechecking Page
+#### Mouse and Keyboard Input on the Typechecking Page
 
-Here a description for some input functions is given which is not covered by the application manual yet. The keyboard input only works when the website's focus i *not* onto a text input field.
+Here a description for some input functions is given which is not covered by the application manual yet. The keyboard input only works when the website's focus is *not* onto a text input field.
 
 Function | Mouse | Keyboard
 --- | --- | ---
