@@ -21,7 +21,7 @@ In the top right corner of the typechecking page you can access a basic manual t
 
 #### Mouse and Keyboard Input on the Typechecking Page
 
-Here a description for some input functions is given which is not covered by the application manual yet. The keyboard input only works when the website's focus is *not* onto a text input field.
+Here a description for some input functions is given which is not covered by the manual in the application yet. The keyboard input only works when the website's focus is *not* onto a text input field.
 
 Function | Mouse | Keyboard
 --- | --- | ---
